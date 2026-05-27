@@ -644,8 +644,15 @@
     </div>
   </div>
 
-  <!-- SheetJS CDN -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <!-- SheetJS Local & CDN Fallback -->
+  <script src="xlsx.full.min.js"></script>
+  <script>
+    if (!window.XLSX) {
+      var script = document.createElement('script');
+      script.src = 'https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js';
+      document.head.appendChild(script);
+    }
+  </script>
 
   <script>
   (function(){
