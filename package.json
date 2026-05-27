@@ -1,0 +1,7 @@
+{
+  "name": "megz-dialer",
+  "version": "1.0.0",
+  "description": "Standalone Dialer for Excel/CSV and VCF contacts with Megz Theme",
+  "main": "src/index.js",
+  "dependencies": {}
+}
