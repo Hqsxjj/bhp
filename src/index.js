@@ -562,34 +562,58 @@ export default {
           limit = Math.min(parseInt(new URL(request.url).searchParams.get('limit') || '50'), 200);
         }
 
-        var mergedExclude = (excludeMobiles || []).slice();
+        // ======== Per-account pull lock (prevents multi-device duplicate claiming) ========
+        var lockKey = 'dialer:lock:pull:' + (accountId || 'anonymous');
+        var lockValue = Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+        var existingLock = await env.DATA_KV.get(lockKey);
+        if (existingLock) {
+          // Another pull is in-flight for this account — return empty to avoid duplicates
+          return new Response(JSON.stringify({ data: [], total: 0, locked: true, limit: limit }), {
+            headers: { 'Content-Type': 'application/json; charset=UTF-8', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+        // Acquire lock with short TTL (auto-release if worker crashes)
+        await env.DATA_KV.put(lockKey, lockValue, { expirationTtl: 10 });
+
         try {
-          var cooldownPrefix = 'dialer:cooldown:' + (accountId || '') + ':';
-          var cooldownList = await env.DATA_KV.list({ prefix: cooldownPrefix });
-          if (cooldownList && cooldownList.keys) {
-            for (var ci = 0; ci < cooldownList.keys.length; ci++) {
-              var cm = cooldownList.keys[ci].name.replace(cooldownPrefix, '');
-              if (cm && mergedExclude.indexOf(cm) === -1) mergedExclude.push(cm);
+          var mergedExclude = (excludeMobiles || []).slice();
+          try {
+            var cooldownPrefix = 'dialer:cooldown:' + (accountId || '') + ':';
+            var cooldownList = await env.DATA_KV.list({ prefix: cooldownPrefix });
+            if (cooldownList && cooldownList.keys) {
+              for (var ci = 0; ci < cooldownList.keys.length; ci++) {
+                var cm = cooldownList.keys[ci].name.replace(cooldownPrefix, '');
+                if (cm && mergedExclude.indexOf(cm) === -1) mergedExclude.push(cm);
+              }
+            }
+          } catch (kvErr) { /* continue */ }
+
+          const sb = createSupabaseClient(env);
+          const result = await sb.getCustomersForDialer(limit, mergedExclude.length > 0 ? mergedExclude : null, accountId);
+          const data = result.data || [];
+
+          if (data.length > 0) {
+            const mobiles = data.map(function(c) { return c.mobile || ''; }).filter(Boolean);
+            // Synchronous: ensure pulled_at is updated BEFORE response is returned
+            await sb.batchSetPulledAt(mobiles, accountId);
+            // Synchronous: write KV cooldown entries before returning
+            for (var mi = 0; mi < mobiles.length; mi++) {
+              var ck = 'dialer:cooldown:' + (accountId || '') + ':' + mobiles[mi];
+              await env.DATA_KV.put(ck, new Date().toISOString(), { expirationTtl: 10 * 24 * 3600 });
             }
           }
-        } catch (kvErr) { /* continue */ }
 
-        const sb = createSupabaseClient(env);
-        const result = await sb.getCustomersForDialer(limit, mergedExclude.length > 0 ? mergedExclude : null, accountId);
-        const data = result.data || [];
+          // Release lock
+          await env.DATA_KV.delete(lockKey);
 
-        if (data.length > 0) {
-          const mobiles = data.map(function(c) { return c.mobile || ''; }).filter(Boolean);
-          sb.batchSetPulledAt(mobiles, accountId).catch(function() { /* fire-and-forget */ });
-          for (var mi = 0; mi < mobiles.length; mi++) {
-            var ck = 'dialer:cooldown:' + (accountId || '') + ':' + mobiles[mi];
-            env.DATA_KV.put(ck, new Date().toISOString(), { expirationTtl: 10 * 24 * 3600 }).catch(function() { });
-          }
+          return new Response(JSON.stringify({ data: data, total: result.total || 0, limit: limit }), {
+            headers: { 'Content-Type': 'application/json; charset=UTF-8', 'Access-Control-Allow-Origin': '*' }
+          });
+        } catch (innerErr) {
+          // Always release lock on error
+          try { await env.DATA_KV.delete(lockKey); } catch (_) { }
+          throw innerErr;
         }
-
-        return new Response(JSON.stringify({ data: data, total: result.total || 0, limit: limit }), {
-          headers: { 'Content-Type': 'application/json; charset=UTF-8', 'Access-Control-Allow-Origin': '*' }
-        });
       } catch (e) {
         return new Response(JSON.stringify({ data: [], total: 0, error: e.message }), {
           status: 200, headers: { 'Content-Type': 'application/json; charset=UTF-8', 'Access-Control-Allow-Origin': '*' }

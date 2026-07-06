@@ -7561,71 +7561,96 @@ export const DIALER_HTML = `<!DOCTYPE html>
       btn.disabled = true;
       btn.textContent = '加载中...';
 
-	      // Collect current phone numbers to exclude from server pull (prevents duplicate across devices)
-	      var excludeMobiles = [];
-	      if (importedClients && importedClients.length > 0) {
-	        for (var ei = 0; ei < importedClients.length; ei++) {
-	          var m = (importedClients[ei].mobile || '').trim();
-	          if (m) excludeMobiles.push(m);
-	        }
-	      }
+      var retryCount = 0;
+      var maxRetries = 5;
 
-	      fetch('/api/dialer/customers/random', {
-	        method: 'POST',
-	        headers: { 'Content-Type': 'application/json' },
-	        body: JSON.stringify({ limit: 50, exclude: excludeMobiles, account_id: getOrCreateAccountId() })
-      })
-        .then(function(r) { return r.json(); })
-        .then(function(res) {
-          btn.disabled = false;
-          btn.textContent = '换一批';
+      function doPull() {
 
-          if (res.error) { alert('加载失败: ' + res.error); return; }
+      	      // Collect current phone numbers to exclude from server pull (prevents duplicate across devices)
+      	      var excludeMobiles = [];
+      	      if (importedClients && importedClients.length > 0) {
+      	        for (var ei = 0; ei < importedClients.length; ei++) {
+      	          var m = (importedClients[ei].mobile || '').trim();
+      	          if (m) excludeMobiles.push(m);
+      	        }
+      	      }
 
-          var customers = res.data || [];
-          if (customers.length === 0) {
-            if (res.total > 0) {
-              alert('当前范围内客户都已在待拨列表中。\\n请清空当前列表或等待其他设备释放后重试。');
-            } else {
-              alert('数据库中没有客户记录！\\n请先在 CRM 中导入客户数据。');
+      	      fetch('/api/dialer/customers/random', {
+      	        method: 'POST',
+      	        headers: { 'Content-Type': 'application/json' },
+      	        body: JSON.stringify({ limit: 50, exclude: excludeMobiles, account_id: getOrCreateAccountId() })
+            })
+              .then(function(r) { return r.json(); })
+              .then(function(res) {
+            // Handle server-side lock (another request in-flight for same account)
+            if (res.locked && retryCount < maxRetries) {
+              retryCount++;
+              btn.textContent = '排队中(' + retryCount + ')...';
+              setTimeout(doPull, 1500);
+              return;
             }
-            return;
-          }
 
-          importedClients = customers.map(function(c) {
-            var noteObj = {};
-            var noteRaw = (c.note || '').trim();
-            if (noteRaw.indexOf('{') === 0) {
-              try { noteObj = JSON.parse(noteRaw); } catch(e) { noteObj = { note: noteRaw }; }
-            } else {
-              noteObj = { note: noteRaw };
+            if (res.locked) {
+              btn.disabled = false;
+              btn.textContent = '换一批';
+              alert('服务器繁忙，请稍后再试');
+              return;
             }
-            return {
-              name: c.name || '未知',
-              phone: c.mobile || '',
-              mobile: c.mobile || '',
-              company: c.company_name || '',
-              note: noteObj.note || '',
-              custom: noteObj.custom || '',
-              fund: c.fund || noteObj.fund || '',
-              category: c.category || '',
-              batch_label: c.batch_label || '',
-              dialedStatus: 'todo',
-              dialedAt: null
-            };
-          });
 
-          localStorage.setItem(CLIENTS_K, JSON.stringify(importedClients));
-          renderDialCards();
-          updateStats();
-          alert('已加载 ' + customers.length + ' 个客户到待拨打列表');
-        })
-        .catch(function(err) {
-          btn.disabled = false;
-          btn.textContent = '换一批';
-          alert('网络错误: ' + err.message);
-        });
-    };
+                btn.disabled = false;
+                btn.textContent = '换一批';
+
+                if (res.error) { alert('加载失败: ' + res.error); return; }
+
+                var customers = res.data || [];
+                if (customers.length === 0) {
+                  if (res.total > 0) {
+                    alert('当前范围内客户都已在待拨列表中。\\n请清空当前列表或等待其他设备释放后重试。');
+                  } else {
+                    alert('数据库中没有客户记录！\\n请先在 CRM 中导入客户数据。');
+                  }
+                  return;
+                }
+
+                importedClients = customers.map(function(c) {
+                  var noteObj = {};
+                  var noteRaw = (c.note || '').trim();
+                  if (noteRaw.indexOf('{') === 0) {
+                    try { noteObj = JSON.parse(noteRaw); } catch(e) { noteObj = { note: noteRaw }; }
+                  } else {
+                    noteObj = { note: noteRaw };
+                  }
+                  return {
+                    name: c.name || '未知',
+                    phone: c.mobile || '',
+                    mobile: c.mobile || '',
+                    company: c.company_name || '',
+                    note: noteObj.note || '',
+                    custom: noteObj.custom || '',
+                    fund: c.fund || noteObj.fund || '',
+                    category: c.category || '',
+                    batch_label: c.batch_label || '',
+                    dialedStatus: 'todo',
+                    dialedAt: null
+                  };
+                });
+
+                localStorage.setItem(CLIENTS_K, JSON.stringify(importedClients));
+                renderDialCards();
+                updateStats();
+                alert('已加载 ' + customers.length + ' 个客户到待拨打列表');
+              })
+              .catch(function(err) {
+                btn.disabled = false;
+                btn.textContent = '换一批';
+                alert('网络错误: ' + err.message);
+              });
+
+      }
+
+      doPull();
+
+          };
 
     function initCustViewer(){
       var ov=document.getElementById('dbOverlay'); if(!ov)return;
