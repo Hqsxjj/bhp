@@ -470,6 +470,47 @@ export default {
       }
     }
 
+    // ==================== Whitelist API ====================
+
+    if (path === '/api/whitelist/companies' && request.method === 'GET') {
+      try {
+        var _authHeader2 = request.headers.get('Authorization') || '';
+        var _sessionToken2 = _authHeader2.startsWith('Bearer ') ? _authHeader2.slice(7) : '';
+        var _session2 = await dialerValidateSession(env, _sessionToken2);
+        if (!_session2) throw new Error('未登录');
+        const sb = createSupabaseClient(env);
+        const companies = await sb.getAllCompanies();
+        return new Response(JSON.stringify({ companies: companies }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message, companies: [] }), {
+          status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
+    if (path === '/api/whitelist/upload' && request.method === 'POST') {
+      try {
+        var _authHeader3 = request.headers.get('Authorization') || '';
+        var _sessionToken3 = _authHeader3.startsWith('Bearer ') ? _authHeader3.slice(7) : '';
+        var _session3 = await dialerValidateSession(env, _sessionToken3);
+        if (!_session3) throw new Error('未登录');
+        const body = await request.json();
+        const companies = body.companies || [];
+        if (companies.length === 0) throw new Error('请提供公司数据');
+        const sb = createSupabaseClient(env);
+        const result = await sb.upsertCompanies(companies);
+        return new Response(JSON.stringify({ success: true, count: result.count }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
     // ==================== Central Auth Gate ====================
 
     var _dialerAccountId = '';
