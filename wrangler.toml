@@ -1,0 +1,7 @@
+name = "bhp"
+main = "src/index.js"
+compatibility_date = "2025-01-01"
+
+[[kv_namespaces]]
+binding = "DATA_KV"
+id = "ff69992ea0034094913d4a6fa1e78075"
