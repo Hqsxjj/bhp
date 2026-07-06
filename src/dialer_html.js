@@ -8622,39 +8622,39 @@ export const DIALER_HTML = `<!DOCTYPE html>
 
 
     function loadSubAccounts() {
-      var list = document.getElementById("dbSubAccountList");
+      var list = document.getElementById('dbSubAccountList');
       if (!list) return;
-      fetch("/api/dialer/auth/accounts").then(function(r) { return r.json(); }).then(function(res) {
+      fetch('/api/dialer/auth/accounts').then(function(r) { return r.json(); }).then(function(res) {
         var subs = (res.accounts || []).filter(function(a) { return !a.is_master; });
-        if (subs.length === 0) { list.innerHTML = "<div style="font-size:0.68rem; color:var(--text-light); text-align:center; padding:8px;">暂无子账户</div>"; }
+        if (subs.length === 0) { list.innerHTML = '<div style=\"font-size:0.68rem; color:var(--text-light); text-align:center; padding:8px;\">暂无子账户</div>'; }
         else {
           list.innerHTML = subs.map(function(s) {
-            var activeTag = s.active ? "" : " [已禁用]";
-            return "<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; background:var(--btn-bg); border-radius:4px;" + (s.active ? "" : "opacity:0.5;") + "">"
-              + "<span style="font-size:0.72rem; font-weight:700; color:var(--text-main);">" + (s.account_name || s.label || s.account_id.slice(0,12)) + activeTag + "</span>"
-              + "<div style="display:flex; gap:3px;">"
-              + "<button class="sub-toggle-btn" data-id="" + s.account_id + "" data-active="" + (s.active ? "1" : "0") + "" style="font-size:0.58rem; padding:2px 6px; border:1px solid var(--card-border); border-radius:3px; background:var(--card-bg); color:" + (s.active ? "#e74c3c" : "#07c160") + "; cursor:pointer; font-weight:700;">" + (s.active ? "禁用" : "启用") + "</button>"
-              + "<button class="sub-delete-btn" data-id="" + s.account_id + "" style="font-size:0.58rem; padding:2px 6px; border:1px solid var(--card-border); border-radius:3px; background:var(--card-bg); color:#e74c3c; cursor:pointer; font-weight:700;">删除</button>"
-              + "</div></div>";
-          }).join("");
-          list.querySelectorAll(".sub-toggle-btn").forEach(function(btn) {
-            btn.addEventListener("click", function() {
-              var id = btn.dataset.id; var active = btn.dataset.active === "1";
-              btn.disabled = true; btn.textContent = "...";
-              fetch("/api/dialer/auth/accounts", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ target_account_id: id, active: !active }) })
+            var activeTag = s.active ? '' : ' [已禁用]';
+            return '<div style=\"display:flex; justify-content:space-between; align-items:center; padding:6px 8px; background:var(--btn-bg); border-radius:4px;' + (s.active ? '' : 'opacity:0.5;') + '\">'
+              + '<span style=\"font-size:0.72rem; font-weight:700; color:var(--text-main);\">' + (s.account_name || s.label || s.account_id.slice(0,12)) + activeTag + '</span>'
+              + '<div style=\"display:flex; gap:3px;\">'
+              + '<button class=\"sub-toggle-btn\" data-id=\"' + s.account_id + '\" data-active=\"' + (s.active ? '1' : '0') + '\" style=\"font-size:0.58rem; padding:2px 6px; border:1px solid var(--card-border); border-radius:3px; background:var(--card-bg); color:' + (s.active ? '#e74c3c' : '#07c160') + '; cursor:pointer; font-weight:700;\">' + (s.active ? '禁用' : '启用') + '</button>'
+              + '<button class=\"sub-delete-btn\" data-id=\"' + s.account_id + '\" style=\"font-size:0.58rem; padding:2px 6px; border:1px solid var(--card-border); border-radius:3px; background:var(--card-bg); color:#e74c3c; cursor:pointer; font-weight:700;\">删除</button>'
+              + '</div></div>';
+          }).join('');
+          list.querySelectorAll('.sub-toggle-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+              var id = btn.dataset.id; var active = btn.dataset.active === '1';
+              btn.disabled = true; btn.textContent = '...';
+              fetch('/api/dialer/auth/accounts', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target_account_id: id, active: !active }) })
               .then(function(r) { return r.json(); }).then(function() { loadSubAccounts(); loadAccountStats(); })
-              .catch(function() { btn.disabled = false; btn.textContent = active ? "禁用" : "启用"; });
+              .catch(function() { btn.disabled = false; btn.textContent = active ? '禁用' : '启用'; });
             });
           });
-          list.querySelectorAll(".sub-delete-btn").forEach(function(btn) {
-            btn.addEventListener("click", function() {
+          list.querySelectorAll('.sub-delete-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
               var id = btn.dataset.id;
-              if (!confirm("确定删除该子账户吗？其数据将自动转回主账户。")) return;
-              btn.disabled = true; btn.textContent = "...";
-              fetch("/api/dialer/auth/accounts", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ target_account_id: id }) })
+              if (!confirm('确定删除该子账户吗？其数据将自动转回主账户。')) return;
+              btn.disabled = true; btn.textContent = '...';
+              fetch('/api/dialer/auth/accounts', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ target_account_id: id }) })
               .then(function(r) { return r.json(); })
-              .then(function(res) { loadSubAccounts(); loadAccountStats(); if (res.migrated > 0) alert("已删除，" + res.migrated + " 条数据已转回主账户"); })
-              .catch(function() { btn.disabled = false; btn.textContent = "删除"; });
+              .then(function(res) { loadSubAccounts(); loadAccountStats(); if (res.migrated > 0) alert('已删除，' + res.migrated + ' 条数据已转回主账户'); })
+              .catch(function() { btn.disabled = false; btn.textContent = '删除'; });
             });
           });
         }
