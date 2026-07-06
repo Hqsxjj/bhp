@@ -8962,18 +8962,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
       try { fn(); } catch (e) { console.error('Init error: ' + name, e); }
     }
     safeInit('initAuth', initAuth);
-    function loadWhitelist() {
-      fetch('/api/whitelist/companies')
-        .then(function(r) { return r.json(); })
-        .then(function(res) {
-          if (res.companies && Array.isArray(res.companies)) {
-            whitelistCompanies = res.companies;
-            whitelistLoaded = true;
-          }
-        })
-        .catch(function() { /* whitelist unavailable, use empty */ });
-    }
-    safeInit('loadWhitelist', loadWhitelist);
     safeInit('initDark', initDark);
     safeInit('initFileInputs', initFileInputs);
     safeInit('initCallControls', initCallControls);
