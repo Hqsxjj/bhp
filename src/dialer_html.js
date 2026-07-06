@@ -3,7 +3,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover, shrink-to-fit=no">
-  <title>智能快捷拨号助手</title>
+  <title>拨号盘</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
@@ -1270,7 +1270,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
   <!-- Auth: Login Overlay -->
   <div id="authLoginOverlay" class="auth-overlay auth-hidden">
     <div class="auth-card">
-      <div class="auth-title">智能快捷拨号</div>
+      <div class="auth-title">拨号盘</div>
       <div class="auth-subtitle">输入账户名和 PIN 码登录</div>
       <input type="text" id="authLoginAccountName" class="auth-input" placeholder="账户名" autocomplete="off">
       <input type="password" id="authLoginPin" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="PIN 码" autocomplete="off">
