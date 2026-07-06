@@ -1311,7 +1311,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
         <!-- Auto Dial Toggle -->
         <button id="autoDialBtn" title="自动拨打" style="font-size: 0.78rem; padding: 4px 10px; border: 1px solid var(--accent-wechat); background: var(--accent-wechat-bg); color: var(--accent-wechat); cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-xs); white-space: nowrap;">自动拨打</button>
         <button id="refreshBatchBtn" title="从数据库按最新导入顺序拉取，与看板同序，拉过的自动沉底" onclick="if(window.refreshBatch)window.refreshBatch()" style="font-size: 0.78rem; padding: 4px 10px; border: 1px solid #e67e22; background: rgba(230,126,34,0.08); color: #e67e22; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-xs); margin-right: 8px; white-space: nowrap;">换一批</button>
-        <span id="accountDisplay" onclick="if(window.showAccountSettings)window.showAccountSettings()" style="font-size:0.68rem; color:var(--text-light); font-weight:700; cursor:pointer; padding:3px 8px; border:1px dashed var(--card-border); border-radius:3px; margin-right:6px; white-space:nowrap; font-family:monospace;" title="点击设置账户"></span>
+        <span id="accountDisplay" style="font-size:0.68rem; color:var(--text-light); font-weight:700; padding:3px 8px; border:1px dashed var(--card-border); border-radius:3px; margin-right:6px; white-space:nowrap; font-family:monospace;"></span>
         <!-- Dropdown Menu Trigger on the Right -->
         <div style="position: relative; display: inline-block;">
           <button id="headerMenuBtn" title="更多设置" style="font-size: 0.8rem; padding: 6px 10px; border: none; background: transparent; cursor: pointer; outline: none; font-weight: 800; color: var(--text-soft); min-width: 44px; min-height: 34px; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">更多</button>
@@ -1325,7 +1325,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
             <button class="dropdown-item" id="exportBtn" style="display:none;">导出记录</button>
             <button class="dropdown-item" id="clearBtn" style="display:none; color: #e74c3c;">清空数据</button>
             <button class="dropdown-item" id="darkToggleBtn">切换主题</button>
-            <button class="dropdown-item" id="accountSettingsBtn">账户设置</button>
           </div>
         </div>
 
@@ -1649,57 +1648,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
     </div>
   </div>
 
-  <!-- Account Settings Modal -->
-  <div id="accountSettingsModal" class="modal-overlay" style="z-index:100006;">
-    <div class="modal-card" style="max-width: 420px; gap: 12px; text-align: left; max-height: 80vh; overflow-y: auto;">
-      <div style="font-size:0.95rem; font-weight:900; color:var(--text-main); display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:var(--modal-card); padding-bottom: 4px;">
-        <span>账户设置</span>
-        <button id="closeAccountSettingsBtn" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--text-soft); padding:0;">关闭</button>
-      </div>
-      <div style="font-size:0.7rem; color:var(--text-light); font-weight:700;">
-        当前账户标识：
-      </div>
-      <div id="accountIdDisplay" style="font-size:0.8rem; font-weight:700; color:var(--accent-wechat); background:var(--btn-bg); padding:8px 12px; border-radius:4px; word-break:break-all; font-family:monospace;"></div>
-      <div style="font-size:0.7rem; color:var(--text-light); font-weight:700; margin-top:4px;">
-        账户标签：
-      </div>
-      <input type="text" id="accountLabelInput" placeholder="例如：办公室电脑" style="width:100%; height:34px; padding:0 10px; font-size:0.8rem; border:1px solid var(--card-border); border-radius:4px; font-weight:700; outline:none; background:var(--card-bg); color:var(--text-main); box-sizing:border-box;">
-      <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:4px;">
-        <button id="logoutBtn" class="btn-secondary" style="padding:8px 16px; font-size:0.72rem;">退出登录</button>
-        <button id="saveAccountSettingsBtn" class="btn-primary" style="padding:8px 20px; font-size:0.8rem;">保存</button>
-      </div>
-
-      <!-- Master-only: sub-account management -->
-      <div id="accountMasterSection" style="display:none; border-top:1px solid var(--card-border); padding-top:12px;">
-        <div style="font-size:0.8rem; font-weight:900; color:var(--text-main); margin-bottom:8px;">子账户管理</div>
-        <div id="subAccountList" style="display:flex; flex-direction:column; gap:4px; max-height:140px; overflow-y:auto; margin-bottom:8px;"></div>
-        <div style="display:flex; gap:6px;">
-          <input type="text" id="subAccountNameInput" maxlength="20" placeholder="账户名" style="flex:1; height:30px; padding:0 8px; font-size:0.72rem; border:1px solid var(--card-border); border-radius:4px; font-weight:700; outline:none; background:var(--card-bg); color:var(--text-main);">
-          <input type="password" id="subAccountPinInput" maxlength="6" placeholder="PIN码" style="width:70px; height:30px; padding:0 6px; font-size:0.72rem; border:1px solid var(--card-border); border-radius:4px; font-weight:700; outline:none; background:var(--card-bg); color:var(--text-main); text-align:center; font-family:monospace;">
-          <button id="createSubAccountBtn" class="btn-primary" style="padding:0 10px; height:30px; font-size:0.7rem;">创建</button>
-        </div>
-        <div id="subAccountError" style="font-size:0.6rem; color:#e74c3c; min-height:16px; margin-top:4px;"></div>
-      </div>
-
-      <!-- PIN change -->
-      <div style="border-top:1px solid var(--card-border); padding-top:12px;">
-        <div style="font-size:0.8rem; font-weight:900; color:var(--text-main); margin-bottom:8px;">修改 PIN 码</div>
-        <div style="display:flex; gap:6px; flex-wrap:wrap;">
-          <input type="password" id="changePinOld" maxlength="6" placeholder="当前PIN" style="flex:1; min-width:70px; height:30px; padding:0 8px; font-size:0.72rem; border:1px solid var(--card-border); border-radius:4px; font-weight:700; outline:none; background:var(--card-bg); color:var(--text-main); text-align:center; font-family:monospace;">
-          <input type="password" id="changePinNew" maxlength="6" placeholder="新PIN" style="flex:1; min-width:70px; height:30px; padding:0 8px; font-size:0.72rem; border:1px solid var(--card-border); border-radius:4px; font-weight:700; outline:none; background:var(--card-bg); color:var(--text-main); text-align:center; font-family:monospace;">
-          <button id="changePinBtn" class="btn-secondary" style="padding:0 10px; height:30px; font-size:0.7rem;">修改</button>
-        </div>
-        <div id="changePinError" style="font-size:0.6rem; min-height:16px; margin-top:4px;"></div>
-      </div>
-
-      <!-- Reset (master only) -->
-      <div id="accountResetSection" style="display:none; border-top:1px solid var(--card-border); padding-top:12px;">
-        <button id="resetAccountsBtn" style="width:100%; height:34px; background:transparent; border:1px solid #e74c3c; color:#e74c3c; border-radius:var(--radius-xs); font-size:0.72rem; font-weight:700; cursor:pointer;">重置所有账户数据</button>
-        <div id="resetAccountsError" style="font-size:0.6rem; min-height:16px; margin-top:4px; text-align:center;"></div>
-      </div>
-    </div>
-  </div>
-
   <!-- SheetJS CDN -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/4.1.1/tesseract.min.js"></script>
@@ -1754,6 +1702,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
       <div class="crm-tab" data-tab="意向客户">意向客户 <span class="crm-tab-close">关闭</span></div>
       <div class="crm-tab" data-tab="线索池">线索池 <span class="crm-tab-close">关闭</span></div>
       <div class="crm-tab" data-tab="公海客户">公海客户 <span class="crm-tab-close">关闭</span></div>
+      <div class="crm-tab" data-tab="accountMgr">账户管理</div>
       <div class="crm-tabs-right">
         <button class="db-close" id="dbClose">关闭</button>
       </div>
@@ -1836,6 +1785,32 @@ export const DIALER_HTML = `<!DOCTYPE html>
         <select id="crmReassignSel" style="height:28px; padding:0 6px; font-size:0.68rem; border:1px solid var(--card-border); border-radius:3px; font-weight:700; background:var(--card-bg); color:var(--text-main); cursor:pointer;"></select>
         <button class="crm-tool-btn" id="crmReassignBtn" style="background:#e67e22; color:#fff; border-color:#e67e22;">分配</button>
       </span>
+    </div>
+
+    <!-- Account Management Panel -->
+    <div id="dbAccountMgrPanel" style="display:none; flex-direction:column; gap:12px; padding:16px; overflow-y:auto; flex:1;">
+      <div id="dbAccountMgrSubs" style="display:none;">
+        <div style="font-size:0.85rem; font-weight:900; color:var(--text-main); margin-bottom:8px;">子账户管理</div>
+        <div id="dbSubAccountList" style="display:flex; flex-direction:column; gap:4px; max-height:180px; overflow-y:auto; margin-bottom:8px;"></div>
+        <div style="display:flex; gap:6px;">
+          <input type="text" id="dbSubAccountNameInput" maxlength="20" placeholder="账户名" style="flex:1; height:32px; padding:0 8px; font-size:0.75rem; border:1px solid var(--card-border); border-radius:4px; font-weight:700; outline:none; background:var(--card-bg); color:var(--text-main);">
+          <input type="password" id="dbSubAccountPinInput" maxlength="6" placeholder="PIN码" style="width:80px; height:32px; padding:0 6px; font-size:0.75rem; border:1px solid var(--card-border); border-radius:4px; font-weight:700; outline:none; background:var(--card-bg); color:var(--text-main); text-align:center; font-family:monospace;">
+          <button id="dbCreateSubAccountBtn" class="btn-primary" style="padding:0 12px; height:32px; font-size:0.72rem;">创建</button>
+        </div>
+        <div id="dbSubAccountError" style="font-size:0.62rem; color:#e74c3c; min-height:16px; margin-top:4px;"></div>
+      </div>
+      <div style="font-size:0.85rem; font-weight:900; color:var(--text-main);">修改 PIN 码</div>
+      <div style="display:flex; gap:6px;">
+        <input type="password" id="dbChangePinOld" maxlength="6" placeholder="当前PIN" style="flex:1; height:32px; padding:0 8px; font-size:0.75rem; border:1px solid var(--card-border); border-radius:4px; font-weight:700; outline:none; background:var(--card-bg); color:var(--text-main); text-align:center; font-family:monospace;">
+        <input type="password" id="dbChangePinNew" maxlength="6" placeholder="新PIN" style="flex:1; height:32px; padding:0 8px; font-size:0.75rem; border:1px solid var(--card-border); border-radius:4px; font-weight:700; outline:none; background:var(--card-bg); color:var(--text-main); text-align:center; font-family:monospace;">
+        <button id="dbChangePinBtn" class="btn-secondary" style="padding:0 12px; height:32px; font-size:0.72rem;">修改</button>
+      </div>
+      <div id="dbChangePinError" style="font-size:0.62rem; min-height:16px;"></div>
+      <div style="display:flex; gap:8px; border-top:1px solid var(--card-border); padding-top:12px;">
+        <button id="dbLogoutBtn" class="btn-secondary" style="flex:1; height:34px; font-size:0.75rem;">退出登录</button>
+        <button id="dbResetAccountsBtn" style="flex:1; height:34px; background:transparent; border:1px solid #e74c3c; color:#e74c3c; border-radius:var(--radius-xs); font-size:0.72rem; font-weight:700; cursor:pointer;">重置所有账户</button>
+      </div>
+      <div id="dbResetAccountsError" style="font-size:0.62rem; min-height:16px; text-align:center;"></div>
     </div>
 
     <!-- Batch category mini-panel -->
@@ -7730,11 +7705,35 @@ export const DIALER_HTML = `<!DOCTYPE html>
       var tabs = document.querySelectorAll('#dbOverlay .crm-tab');
       tabs.forEach(function(tab) {
         tab.onclick = function() {
-          tabs.forEach(function(t) { t.classList.remove('active'); });
-          tab.classList.add('active');
-          DB.activeTab = tab.getAttribute('data-tab') || 'all';
-          DB.page = 1;
-          dbFetch();
+          var tabName = tab.getAttribute('data-tab') || 'all';
+          if (tabName === 'accountMgr') {
+            tabs.forEach(function(t) { t.classList.remove('active'); });
+            tab.classList.add('active');
+            var mp = document.getElementById('dbAccountMgrPanel');
+            var tb = document.querySelector('#dbOverlay .crm-table');
+            var sc = document.querySelector('#dbOverlay .crm-search-card');
+            var tl = document.querySelector('#dbOverlay .crm-toolbar');
+            if (mp) mp.style.display = 'flex';
+            if (tb) tb.style.display = 'none';
+            if (sc) sc.style.display = 'none';
+            if (tl) tl.style.display = 'none';
+            loadSubAccounts();
+            loadAccountStats();
+          } else {
+            var mp2 = document.getElementById('dbAccountMgrPanel');
+            var tb2 = document.querySelector('#dbOverlay .crm-table');
+            var sc2 = document.querySelector('#dbOverlay .crm-search-card');
+            var tl2 = document.querySelector('#dbOverlay .crm-toolbar');
+            if (mp2) mp2.style.display = 'none';
+            if (tb2) tb2.style.display = '';
+            if (sc2) sc2.style.display = '';
+            if (tl2) tl2.style.display = '';
+            tabs.forEach(function(t) { t.classList.remove('active'); });
+            tab.classList.add('active');
+            DB.activeTab = tabName;
+            DB.page = 1;
+            dbFetch();
+          }
         };
       });
 
@@ -8551,227 +8550,117 @@ export const DIALER_HTML = `<!DOCTYPE html>
       }
     }
 
-    function initAccountSettings() {
+
+    function initAccountMgrPanel() {
       updateAccountDisplay();
-      var accBtn = document.getElementById('accountSettingsBtn');
-      if (accBtn) {
-        accBtn.addEventListener('click', function() {
-          if (window.showAccountSettings) window.showAccountSettings();
-        });
-      }
-      var modal = document.getElementById('accountSettingsModal');
-      if (!modal) return;
-      var closeBtn = document.getElementById('closeAccountSettingsBtn');
-      if (closeBtn) {
-        closeBtn.addEventListener('click', function() { modal.classList.remove('active'); });
-      }
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) modal.classList.remove('active');
-      });
-
-      // Save label
-      var saveBtn = document.getElementById('saveAccountSettingsBtn');
-      if (saveBtn) {
-        saveBtn.addEventListener('click', function() {
-          var labelInput = document.getElementById('accountLabelInput');
-          if (labelInput) {
-            var label = labelInput.value.trim();
-            setAccountLabel(label);
-            localStorage.setItem(SESS_LABEL_K, label);
-          }
-          updateAccountDisplay();
-          modal.classList.remove('active');
-        });
-      }
-
-      // Logout
-      var logoutBtn = document.getElementById('logoutBtn');
-      if (logoutBtn) {
-        logoutBtn.addEventListener('click', function() {
-          clearSession();
-          modal.classList.remove('active');
-          location.reload();
-        });
-      }
+      var subsSection = document.getElementById("dbAccountMgrSubs");
+      if (subsSection) subsSection.style.display = isSessionMaster() ? "block" : "none";
+      var resetBtn = document.getElementById("dbResetAccountsBtn");
+      if (resetBtn) resetBtn.style.display = isSessionMaster() ? "block" : "none";
 
       // Create sub-account
-      var createSubBtn = document.getElementById('createSubAccountBtn');
+      var createSubBtn = document.getElementById("dbCreateSubAccountBtn");
       if (createSubBtn) {
-        createSubBtn.addEventListener('click', function() {
-          var accountName = document.getElementById('subAccountNameInput').value.trim();
-          var pin = document.getElementById('subAccountPinInput').value.trim();
-          var error = document.getElementById('subAccountError');
-          if (!accountName) { error.textContent = '请输入账户名'; return; }
-          if (pin.length < 4) { error.textContent = 'PIN 至少 4 位'; return; }
-
-          createSubBtn.disabled = true;
-          createSubBtn.textContent = '创建中...';
-          fetch('/api/dialer/auth/accounts', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ account_name: accountName, pin: pin, label: accountName })
-          })
+        createSubBtn.addEventListener("click", function() {
+          var accountName = document.getElementById("dbSubAccountNameInput").value.trim();
+          var pin = document.getElementById("dbSubAccountPinInput").value.trim();
+          var error = document.getElementById("dbSubAccountError");
+          if (!accountName) { error.textContent = "请输入账户名"; return; }
+          if (pin.length < 4) { error.textContent = "PIN 至少 4 位"; return; }
+          createSubBtn.disabled = true; createSubBtn.textContent = "创建中...";
+          fetch("/api/dialer/auth/accounts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ account_name: accountName, pin: pin, label: accountName }) })
           .then(function(r) { return r.json(); })
           .then(function(res) {
-            if (res.success) {
-              document.getElementById('subAccountNameInput').value = '';
-              document.getElementById('subAccountPinInput').value = '';
-              error.textContent = '';
-              loadSubAccounts();
-            } else {
-              error.textContent = res.error || '创建失败';
-            }
+            if (res.success) { document.getElementById("dbSubAccountNameInput").value = ""; document.getElementById("dbSubAccountPinInput").value = ""; error.textContent = ""; loadSubAccounts(); loadAccountStats(); }
+            else { error.textContent = res.error || "创建失败"; }
           })
-          .catch(function() { error.textContent = '网络错误'; })
-          .finally(function() { createSubBtn.disabled = false; createSubBtn.textContent = '创建'; });
+          .catch(function() { error.textContent = "网络错误"; })
+          .finally(function() { createSubBtn.disabled = false; createSubBtn.textContent = "创建"; });
         });
       }
 
       // Change PIN
-      var changePinBtn = document.getElementById('changePinBtn');
+      var changePinBtn = document.getElementById("dbChangePinBtn");
       if (changePinBtn) {
-        changePinBtn.addEventListener('click', function() {
-          var oldPin = document.getElementById('changePinOld').value.trim();
-          var newPin = document.getElementById('changePinNew').value.trim();
-          var error = document.getElementById('changePinError');
-          error.style.color = '#e74c3c';
-          if (!oldPin) { error.textContent = '请输入当前 PIN'; return; }
-          if (newPin.length < 4) { error.textContent = '新 PIN 至少 4 位'; return; }
-
-          changePinBtn.disabled = true;
-          changePinBtn.textContent = '修改中...';
-
-          fetch('/api/dialer/auth/change-pin', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ old_pin: oldPin, new_pin: newPin })
-          })
+        changePinBtn.addEventListener("click", function() {
+          var oldPin = document.getElementById("dbChangePinOld").value.trim();
+          var newPin = document.getElementById("dbChangePinNew").value.trim();
+          var error = document.getElementById("dbChangePinError");
+          error.style.color = "#e74c3c";
+          if (!oldPin) { error.textContent = "请输入当前 PIN"; return; }
+          if (newPin.length < 4) { error.textContent = "新 PIN 至少 4 位"; return; }
+          changePinBtn.disabled = true; changePinBtn.textContent = "修改中...";
+          fetch("/api/dialer/auth/change-pin", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ old_pin: oldPin, new_pin: newPin }) })
           .then(function(r) { return r.json(); })
           .then(function(res) {
-            if (res.success) {
-              error.style.color = '#07c160';
-              error.textContent = 'PIN 修改成功';
-              document.getElementById('changePinOld').value = '';
-              document.getElementById('changePinNew').value = '';
-              setTimeout(function() { error.textContent = ''; error.style.color = '#e74c3c'; }, 3000);
-            } else {
-              error.textContent = res.error || '修改失败';
-            }
+            if (res.success) { error.style.color = "#07c160"; error.textContent = "PIN 修改成功"; document.getElementById("dbChangePinOld").value = ""; document.getElementById("dbChangePinNew").value = ""; setTimeout(function() { error.textContent = ""; error.style.color = "#e74c3c"; }, 3000); }
+            else { error.textContent = res.error || "修改失败"; }
           })
-          .catch(function() { error.textContent = '网络错误'; })
-          .finally(function() { changePinBtn.disabled = false; changePinBtn.textContent = '修改'; });
+          .catch(function() { error.textContent = "网络错误"; })
+          .finally(function() { changePinBtn.disabled = false; changePinBtn.textContent = "修改"; });
         });
       }
 
-      // Reset all accounts
-      var resetBtn = document.getElementById('resetAccountsBtn');
-      if (resetBtn) {
-        resetBtn.addEventListener('click', function() {
-          if (!confirm('确定要删除所有账户数据吗？此操作不可撤销，所有账户、PIN 码和子账户将被清除。')) return;
-          resetBtn.disabled = true;
-          resetBtn.textContent = '重置中...';
-          fetch('/api/dialer/auth/reset', { method: 'POST' })
-            .then(function(r) { return r.json(); })
-            .then(function() {
-              clearSession();
-              modal.classList.remove('active');
-              location.reload();
-            })
-            .catch(function() {
-              document.getElementById('resetAccountsError').textContent = '重置失败，请重试';
-            })
-            .finally(function() {
-              resetBtn.disabled = false;
-              resetBtn.textContent = '重置所有账户数据';
-            });
+      // Logout
+      var logoutBtn = document.getElementById("dbLogoutBtn");
+      if (logoutBtn) { logoutBtn.addEventListener("click", function() { clearSession(); location.reload(); }); }
+
+      // Reset
+      var resetBtn2 = document.getElementById("dbResetAccountsBtn");
+      if (resetBtn2) {
+        resetBtn2.addEventListener("click", function() {
+          if (!confirm("确定要删除所有账户数据吗？此操作不可撤销。")) return;
+          resetBtn2.disabled = true; resetBtn2.textContent = "重置中...";
+          fetch("/api/dialer/auth/reset", { method: "POST" })
+          .then(function(r) { return r.json(); })
+          .then(function() { clearSession(); location.reload(); })
+          .catch(function() { document.getElementById("dbResetAccountsError").textContent = "重置失败"; })
+          .finally(function() { resetBtn2.disabled = false; resetBtn2.textContent = "重置所有账户"; });
         });
       }
     }
+
 
     function loadSubAccounts() {
-      var list = document.getElementById('subAccountList');
+      var list = document.getElementById("dbSubAccountList");
       if (!list) return;
-      fetch('/api/dialer/auth/accounts')
-        .then(function(r) { return r.json(); })
-        .then(function(res) {
-          var myId = getSessionAccountId();
-          var subs = (res.accounts || []).filter(function(a) { return !a.is_master; });
-          if (subs.length === 0) {
-            list.innerHTML = '<div style="font-size:0.68rem; color:var(--text-light); text-align:center; padding:8px;">暂无子账户</div>';
-          } else {
-            list.innerHTML = subs.map(function(s) {
-              var activeTag = s.active ? '' : ' [已禁用]';
-              return '<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; background:var(--btn-bg); border-radius:4px;' + (s.active ? '' : 'opacity:0.5;') + '">'
-                + '<span style="font-size:0.72rem; font-weight:700; color:var(--text-main);">' + (s.account_name || s.label || s.account_id.slice(0,12)) + activeTag + '</span>'
-                + '<div style="display:flex; gap:3px;">'
-                + '<button class="sub-toggle-btn" data-id="' + s.account_id + '" data-active="' + (s.active ? '1' : '0') + '" style="font-size:0.58rem; padding:2px 6px; border:1px solid var(--card-border); border-radius:3px; background:var(--card-bg); color:' + (s.active ? '#e74c3c' : '#07c160') + '; cursor:pointer; font-weight:700;">' + (s.active ? '禁用' : '启用') + '</button>'
-                + '<button class="sub-delete-btn" data-id="' + s.account_id + '" style="font-size:0.58rem; padding:2px 6px; border:1px solid var(--card-border); border-radius:3px; background:var(--card-bg); color:#e74c3c; cursor:pointer; font-weight:700;">删除</button>'
-                + '</div>'
-                + '</div>';
-            }).join('');
-
-            // Wire up toggle buttons
-            list.querySelectorAll('.sub-toggle-btn').forEach(function(btn) {
-              btn.addEventListener('click', function() {
-                var id = btn.dataset.id;
-                var active = btn.dataset.active === '1';
-                btn.disabled = true;
-                btn.textContent = '...';
-                fetch('/api/dialer/auth/accounts', {
-                  method: 'PATCH',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ target_account_id: id, active: !active })
-                })
-                .then(function(r) { return r.json(); })
-                .then(function() { loadSubAccounts(); })
-                .catch(function() { btn.disabled = false; btn.textContent = active ? '禁用' : '启用'; });
-              });
+      fetch("/api/dialer/auth/accounts").then(function(r) { return r.json(); }).then(function(res) {
+        var subs = (res.accounts || []).filter(function(a) { return !a.is_master; });
+        if (subs.length === 0) { list.innerHTML = "<div style="font-size:0.68rem; color:var(--text-light); text-align:center; padding:8px;">暂无子账户</div>"; }
+        else {
+          list.innerHTML = subs.map(function(s) {
+            var activeTag = s.active ? "" : " [已禁用]";
+            return "<div style="display:flex; justify-content:space-between; align-items:center; padding:6px 8px; background:var(--btn-bg); border-radius:4px;" + (s.active ? "" : "opacity:0.5;") + "">"
+              + "<span style="font-size:0.72rem; font-weight:700; color:var(--text-main);">" + (s.account_name || s.label || s.account_id.slice(0,12)) + activeTag + "</span>"
+              + "<div style="display:flex; gap:3px;">"
+              + "<button class="sub-toggle-btn" data-id="" + s.account_id + "" data-active="" + (s.active ? "1" : "0") + "" style="font-size:0.58rem; padding:2px 6px; border:1px solid var(--card-border); border-radius:3px; background:var(--card-bg); color:" + (s.active ? "#e74c3c" : "#07c160") + "; cursor:pointer; font-weight:700;">" + (s.active ? "禁用" : "启用") + "</button>"
+              + "<button class="sub-delete-btn" data-id="" + s.account_id + "" style="font-size:0.58rem; padding:2px 6px; border:1px solid var(--card-border); border-radius:3px; background:var(--card-bg); color:#e74c3c; cursor:pointer; font-weight:700;">删除</button>"
+              + "</div></div>";
+          }).join("");
+          list.querySelectorAll(".sub-toggle-btn").forEach(function(btn) {
+            btn.addEventListener("click", function() {
+              var id = btn.dataset.id; var active = btn.dataset.active === "1";
+              btn.disabled = true; btn.textContent = "...";
+              fetch("/api/dialer/auth/accounts", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ target_account_id: id, active: !active }) })
+              .then(function(r) { return r.json(); }).then(function() { loadSubAccounts(); loadAccountStats(); })
+              .catch(function() { btn.disabled = false; btn.textContent = active ? "禁用" : "启用"; });
             });
-
-            // Wire up delete buttons
-            list.querySelectorAll('.sub-delete-btn').forEach(function(btn) {
-              btn.addEventListener('click', function() {
-                var id = btn.dataset.id;
-                if (!confirm('确定删除子账户 ' + id.slice(0, 12) + ' 吗？该操作不可撤销。')) return;
-                btn.disabled = true;
-                btn.textContent = '...';
-                fetch('/api/dialer/auth/accounts', {
-                  method: 'DELETE',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ target_account_id: id })
-                })
-                .then(function(r) { return r.json(); })
-                .then(function() { loadSubAccounts(); })
-                .catch(function() { btn.disabled = false; btn.textContent = '删除'; });
-              });
+          });
+          list.querySelectorAll(".sub-delete-btn").forEach(function(btn) {
+            btn.addEventListener("click", function() {
+              var id = btn.dataset.id;
+              if (!confirm("确定删除该子账户吗？其数据将自动转回主账户。")) return;
+              btn.disabled = true; btn.textContent = "...";
+              fetch("/api/dialer/auth/accounts", { method: "DELETE", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ target_account_id: id }) })
+              .then(function(r) { return r.json(); })
+              .then(function(res) { loadSubAccounts(); loadAccountStats(); if (res.migrated > 0) alert("已删除，" + res.migrated + " 条数据已转回主账户"); })
+              .catch(function() { btn.disabled = false; btn.textContent = "删除"; });
             });
-          }
-        });
+          });
+        }
+      });
     }
 
-    window.showAccountSettings = function() {
-      var modal = document.getElementById('accountSettingsModal');
-      if (!modal) return;
-      document.getElementById('accountIdDisplay').textContent = getOrCreateAccountId();
-      document.getElementById('accountLabelInput').value = getAccountLabel();
-
-      // Show/hide master section
-      var masterSection = document.getElementById('accountMasterSection');
-      if (masterSection) {
-        if (isSessionMaster()) {
-          masterSection.style.display = 'block';
-          loadSubAccounts();
-        } else {
-          masterSection.style.display = 'none';
-        }
-      }
-      var resetSection = document.getElementById('accountResetSection');
-      if (resetSection) {
-        resetSection.style.display = isSessionMaster() ? 'block' : 'none';
-      }
-
-      modal.classList.add('active');
-    };
 
     // ========== Auth Flow ==========
 
@@ -8974,7 +8863,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
     safeInit('initAIImporter', initAIImporter);
     safeInit('loadPersistedState', loadPersistedState);
     safeInit('initCustViewer', initCustViewer);
-    safeInit('initAccountSettings', initAccountSettings);
+    safeInit('initAccountMgrPanel', initAccountMgrPanel);
 
     safeInit('initDialerTemplateBtn', function() {
       var btn = document.getElementById('dialerTemplateBtn');
