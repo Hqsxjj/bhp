@@ -1325,6 +1325,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
             <button class="dropdown-item" id="exportBtn" style="display:none;">导出记录</button>
             <button class="dropdown-item" id="clearBtn" style="display:none; color: #e74c3c;">清空数据</button>
             <button class="dropdown-item" id="darkToggleBtn">切换主题</button>
+            <button class="dropdown-item" id="headerLogoutBtn" style="color: #e74c3c;">退出登录</button>
           </div>
         </div>
 
@@ -8557,6 +8558,15 @@ export const DIALER_HTML = `<!DOCTYPE html>
             dropdown.style.display = 'none';
           });
         });
+
+        // Logout button in header menu
+        var headerLogoutBtn = document.getElementById('headerLogoutBtn');
+        if (headerLogoutBtn) {
+          headerLogoutBtn.addEventListener('click', function() {
+            clearSession();
+            location.reload();
+          });
+        }
       }
     }
 
