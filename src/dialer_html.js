@@ -1270,13 +1270,12 @@ export const DIALER_HTML = `<!DOCTYPE html>
   <!-- Auth: Login Overlay -->
   <div id="authLoginOverlay" class="auth-overlay auth-hidden">
     <div class="auth-card">
-      <div class="auth-title">拨号盘</div>
+      <div class="auth-title">登录</div>
       <div class="auth-subtitle">输入账户名和 PIN 码登录</div>
       <input type="text" id="authLoginAccountName" class="auth-input" placeholder="账户名" autocomplete="off">
       <input type="password" id="authLoginPin" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="PIN 码" autocomplete="off">
       <div id="authLoginError" class="auth-error"></div>
       <button id="authLoginBtn" class="auth-btn">登录</button>
-      <span id="authShowSetupLink" class="auth-link">首次使用？创建新账户</span>
     </div>
   </div>
 
@@ -1902,6 +1901,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
     var SESS_AID_K = 'dialer_sess_aid';
     var SESS_MASTER_K = 'dialer_sess_master';
     var SESS_LABEL_K = 'dialer_sess_label';
+    var SESS_TS_K = 'dialer_sess_ts';
 
     function getSessionToken() { return localStorage.getItem(SESS_TOKEN_K) || ''; }
     function getSessionAccountId() { return localStorage.getItem(SESS_AID_K) || ''; }
@@ -1913,6 +1913,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
       localStorage.setItem(SESS_AID_K, acct.account_id || '');
       localStorage.setItem(SESS_MASTER_K, acct.is_master ? '1' : '0');
       localStorage.setItem(SESS_LABEL_K, acct.label || '');
+      localStorage.setItem(SESS_TS_K, Date.now().toString());
     }
 
     function clearSession() {
@@ -1920,6 +1921,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
       localStorage.removeItem(SESS_AID_K);
       localStorage.removeItem(SESS_MASTER_K);
       localStorage.removeItem(SESS_LABEL_K);
+      localStorage.removeItem(SESS_TS_K);
     }
 
     // getOrCreateAccountId: priority: localStorage > localStorage > new
@@ -8700,6 +8702,18 @@ export const DIALER_HTML = `<!DOCTYPE html>
     // ========== Auth Flow ==========
 
     function initAuth() {
+      // #db hash: skip login, show app shell for DB dashboard access (DB has its own password gate)
+      if (window.location.hash === '#db') {
+        showAppShell();
+        return;
+      }
+      // Check 3-hour session expiry (client-side, avoids unnecessary network request)
+      var sessTs = parseInt(localStorage.getItem(SESS_TS_K) || '0');
+      if (sessTs && (Date.now() - sessTs > 3 * 60 * 60 * 1000)) {
+        clearSession();
+        showAuthScreen();
+        return;
+      }
       var token = getSessionToken();
       var aid = getSessionAccountId();
       if (token && aid) {
@@ -8718,7 +8732,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
             }
           })
           .catch(function() {
-            // Network error — proceed with cached session
+            // Network error — proceed with cached session (server also enforces expiry)
             showAppShell();
             updateAccountDisplay();
           });
@@ -8769,10 +8783,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
       pinInput.onkeypress = function(e) { if (e.key === 'Enter') doLogin(); };
       accountInput.onkeypress = function(e) { if (e.key === 'Enter') { pinInput.focus(); } };
 
-      document.getElementById('authShowSetupLink').onclick = function() {
-        overlay.classList.add('auth-hidden');
-        showSetupOverlay();
-      };
     }
 
     function doLogin() {

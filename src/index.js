@@ -44,7 +44,14 @@ async function dialerValidateSession(env, token) {
   if (!token) return null;
   var raw = await env.DATA_KV.get('dialer:session:' + token);
   if (!raw) return null;
-  return JSON.parse(raw);
+  var session = JSON.parse(raw);
+  // 3-hour session expiry
+  var created = session.created_at ? new Date(session.created_at).getTime() : 0;
+  if (Date.now() - created > 3 * 60 * 60 * 1000) {
+    await env.DATA_KV.delete('dialer:session:' + token);
+    return null;
+  }
+  return session;
 }
 
 // ========== Main Worker ==========
