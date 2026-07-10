@@ -573,7 +573,7 @@ export default {
           });
         }
         // Acquire lock with short TTL (auto-release if worker crashes)
-        await env.DATA_KV.put(lockKey, lockValue, { expirationTtl: 10 });
+        await env.DATA_KV.put(lockKey, lockValue, { expirationTtl: 60 });
 
         try {
           var mergedExclude = (excludeMobiles || []).slice();
