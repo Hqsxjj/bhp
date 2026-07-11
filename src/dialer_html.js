@@ -1270,10 +1270,8 @@ export const DIALER_HTML = `<!DOCTYPE html>
   <!-- Auth: Login Overlay -->
   <div id="authLoginOverlay" class="auth-overlay auth-hidden">
     <div class="auth-card">
-      <div class="auth-title">登录</div>
-      <div class="auth-subtitle">输入账户名和 PIN 码登录</div>
-      <input type="text" id="authLoginAccountName" class="auth-input" placeholder="账户名" autocomplete="off">
-      <input type="password" id="authLoginPin" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="PIN 码" autocomplete="off">
+      <input type="text" id="authLoginAccountName" class="auth-input" placeholder="" autocomplete="off">
+      <input type="password" id="authLoginPin" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="" autocomplete="off">
       <div id="authLoginError" class="auth-error"></div>
       <button id="authLoginBtn" class="auth-btn">登录</button>
     </div>
@@ -8793,11 +8791,10 @@ export const DIALER_HTML = `<!DOCTYPE html>
       var accountName = accountInput.value.trim();
       var pin = pinInput.value.trim();
 
-      if (!accountName) { error.textContent = '请输入账户名'; return; }
-      if (pin.length < 4) { error.textContent = '请输入完整 PIN 码'; return; }
+      if (!accountName || pin.length < 4) return;
 
       loginBtn.disabled = true;
-      loginBtn.textContent = '登录中...';
+      loginBtn.textContent = '登录';
 
       fetch('/api/dialer/auth/login', {
         method: 'POST',
@@ -8811,13 +8808,13 @@ export const DIALER_HTML = `<!DOCTYPE html>
           showAppShell();
           updateAccountDisplay();
         } else {
-          error.textContent = res.error || '登录失败';
+          error.textContent = '';
           pinInput.value = '';
           pinInput.focus();
         }
       })
       .catch(function() {
-        error.textContent = '网络错误，请重试';
+        error.textContent = '';
       })
       .finally(function() {
         loginBtn.disabled = false;
