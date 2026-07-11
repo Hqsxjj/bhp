@@ -1270,8 +1270,8 @@ export const DIALER_HTML = `<!DOCTYPE html>
   <!-- Auth: Login Overlay -->
   <div id="authLoginOverlay" class="auth-overlay auth-hidden">
     <div class="auth-card">
-      <input type="text" id="authLoginAccountName" class="auth-input" placeholder="" autocomplete="off">
-      <input type="password" id="authLoginPin" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="" autocomplete="off">
+      <input type="text" id="authLoginAccountName" class="auth-input" placeholder="账号" autocomplete="off">
+      <input type="password" id="authLoginPin" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="PIN" autocomplete="off">
       <div id="authLoginError" class="auth-error"></div>
       <button id="authLoginBtn" class="auth-btn">登录</button>
     </div>
