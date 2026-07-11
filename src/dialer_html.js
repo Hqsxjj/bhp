@@ -654,14 +654,15 @@ export const DIALER_HTML = `<!DOCTYPE html>
       width: 100%;
       height: 46px;
       padding: 0 14px;
-      font-size: 0.88rem;
+      font-size: 0.92rem;
       border: 2px solid var(--card-border);
       border-radius: 10px;
-      font-weight: 700;
+      font-weight: 800;
       outline: none;
       background: var(--bg-app);
       color: var(--text-main);
       box-sizing: border-box;
+      text-align: center;
       transition: border-color 0.2s, box-shadow 0.2s;
     }
     .auth-input:focus {
@@ -671,11 +672,10 @@ export const DIALER_HTML = `<!DOCTYPE html>
     .auth-input::placeholder {
       color: var(--text-soft);
       opacity: 0.5;
-      font-weight: 600;
+      font-weight: 800;
     }
     .auth-pin-input {
-      font-size: 1.1rem;
-      font-family: monospace;
+      font-size: 0.92rem;
     }
     .auth-select {
       width: 100%;
