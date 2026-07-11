@@ -620,7 +620,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
       align-items: center;
       justify-content: center;
       transition: opacity 0.3s ease;
-      padding: 16px;
+      padding: 24px;
     }
     .auth-overlay.auth-hidden {
       display: none;
@@ -628,20 +628,31 @@ export const DIALER_HTML = `<!DOCTYPE html>
     .auth-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: 14px;
-      box-shadow: var(--shadow-card);
-      max-width: 380px;
-      width: 90vw;
-      padding: 28px 24px;
+      border-radius: 20px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
+      max-width: 360px;
+      width: 88vw;
+      padding: 36px 28px 32px;
       display: flex;
       flex-direction: column;
-      gap: 14px;
+      gap: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+    .auth-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--accent-wechat);
+      border-radius: 20px 20px 0 0;
     }
     .auth-title {
-      font-size: 1rem;
+      font-size: 1.05rem;
       font-weight: 900;
       color: var(--text-main);
       text-align: center;
+      letter-spacing: 0.5px;
     }
     .auth-subtitle {
       font-size: 0.72rem;
@@ -651,40 +662,47 @@ export const DIALER_HTML = `<!DOCTYPE html>
     }
     .auth-input {
       width: 100%;
-      height: 40px;
-      padding: 0 12px;
-      font-size: 0.85rem;
-      border: 1.5px solid var(--card-border);
-      border-radius: var(--radius-xs);
+      height: 46px;
+      padding: 0 14px;
+      font-size: 0.88rem;
+      border: 2px solid var(--card-border);
+      border-radius: 10px;
       font-weight: 700;
       outline: none;
-      background: var(--card-bg);
+      background: var(--bg-app);
       color: var(--text-main);
       box-sizing: border-box;
-      transition: border-color 0.2s;
+      transition: border-color 0.2s, box-shadow 0.2s;
     }
     .auth-input:focus {
       border-color: var(--accent-wechat);
+      box-shadow: 0 0 0 3px rgba(7,193,96,0.1);
+    }
+    .auth-input::placeholder {
+      color: var(--text-soft);
+      opacity: 0.5;
+      font-weight: 600;
     }
     .auth-pin-input {
-      font-size: 1.2rem;
-      letter-spacing: 6px;
+      font-size: 1.3rem;
+      letter-spacing: 8px;
       text-align: center;
-      font-family: monospace;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
     }
     .auth-select {
       width: 100%;
-      height: 40px;
-      padding: 0 10px;
-      font-size: 0.82rem;
-      border: 1.5px solid var(--card-border);
-      border-radius: var(--radius-xs);
+      height: 46px;
+      padding: 0 12px;
+      font-size: 0.85rem;
+      border: 2px solid var(--card-border);
+      border-radius: 10px;
       font-weight: 700;
       outline: none;
-      background: var(--card-bg);
+      background: var(--bg-app);
       color: var(--text-main);
       cursor: pointer;
       font-family: monospace;
+      transition: border-color 0.2s;
     }
     .auth-error {
       font-size: 0.65rem;
@@ -692,23 +710,30 @@ export const DIALER_HTML = `<!DOCTYPE html>
       min-height: 18px;
       text-align: center;
       font-weight: 700;
+      margin-top: -4px;
     }
     .auth-btn {
       width: 100%;
-      height: 42px;
+      height: 46px;
       background: var(--accent-wechat);
       color: white;
       border: none;
-      border-radius: var(--radius-xs);
-      font-size: 0.9rem;
+      border-radius: 10px;
+      font-size: 0.92rem;
       font-weight: 800;
       cursor: pointer;
-      box-shadow: 0 4px 12px rgba(7,193,96,0.2);
+      letter-spacing: 1px;
+      box-shadow: 0 4px 16px rgba(7,193,96,0.25);
       transition: all 0.2s;
+      margin-top: 2px;
     }
     .auth-btn:hover {
       transform: translateY(-1px);
-      box-shadow: 0 6px 16px rgba(7,193,96,0.3);
+      box-shadow: 0 6px 20px rgba(7,193,96,0.35);
+    }
+    .auth-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 2px 8px rgba(7,193,96,0.2);
     }
     .auth-btn:disabled {
       opacity: 0.5;
