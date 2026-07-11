@@ -636,16 +636,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
       display: flex;
       flex-direction: column;
       gap: 16px;
-      position: relative;
-      overflow: hidden;
-    }
-    .auth-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: var(--accent-wechat);
-      border-radius: 20px 20px 0 0;
     }
     .auth-title {
       font-size: 1.05rem;
@@ -684,10 +674,8 @@ export const DIALER_HTML = `<!DOCTYPE html>
       font-weight: 600;
     }
     .auth-pin-input {
-      font-size: 1.3rem;
-      letter-spacing: 8px;
-      text-align: center;
-      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 1.1rem;
+      font-family: monospace;
     }
     .auth-select {
       width: 100%;
