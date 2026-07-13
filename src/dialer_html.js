@@ -702,17 +702,44 @@ export const DIALER_HTML = `<!DOCTYPE html>
     }
     .auth-wechat-count {
       text-align: center;
-      padding: 10px 0;
+      padding: 12px 0;
       margin-bottom: 14px;
       background: var(--accent-wechat-bg);
       border-radius: 8px;
-      font-size: 0.82rem;
-      font-weight: 800;
-      color: var(--accent-wechat);
     }
-    .auth-wechat-count .count-num {
-      font-size: 1.4rem;
+    .auth-wc-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      color: var(--accent-wechat);
+      margin-bottom: 6px;
+    }
+    .auth-wc-num {
+      font-size: 1.6rem;
       font-weight: 900;
+      color: var(--accent-wechat);
+      min-width: 40px;
+      text-align: center;
+    }
+    .auth-wc-btn {
+      width: 32px;
+      height: 32px;
+      border: 1.5px solid var(--accent-wechat);
+      background: #fff;
+      color: var(--accent-wechat);
+      border-radius: 50%;
+      font-size: 1.2rem;
+      font-weight: 800;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+    }
+    .auth-wc-btn:active {
+      background: var(--accent-wechat);
+      color: #fff;
     }
     .auth-btn {
       width: 100%;
@@ -1288,7 +1315,14 @@ export const DIALER_HTML = `<!DOCTYPE html>
   <!-- Auth: Login Overlay -->
   <div id="authLoginOverlay" class="auth-overlay auth-hidden">
     <div class="auth-card">
-      <div class="auth-wechat-count" id="authWechatCount">今日微信 <span class="count-num">0</span> 个</div>
+      <div class="auth-wechat-count">
+        <div class="auth-wc-label">今日通过微信</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:12px;">
+          <button class="auth-wc-btn auth-wc-minus" id="authWcMinus" title="减一">-</button>
+          <span class="auth-wc-num" id="authWcNum">0</span>
+          <button class="auth-wc-btn auth-wc-plus" id="authWcPlus" title="加一">+</button>
+        </div>
+      </div>
       <input type="text" id="authLoginAccountName" class="auth-input" placeholder="账号" autocomplete="off">
       <input type="password" id="authLoginPin" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="PIN" autocomplete="off">
       <div id="authLoginError" class="auth-error"></div>
@@ -1947,21 +1981,17 @@ export const DIALER_HTML = `<!DOCTYPE html>
       var today = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
       return map[today] || 0;
     }
-    function incrementWechatCount() {
+    function modWechatCount(delta) {
       var d = new Date();
       var today = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
       var map = getWechatCountMap();
-      map[today] = (map[today] || 0) + 1;
+      map[today] = Math.max((map[today] || 0) + delta, 0);
       saveWechatCountMap(map);
       updateLoginWechatCount();
     }
     function updateLoginWechatCount() {
-      var el = document.getElementById('authWechatCount');
-      if (!el) return;
-      var num = getTodayWechatCount();
-      var numSpan = el.querySelector('.count-num');
-      if (numSpan) numSpan.textContent = num;
-      else el.innerHTML = '今日微信 <span class="count-num">' + num + '</span> 个';
+      var numEl = document.getElementById('authWcNum');
+      if (numEl) numEl.textContent = getTodayWechatCount();
     }
 
     function clearSession() {
@@ -5572,7 +5602,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
             if (oldText === '已复制，正在打开微信...') return;
             copyTextToClipboard(phone);
             recordTimeline(phone, 'copy_phone');
-            incrementWechatCount();
             b.textContent = '已复制，正在打开微信...';
             var oldColor = b.style.color;
             b.style.color = 'var(--accent-wechat)';
@@ -6030,7 +6059,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
 
  var client = importedClients[currentCallIdx];
  if (client) recordTimeline(client.phone || client.mobile, 'copy_phone');
- incrementWechatCount();
 
  phoneDisp.textContent = '已复制，正在打开微信...';
 
@@ -6984,7 +7012,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
           '<td>' +
             '<div class="crm-phone-cell">' +
               esc(c.mobile || '-') +
-              '<button class="crm-btn-call" title="点击呼叫 / 复制" onclick="copyTextToClipboard(\\'' + esc(c.mobile) + '\\');showCopyLimitToast(\\'已复制: ' + esc(c.mobile) + '\\');recordTimeline(\\'' + esc(c.mobile) + '\\',\\'copy_phone\\');incrementWechatCount();"></button>' +
+              '<button class="crm-btn-call" title="点击呼叫 / 复制" onclick="copyTextToClipboard(\\'' + esc(c.mobile) + '\\');showCopyLimitToast(\\'已复制: ' + esc(c.mobile) + '\\');recordTimeline(\\'' + esc(c.mobile) + '\\',\\'copy_phone\\');"></button>' +
             '</div>' +
           '</td>' +
           '<td style="white-space: normal; max-width: 300px; word-break: break-all;">' + noteDisplay + '</td>' +
@@ -8680,6 +8708,11 @@ export const DIALER_HTML = `<!DOCTYPE html>
       overlay.classList.remove('auth-hidden');
 
       updateLoginWechatCount();
+
+      var plusBtn = document.getElementById('authWcPlus');
+      var minusBtn = document.getElementById('authWcMinus');
+      if (plusBtn) plusBtn.onclick = function() { modWechatCount(1); };
+      if (minusBtn) minusBtn.onclick = function() { modWechatCount(-1); };
 
       var accountInput = document.getElementById('authLoginAccountName');
       var pinInput = document.getElementById('authLoginPin');
