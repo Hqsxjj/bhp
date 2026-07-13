@@ -700,6 +700,20 @@ export const DIALER_HTML = `<!DOCTYPE html>
       font-weight: 700;
       margin-top: -4px;
     }
+    .auth-wechat-count {
+      text-align: center;
+      padding: 10px 0;
+      margin-bottom: 14px;
+      background: var(--accent-wechat-bg);
+      border-radius: 8px;
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: var(--accent-wechat);
+    }
+    .auth-wechat-count .count-num {
+      font-size: 1.4rem;
+      font-weight: 900;
+    }
     .auth-btn {
       width: 100%;
       height: 46px;
@@ -1274,6 +1288,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
   <!-- Auth: Login Overlay -->
   <div id="authLoginOverlay" class="auth-overlay auth-hidden">
     <div class="auth-card">
+      <div class="auth-wechat-count" id="authWechatCount">今日微信 <span class="count-num">0</span> 个</div>
       <input type="text" id="authLoginAccountName" class="auth-input" placeholder="账号" autocomplete="off">
       <input type="password" id="authLoginPin" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="PIN" autocomplete="off">
       <div id="authLoginError" class="auth-error"></div>
@@ -1913,6 +1928,40 @@ export const DIALER_HTML = `<!DOCTYPE html>
       localStorage.setItem(SESS_MASTER_K, acct.is_master ? '1' : '0');
       localStorage.setItem(SESS_LABEL_K, acct.label || '');
       localStorage.setItem(SESS_TS_K, Date.now().toString());
+    }
+
+    // WeChat count tracking (like megz daily work)
+    var WECHAT_COUNT_K = 'dialer_wechat_count';
+    function getWechatCountMap() {
+      try {
+        var raw = localStorage.getItem(WECHAT_COUNT_K);
+        return raw ? JSON.parse(raw) : {};
+      } catch(e) { return {}; }
+    }
+    function saveWechatCountMap(map) {
+      localStorage.setItem(WECHAT_COUNT_K, JSON.stringify(map));
+    }
+    function getTodayWechatCount() {
+      var map = getWechatCountMap();
+      var d = new Date();
+      var today = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      return map[today] || 0;
+    }
+    function incrementWechatCount() {
+      var d = new Date();
+      var today = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      var map = getWechatCountMap();
+      map[today] = (map[today] || 0) + 1;
+      saveWechatCountMap(map);
+      updateLoginWechatCount();
+    }
+    function updateLoginWechatCount() {
+      var el = document.getElementById('authWechatCount');
+      if (!el) return;
+      var num = getTodayWechatCount();
+      var numSpan = el.querySelector('.count-num');
+      if (numSpan) numSpan.textContent = num;
+      else el.innerHTML = '今日微信 <span class="count-num">' + num + '</span> 个';
     }
 
     function clearSession() {
@@ -5519,10 +5568,11 @@ export const DIALER_HTML = `<!DOCTYPE html>
             var phone = b.dataset.phone;
             var idx = parseInt(b.dataset.idx);
 
-            copyTextToClipboard(phone);
-            recordTimeline(phone, 'copy_phone');
             var oldText = b.textContent;
             if (oldText === '已复制，正在打开微信...') return;
+            copyTextToClipboard(phone);
+            recordTimeline(phone, 'copy_phone');
+            incrementWechatCount();
             b.textContent = '已复制，正在打开微信...';
             var oldColor = b.style.color;
             b.style.color = 'var(--accent-wechat)';
@@ -5973,13 +6023,15 @@ export const DIALER_HTML = `<!DOCTYPE html>
 
  // Copy directly
 
+ var oldText = phoneDisp.textContent;
+ if (oldText === '已复制，正在打开微信...') return;
+
  copyTextToClipboard(phone);
 
  var client = importedClients[currentCallIdx];
  if (client) recordTimeline(client.phone || client.mobile, 'copy_phone');
+ incrementWechatCount();
 
- var oldText = phoneDisp.textContent;
- if (oldText === '已复制，正在打开微信...') return;
  phoneDisp.textContent = '已复制，正在打开微信...';
 
  if (client) {
@@ -6932,7 +6984,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
           '<td>' +
             '<div class="crm-phone-cell">' +
               esc(c.mobile || '-') +
-              '<button class="crm-btn-call" title="点击呼叫 / 复制" onclick="copyTextToClipboard(\\'' + esc(c.mobile) + '\\');showCopyLimitToast(\\'已复制: ' + esc(c.mobile) + '\\');recordTimeline(\\'' + esc(c.mobile) + '\\',\\'copy_phone\\');"></button>' +
+              '<button class="crm-btn-call" title="点击呼叫 / 复制" onclick="copyTextToClipboard(\\'' + esc(c.mobile) + '\\');showCopyLimitToast(\\'已复制: ' + esc(c.mobile) + '\\');recordTimeline(\\'' + esc(c.mobile) + '\\',\\'copy_phone\\');incrementWechatCount();"></button>' +
             '</div>' +
           '</td>' +
           '<td style="white-space: normal; max-width: 300px; word-break: break-all;">' + noteDisplay + '</td>' +
@@ -8565,9 +8617,9 @@ export const DIALER_HTML = `<!DOCTYPE html>
         showAppShell();
         return;
       }
-      // Check 3-hour session expiry (client-side, avoids unnecessary network request)
+      // Check 12-hour session expiry (client-side, avoids unnecessary network request)
       var sessTs = parseInt(localStorage.getItem(SESS_TS_K) || '0');
-      if (sessTs && (Date.now() - sessTs > 3 * 60 * 60 * 1000)) {
+      if (sessTs && (Date.now() - sessTs > 12 * 60 * 60 * 1000)) {
         clearSession();
         showAuthScreen();
         return;
@@ -8626,6 +8678,8 @@ export const DIALER_HTML = `<!DOCTYPE html>
       document.getElementById('authSetupOverlay').classList.add('auth-hidden');
       var overlay = document.getElementById('authLoginOverlay');
       overlay.classList.remove('auth-hidden');
+
+      updateLoginWechatCount();
 
       var accountInput = document.getElementById('authLoginAccountName');
       var pinInput = document.getElementById('authLoginPin');
