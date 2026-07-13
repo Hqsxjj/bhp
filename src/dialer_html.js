@@ -8836,6 +8836,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
       pinInput.value = '';
       error.textContent = '';
       unlockBtn.disabled = false;
+      unlockBtn.textContent = '解锁';
 
       var plusBtn = document.getElementById('lockWcPlus');
       var minusBtn = document.getElementById('lockWcMinus');
