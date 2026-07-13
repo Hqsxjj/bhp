@@ -8866,14 +8866,12 @@ export const DIALER_HTML = `<!DOCTYPE html>
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getSessionToken() },
         body: JSON.stringify({ pin: pin })
-      }).then(function(r) { return r.json(); })
-        .then(function(r) {
+      }).then(function(r) {
           if (r.status === 401) {
-            // Session expired — clear and go to login
             sessionStorage.removeItem('dialer_locked');
             clearSession();
             showAuthScreen();
-            return;
+            return null;
           }
           return r.json();
         })
