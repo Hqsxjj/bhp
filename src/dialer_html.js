@@ -7579,6 +7579,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
       var maxRetries = 5;
 
       function doPull() {
+        try {
 
       	      // Collect current phone numbers to exclude from server pull (prevents duplicate across devices)
       	      var excludeMobiles = [];
@@ -7589,12 +7590,17 @@ export const DIALER_HTML = `<!DOCTYPE html>
       	        }
       	      }
 
+              // AbortController with 60s timeout prevents fetch from hanging forever
+              var controller = new AbortController();
+              var timeoutId = setTimeout(function() { controller.abort(); }, 60000);
+
       	      fetch('/api/dialer/customers/random', {
       	        method: 'POST',
       	        headers: { 'Content-Type': 'application/json' },
-      	        body: JSON.stringify({ limit: 50, exclude: excludeMobiles, account_id: getOrCreateAccountId() })
+      	        body: JSON.stringify({ limit: 50, exclude: excludeMobiles, account_id: getOrCreateAccountId() }),
+                signal: controller.signal
             })
-              .then(function(r) { return r.json(); })
+              .then(function(r) { clearTimeout(timeoutId); return r.json(); })
               .then(function(res) {
             // Handle server-side lock (another request in-flight for same account)
             if (res.locked && retryCount < maxRetries) {
@@ -7655,10 +7661,20 @@ export const DIALER_HTML = `<!DOCTYPE html>
                 alert('已加载 ' + customers.length + ' 个客户到待拨打列表');
               })
               .catch(function(err) {
+                clearTimeout(timeoutId);
                 btn.disabled = false;
                 btn.textContent = '换一批';
-                alert('网络错误: ' + err.message);
+                if (err.name === 'AbortError') {
+                  alert('请求超时，请检查网络后重试');
+                } else {
+                  alert('网络错误: ' + err.message);
+                }
               });
+        } catch (syncErr) {
+          btn.disabled = false;
+          btn.textContent = '换一批';
+          alert('操作失败: ' + syncErr.message);
+        }
 
       }
 
