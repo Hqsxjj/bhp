@@ -1856,6 +1856,34 @@ export default {
       }
     }
 
+    // ==================== Static Assets ====================
+
+    if (path === '/manifest.json') {
+      const manifest = {
+        name: '拨号盘',
+        short_name: '拨号盘',
+        description: 'BHP 智能快捷拨号助手',
+        start_url: '/dialer',
+        display: 'standalone',
+        background_color: '#ededed',
+        theme_color: '#4a6cf7',
+        orientation: 'portrait',
+        icons: [
+          { src: '/icon.svg', sizes: 'any', type: 'image/svg+xml', purpose: 'any maskable' }
+        ]
+      };
+      return new Response(JSON.stringify(manifest), {
+        headers: { 'Content-Type': 'application/manifest+json', 'Access-Control-Allow-Origin': '*' }
+      });
+    }
+
+    if (path === '/icon.svg') {
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4a6cf7"/><stop offset="100%" stop-color="#ff5722"/></linearGradient></defs><rect width="512" height="512" rx="110" fill="url(#bg)"/><text x="256" y="310" text-anchor="middle" font-family="Arial,sans-serif" font-size="240" font-weight="bold" fill="white">B</text></svg>`;
+      return new Response(svg, {
+        headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=86400', 'Access-Control-Allow-Origin': '*' }
+      });
+    }
+
     // ==================== Page Serving ====================
 
     if (path === '/dialer' || path === '/dialer/' || path === '/') {

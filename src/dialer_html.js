@@ -4,6 +4,13 @@ export const DIALER_HTML = `<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover, shrink-to-fit=no">
   <title>拨号盘</title>
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#ededed">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icon.svg">
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
@@ -1397,6 +1404,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
             <button class="dropdown-item" id="exportBtn" style="display:none;">导出记录</button>
             <button class="dropdown-item" id="clearBtn" style="display:none; color: #e74c3c;">清空数据</button>
             <button class="dropdown-item" id="darkToggleBtn">切换主题</button>
+	            <button class="dropdown-item" id="fullscreenBtn">全屏浏览</button>
             <button class="dropdown-item" id="headerLogoutBtn" style="color: #e74c3c;">退出登录</button>
           </div>
         </div>
@@ -2204,22 +2212,67 @@ export const DIALER_HTML = `<!DOCTYPE html>
       }, 4000);
     }
 
-    // Dark Mode Control
+    // Dark Mode Control (3-state: light / dark / auto)
     function initDark() {
       var btn = document.getElementById('darkToggleBtn');
-      var updateDarkTitle = function() {
-        var isDark = document.body.classList.contains('dark-mode');
-        btn.textContent = (isDark ? '浅色' : '深色') + '模式';
+      var autoMql = null;
+      var applyTheme = function(mode) {
+        var isDark = mode === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : mode === 'dark';
+        if (isDark) {
+          document.body.classList.add('dark-mode');
+        } else {
+          document.body.classList.remove('dark-mode');
+        }
+        var themeMeta = document.querySelector('meta[name="theme-color"]');
+        if (themeMeta) themeMeta.content = isDark ? '#111111' : '#ededed';
       };
-      if (localStorage.getItem(DARK_K) === 'true') {
-        document.body.classList.add('dark-mode');
+      var updateDarkTitle = function() {
+        if (!btn) return;
+        var m = localStorage.getItem(DARK_K) || 'auto';
+        var labels = {light: '浅色模式', dark: '深色模式', auto: '自动模式'};
+        btn.textContent = labels[m] || '自动模式';
+      };
+      var mode = localStorage.getItem(DARK_K);
+      if (mode === 'true') { mode = 'dark'; localStorage.setItem(DARK_K, 'dark'); }
+      else if (mode === 'false' || !mode) { mode = 'auto'; localStorage.setItem(DARK_K, 'auto'); }
+      else if (mode !== 'light' && mode !== 'dark' && mode !== 'auto') { mode = 'auto'; localStorage.setItem(DARK_K, 'auto'); }
+      applyTheme(mode);
+      if (mode === 'auto') {
+        autoMql = window.matchMedia('(prefers-color-scheme: dark)');
+        autoMql.addEventListener('change', function() {
+          if (localStorage.getItem(DARK_K) === 'auto') applyTheme('auto');
+        });
       }
       updateDarkTitle();
+      if (btn) {
+        btn.addEventListener('click', function() {
+          var cur = localStorage.getItem(DARK_K) || 'auto';
+          var next = {light: 'dark', dark: 'auto', auto: 'light'};
+          var nm = next[cur] || 'auto';
+          localStorage.setItem(DARK_K, nm);
+          applyTheme(nm);
+          updateDarkTitle();
+          if (nm === 'auto' && !autoMql) {
+            autoMql = window.matchMedia('(prefers-color-scheme: dark)');
+            autoMql.addEventListener('change', function() {
+              if (localStorage.getItem(DARK_K) === 'auto') applyTheme('auto');
+            });
+          }
+        });
+      }
+    }
+
+    // Fullscreen Control
+    function initFullscreen() {
+      var btn = document.getElementById('fullscreenBtn');
+      if (!btn) return;
+      var updateLabel = function() { btn.textContent = document.fullscreenElement ? '退出全屏' : '全屏浏览'; };
       btn.addEventListener('click', function() {
-        document.body.classList.toggle('dark-mode');
-        localStorage.setItem(DARK_K, document.body.classList.contains('dark-mode'));
-        updateDarkTitle();
+        if (document.fullscreenElement) { document.exitFullscreen(); }
+        else { document.documentElement.requestFullscreen().catch(function() {}); }
       });
+      document.addEventListener('fullscreenchange', updateLabel);
+      updateLabel();
     }
 
     // Helper functions
@@ -9010,6 +9063,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
     }
     safeInit('initAuth', initAuth);
     safeInit('initDark', initDark);
+    safeInit('initFullscreen', initFullscreen);
     safeInit('initFileInputs', initFileInputs);
     safeInit('initCallControls', initCallControls);
     safeInit('initFilters', initFilters);
