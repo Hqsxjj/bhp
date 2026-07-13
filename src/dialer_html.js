@@ -928,10 +928,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
         padding: 0 10px;
         font-size: 0.72rem;
       }
-      #toggleCopyLimitBtn,
-      .copy-limit-sub {
-        display: none !important;
-      }
     }
 
     /* Whitelist match badges */
@@ -973,11 +969,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
     .copy-limit-toast.warn {
       background: #f39c12;
       box-shadow: 0 4px 16px rgba(243, 156, 18, 0.35);
-    }
-    .copy-limit-sub {
-      padding-left: 24px !important;
-      font-size: 0.72rem !important;
-      opacity: 0.85;
     }
     /* ====== Professional CRM Dashboard ====== */
     .db-overlay {
@@ -1329,9 +1320,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
             <button class="dropdown-item" id="toggleImportBtn">导入文件</button>
             <button class="dropdown-item" id="toggleDualSimBtn">双卡轮换: 开</button>
             <button class="dropdown-item" id="toggleRotationBtn">轮换频率: 10通</button>
-            <button class="dropdown-item" id="toggleCopyLimitBtn">复制限制: 开</button>
-            <button class="dropdown-item copy-limit-sub" id="toggleThreshold20">  20次限制: 开</button>
-            <button class="dropdown-item copy-limit-sub" id="toggleThreshold30">  30次限制: 开</button>
             <button class="dropdown-item" id="exportBtn" style="display:none;">导出记录</button>
             <button class="dropdown-item" id="clearBtn" style="display:none; color: #e74c3c;">清空数据</button>
             <button class="dropdown-item" id="darkToggleBtn">切换主题</button>
@@ -1993,19 +1981,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
     var pageSize = 100;
     var currentSort = 'default';
 
-    // Copy Rate Limiting - configurable
-    var COPY_LIMIT_K = 'standalone_dialer_copy_limit';
-    var copyLimitEnabled = localStorage.getItem('dialer_copy_limit_enabled') !== '0'; // default on
-    var copyLimitThresholds = {}; // { '20': true, '30': true }
-    try {
-      var savedThresholds = JSON.parse(localStorage.getItem('dialer_copy_limit_thresholds') || '{}');
-      copyLimitThresholds['20'] = savedThresholds['20'] !== false;
-      copyLimitThresholds['30'] = savedThresholds['30'] !== false;
-    } catch(e) {
-      copyLimitThresholds = { '20': true, '30': true };
-    }
-    var copyLimitState = null;
-
     // 待拨打添加历史记录 - 防止10天内重复添加到待拨打
     var ADD_HISTORY_K = 'standalone_dialer_add_history';
     var ADD_COOLDOWN_MS = 10 * 24 * 60 * 60 * 1000; // 10天冷却期（与服务端一致）
@@ -2061,35 +2036,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
       if (days > 0) return days + '天' + hours + '小时';
       return hours + '小时' + Math.floor((remaining % 3600000) / 60000) + '分钟';
     }
-    function loadCopyLimitState() {
-      if (copyLimitState) return;
-      try {
-        var saved = localStorage.getItem(COPY_LIMIT_K);
-        if (saved) {
-          copyLimitState = JSON.parse(saved);
-        } else {
-          copyLimitState = { count: 0, restrictedUntil: null, triggeredThresholds: [] };
-        }
-        // Clear expired restriction but keep count for cumulative tracking
-        if (copyLimitState.restrictedUntil && Date.now() > copyLimitState.restrictedUntil) {
-          copyLimitState.restrictedUntil = null;
-        }
-        // Initialize triggeredThresholds if missing from older state
-        if (!copyLimitState.triggeredThresholds) {
-          copyLimitState.triggeredThresholds = [];
-        }
-      } catch (e) {
-        copyLimitState = { count: 0, restrictedUntil: null, triggeredThresholds: [] };
-      }
-    }
-
-    function saveCopyLimitState() {
-      try {
-        localStorage.setItem(COPY_LIMIT_K, JSON.stringify(copyLimitState));
-      } catch(e) {}
-    }
-
-    var copyLimitToastTimer = null;
+    var _toastTimer = null;
     function showCopyLimitToast(msg, isWarn) {
       var toast = document.getElementById('copyLimitToast');
       if (!toast) return;
@@ -2099,55 +2046,10 @@ export const DIALER_HTML = `<!DOCTYPE html>
       // Force reflow
       void toast.offsetWidth;
       toast.classList.add('show');
-      if (copyLimitToastTimer) clearTimeout(copyLimitToastTimer);
-      copyLimitToastTimer = setTimeout(function() {
+      if (_toastTimer) clearTimeout(_toastTimer);
+      _toastTimer = setTimeout(function() {
         toast.classList.remove('show');
       }, 4000);
-    }
-
-    // Returns {allowed: bool, message: string}
-    function checkCopyLimit() {
-      // If copy limit feature is disabled, always allow
-      if (copyLimitEnabled === false) return { allowed: true, message: '' };
-
-      loadCopyLimitState();
-      var now = Date.now();
-
-      // Check if currently restricted
-      if (copyLimitState.restrictedUntil && now < copyLimitState.restrictedUntil) {
-        var remainingMin = Math.ceil((copyLimitState.restrictedUntil - now) / 60000);
-        return { allowed: false, message: '已达到复制上限，请等待 ' + remainingMin + ' 分钟后再试' };
-      }
-
-      // Clear expired restriction but keep count for cumulative tracking
-      if (copyLimitState.restrictedUntil && now >= copyLimitState.restrictedUntil) {
-        copyLimitState.restrictedUntil = null;
-      }
-
-      // Increment cumulative count
-      copyLimitState.count++;
-
-      // Check enabled thresholds in ascending order — each triggers only once
-      var thresholdKeys = ['20', '30'];
-      var hitThreshold = null;
-      for (var i = 0; i < thresholdKeys.length; i++) {
-        var t = parseInt(thresholdKeys[i], 10);
-        if (copyLimitThresholds[thresholdKeys[i]] && copyLimitState.count >= t && copyLimitState.triggeredThresholds.indexOf(t) === -1) {
-          hitThreshold = t;
-          copyLimitState.triggeredThresholds.push(t);
-          break;
-        }
-      }
-
-      if (hitThreshold) {
-        var restrictionMinutes = 20 + Math.floor(Math.random() * 11); // 20-30 min
-        copyLimitState.restrictedUntil = now + restrictionMinutes * 60 * 1000;
-        saveCopyLimitState();
-        return { allowed: false, message: '已复制 ' + copyLimitState.count + ' 个号码（第' + hitThreshold + '个触发），限制 ' + restrictionMinutes + ' 分钟' };
-      }
-
-      saveCopyLimitState();
-      return { allowed: true, message: '' };
     }
 
     // Dark Mode Control
@@ -5617,11 +5519,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
             var phone = b.dataset.phone;
             var idx = parseInt(b.dataset.idx);
 
-            var limit = checkCopyLimit();
-            if (!limit.allowed) {
-              showCopyLimitToast(limit.message, false);
-              return;
-            }
             copyTextToClipboard(phone);
             recordTimeline(phone, 'copy_phone');
             var oldText = b.textContent;
@@ -5654,11 +5551,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
             var name = b.dataset.name;
             var idx = parseInt(b.dataset.idx);
 
-            var nameLimit = checkCopyLimit();
-            if (!nameLimit.allowed) {
-              showCopyLimitToast(nameLimit.message, false);
-              return;
-            }
             copyTextToClipboard(' ' + name + ' ');
 
             var client = importedClients[idx];
@@ -5695,11 +5587,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
             e.stopPropagation();
             var company = b.dataset.company;
 
-            var compLimit = checkCopyLimit();
-            if (!compLimit.allowed) {
-              showCopyLimitToast(compLimit.message, false);
-              return;
-            }
             var idx = parseInt(b.dataset.idx);
             var client = importedClients[idx];
             var name = (client && client.name && client.name !== '-') ? client.name : '';
@@ -5809,14 +5696,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
           btn.addEventListener('click', function() {
             var text = this.dataset.copy;
             if (!text) return;
-            // Apply copy limit for phone numbers
-            if (/[\\d\\-\\.\\s\\+\\(\\)]{7,}/.test(text)) {
-              var limit = checkCopyLimit();
-              if (!limit.allowed) {
-                showCopyLimitToast(limit.message, false);
-                return;
-              }
-            }
             var parentTd = btn.closest('td');
             var copyType = 'copy_phone';
             if (parentTd && parentTd.classList.contains('col-name')) copyType = 'copy_name';
@@ -6092,12 +5971,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
  e.stopPropagation();
  var phone = phoneDisp.dataset.phone;
 
- // Rate limit check
- var limit = checkCopyLimit();
- if (!limit.allowed) {
- showCopyLimitToast(limit.message, false);
- return;
- }
+ // Copy directly
 
  copyTextToClipboard(phone);
 
@@ -6138,11 +6012,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
  e.stopPropagation();
  var name = nameDisp.dataset.name;
 
- var nameLimit2 = checkCopyLimit();
- if (!nameLimit2.allowed) {
- showCopyLimitToast(nameLimit2.message, false);
- return;
- }
  copyTextToClipboard(name);
 
  var client = importedClients[currentCallIdx];
@@ -6300,44 +6169,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
  localStorage.setItem('dialer_rotation', String(rotationCount));
  });
  }
-
- // Copy limit toggle and threshold sub-buttons
- var copyLimitBtn = document.getElementById('toggleCopyLimitBtn');
- function updateCopyLimitUI() {
- if (!copyLimitBtn) return;
- copyLimitBtn.textContent = '复制限制: ' + (copyLimitEnabled ? '开' : '关');
- var subs = document.querySelectorAll('.copy-limit-sub');
- subs.forEach(function(sub) {
- sub.style.display = copyLimitEnabled ? '' : 'none';
- });
- // Update checkmarks
- ['20','30'].forEach(function(k) {
- var b = document.getElementById('toggleThreshold' + k);
- if (b) {
- b.textContent = ' ' + k + '次限制: ' + (copyLimitThresholds[k] ? '' : '');
- }
- });
- localStorage.setItem('dialer_copy_limit_enabled', copyLimitEnabled ? '1' : '0');
- localStorage.setItem('dialer_copy_limit_thresholds', JSON.stringify(copyLimitThresholds));
- }
- if (copyLimitBtn) {
- copyLimitBtn.addEventListener('click', function() {
- copyLimitEnabled = !copyLimitEnabled;
- updateCopyLimitUI();
- });
- // Initialize UI
- updateCopyLimitUI();
- }
- // Threshold sub-buttons
- ['20','30'].forEach(function(k) {
- var b = document.getElementById('toggleThreshold' + k);
- if (b) {
- b.addEventListener('click', function() {
- copyLimitThresholds[k] = !copyLimitThresholds[k];
- updateCopyLimitUI();
- });
- }
- });
 
  if (xlsFile) {
  xlsFile.addEventListener('change', function(e) {
