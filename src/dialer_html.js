@@ -70,7 +70,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
       width: 100%;
       display: flex;
       flex-direction: column;
-      padding-top: env(safe-area-inset-top);
     }
     .container {
       flex: 1;
@@ -901,7 +900,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
 
     
     /* Android APK full-screen spacing */
-    body.android .app-shell { padding-top: 39px; }
+    body.android .app-shell { }
 
     /* Mobile Adaptive Styles for iOS & Android */
     @media (max-width: 480px) {
