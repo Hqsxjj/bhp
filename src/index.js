@@ -186,7 +186,7 @@ export default {
           if (accounts[ui].account_id === unlockSession.account_id) { found = accounts[ui]; break; }
         }
         if (!found) throw new Error('账户不存在');
-        if (found.pin !== pin) throw new Error('PIN 不正确');
+        if (found.pin_hash !== dialerHashPin(pin)) throw new Error('PIN 不正确');
         return new Response(JSON.stringify({ success: true }), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
