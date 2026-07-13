@@ -721,13 +721,12 @@ export const DIALER_HTML = `<!DOCTYPE html>
       text-align: center;
     }
     .auth-wc-btn {
-      width: 32px;
-      height: 32px;
-      border: 1.5px solid var(--accent-wechat);
-      background: #fff;
-      color: var(--accent-wechat);
-      border-radius: 50%;
-      font-size: 1.2rem;
+      width: 36px;
+      height: 28px;
+      border: none;
+      color: #fff;
+      border-radius: var(--radius-xs);
+      font-size: 1.1rem;
       font-weight: 800;
       cursor: pointer;
       display: inline-flex;
@@ -737,9 +736,17 @@ export const DIALER_HTML = `<!DOCTYPE html>
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
     }
-    .auth-wc-btn:active {
-      background: var(--accent-wechat);
-      color: #fff;
+    .auth-wc-plus {
+      background: #07c160;
+    }
+    .auth-wc-plus:active {
+      background: #06ad56;
+    }
+    .auth-wc-minus {
+      background: #e74c3c;
+    }
+    .auth-wc-minus:active {
+      background: #c0392b;
     }
     .auth-btn {
       width: 100%;
@@ -1362,6 +1369,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
         <button id="autoDialBtn" title="自动拨打" style="font-size: 0.78rem; padding: 4px 10px; border: 1px solid var(--accent-wechat); background: var(--accent-wechat-bg); color: var(--accent-wechat); cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-xs); white-space: nowrap;">自动拨打</button>
         <button id="refreshBatchBtn" title="从数据库按最新导入顺序拉取，与看板同序，拉过的自动沉底" onclick="if(window.refreshBatch)window.refreshBatch()" style="font-size: 0.78rem; padding: 4px 10px; border: 1px solid #e67e22; background: rgba(230,126,34,0.08); color: #e67e22; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-xs); margin-right: 8px; white-space: nowrap;">换一批</button>
         <span id="accountDisplay" style="font-size:0.68rem; color:var(--text-light); font-weight:700; padding:3px 8px; border:1px dashed var(--card-border); border-radius:3px; margin-right:6px; white-space:nowrap; font-family:monospace;"></span>
+        <button id="lockScreenBtn" title="锁定屏幕" style="font-size:0.68rem;padding:3px 7px;border:1px solid var(--card-border);background:var(--btn-bg);color:var(--text-soft);cursor:pointer;outline:none;font-weight:700;border-radius:3px;margin-right:6px;white-space:nowrap;flex-shrink:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">锁</button>
         <!-- Dropdown Menu Trigger on the Right -->
         <div style="position: relative; display: inline-block;">
           <button id="headerMenuBtn" title="更多设置" style="font-size: 0.8rem; padding: 6px 10px; border: none; background: transparent; cursor: pointer; outline: none; font-weight: 800; color: var(--text-soft); min-width: 44px; min-height: 34px; -webkit-tap-highlight-color: transparent; touch-action: manipulation;">更多</button>
@@ -1598,7 +1606,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
           <button class="filter-tab" data-filter="success">已接通</button>
           <button class="filter-tab" data-filter="failed">未接通</button>
         </div>
-        <button id="lockScreenBtn" title="锁定屏幕" style="flex-shrink:0;width:28px;height:28px;border:1px solid var(--card-border);background:var(--btn-bg);color:var(--text-soft);border-radius:var(--radius-xs);font-size:0.8rem;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">锁</button>
       </div>
 
       <!-- Contacts List -->
