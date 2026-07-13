@@ -1337,6 +1337,23 @@ export const DIALER_HTML = `<!DOCTYPE html>
     </div>
   </div>
 
+  <!-- Lock Screen Overlay (PIN only, keeps session) -->
+  <div id="lockScreenOverlay" class="auth-overlay auth-hidden">
+    <div class="auth-card">
+      <div class="auth-wechat-count">
+        <div class="auth-wc-label">今日通过微信</div>
+        <div style="display:flex;align-items:center;justify-content:center;gap:12px;">
+          <button class="auth-wc-btn auth-wc-minus" id="lockWcMinus" title="减一">-</button>
+          <span class="auth-wc-num" id="lockWcNum">0</span>
+          <button class="auth-wc-btn auth-wc-plus" id="lockWcPlus" title="加一">+</button>
+        </div>
+      </div>
+      <input type="password" id="lockPinInput" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="输入 PIN 解锁" autocomplete="off">
+      <div id="lockScreenError" class="auth-error"></div>
+      <button id="lockUnlockBtn" class="auth-btn">解锁</button>
+    </div>
+  </div>
+
   <!-- Auth: Setup Overlay (first time) -->
   <div id="authSetupOverlay" class="auth-overlay auth-hidden">
     <div class="auth-card">
@@ -1983,23 +2000,71 @@ export const DIALER_HTML = `<!DOCTYPE html>
     function saveWechatCountMap(map) {
       localStorage.setItem(WECHAT_COUNT_K, JSON.stringify(map));
     }
-    function getTodayWechatCount() {
-      var map = getWechatCountMap();
+    var _wcCacheNum = 0;
+    var _wcCacheDate = '';
+
+    function getTodayStr() {
       var d = new Date();
-      var today = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-      return map[today] || 0;
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     }
+
+    function fetchWechatCount(callback) {
+      var today = getTodayStr();
+      var token = getSessionToken();
+      if (!token) { callback(0); return; }
+      fetch('/api/dialer/wechat/count?date=' + today, {
+        headers: { 'Authorization': 'Bearer ' + token }
+      }).then(function(r) { return r.json(); })
+        .then(function(res) {
+          _wcCacheNum = res.count || 0;
+          _wcCacheDate = today;
+          callback(_wcCacheNum);
+        })
+        .catch(function() {
+          // Fallback to localStorage
+          var map = getWechatCountMap();
+          _wcCacheNum = map[today] || 0;
+          _wcCacheDate = today;
+          callback(_wcCacheNum);
+        });
+    }
+
     function modWechatCount(delta) {
-      var d = new Date();
-      var today = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      var today = getTodayStr();
+      var token = getSessionToken();
+      if (!token) return;
+      // Optimistic local update
+      _wcCacheNum = Math.max(_wcCacheNum + delta, 0);
+      _wcCacheDate = today;
+      updateAllWcDisplays();
+      // Sync to server
+      fetch('/api/dialer/wechat/count', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ delta: delta, date: today })
+      }).then(function(r) { return r.json(); })
+        .then(function(res) {
+          _wcCacheNum = res.count || _wcCacheNum;
+          _wcCacheDate = today;
+          updateAllWcDisplays();
+        })
+        .catch(function() {
+          // Fallback: save to localStorage
+          var map = getWechatCountMap();
+          map[today] = _wcCacheNum;
+          saveWechatCountMap(map);
+        });
+      // Also save locally
       var map = getWechatCountMap();
-      map[today] = Math.max((map[today] || 0) + delta, 0);
+      map[today] = _wcCacheNum;
       saveWechatCountMap(map);
-      updateLoginWechatCount();
     }
-    function updateLoginWechatCount() {
-      var numEl = document.getElementById('authWcNum');
-      if (numEl) numEl.textContent = getTodayWechatCount();
+
+    function updateAllWcDisplays() {
+      var loginNum = document.getElementById('authWcNum');
+      var lockNum = document.getElementById('lockWcNum');
+      if (loginNum) loginNum.textContent = _wcCacheNum;
+      if (lockNum) lockNum.textContent = _wcCacheNum;
     }
 
     function clearSession() {
@@ -6192,8 +6257,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
  var lockBtn = document.getElementById('lockScreenBtn');
  if (lockBtn) {
  lockBtn.addEventListener('click', function() {
- clearSession();
- showAuthScreen();
+ showLockScreen();
  });
  }
 
@@ -8699,6 +8763,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
       if (appShell) appShell.style.display = '';
       document.getElementById('authLoginOverlay').classList.add('auth-hidden');
       document.getElementById('authSetupOverlay').classList.add('auth-hidden');
+      document.getElementById('lockScreenOverlay').classList.add('auth-hidden');
     }
 
     function showAuthScreen() {
@@ -8722,7 +8787,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
       var overlay = document.getElementById('authLoginOverlay');
       overlay.classList.remove('auth-hidden');
 
-      updateLoginWechatCount();
+      fetchWechatCount(function() { updateAllWcDisplays(); });
 
       var plusBtn = document.getElementById('authWcPlus');
       var minusBtn = document.getElementById('authWcMinus');
@@ -8743,6 +8808,77 @@ export const DIALER_HTML = `<!DOCTYPE html>
       pinInput.onkeypress = function(e) { if (e.key === 'Enter') doLogin(); };
       accountInput.onkeypress = function(e) { if (e.key === 'Enter') { pinInput.focus(); } };
 
+    }
+
+    // ========== Lock Screen (PIN only, keeps session) ==========
+
+    function showLockScreen() {
+      var appShell = document.querySelector('.app-shell');
+      if (appShell) appShell.style.display = 'none';
+      document.getElementById('authLoginOverlay').classList.add('auth-hidden');
+      document.getElementById('authSetupOverlay').classList.add('auth-hidden');
+      var overlay = document.getElementById('lockScreenOverlay');
+      overlay.classList.remove('auth-hidden');
+
+      fetchWechatCount(function() { updateAllWcDisplays(); });
+
+      var pinInput = document.getElementById('lockPinInput');
+      var error = document.getElementById('lockScreenError');
+      var unlockBtn = document.getElementById('lockUnlockBtn');
+
+      pinInput.value = '';
+      error.textContent = '';
+      unlockBtn.disabled = false;
+
+      var plusBtn = document.getElementById('lockWcPlus');
+      var minusBtn = document.getElementById('lockWcMinus');
+      if (plusBtn) plusBtn.onclick = function() { modWechatCount(1); };
+      if (minusBtn) minusBtn.onclick = function() { modWechatCount(-1); };
+
+      unlockBtn.onclick = doUnlock;
+      pinInput.onkeypress = function(e) { if (e.key === 'Enter') doUnlock(); };
+      pinInput.focus();
+    }
+
+    function doUnlock() {
+      var pinInput = document.getElementById('lockPinInput');
+      var error = document.getElementById('lockScreenError');
+      var unlockBtn = document.getElementById('lockUnlockBtn');
+      var pin = pinInput.value.trim();
+
+      if (!pin || pin.length < 4 || pin.length > 6) {
+        error.textContent = '请输入 4-6 位 PIN';
+        return;
+      }
+
+      error.textContent = '';
+      unlockBtn.disabled = true;
+      unlockBtn.textContent = '验证中...';
+
+      fetch('/api/dialer/auth/unlock', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getSessionToken() },
+        body: JSON.stringify({ pin: pin })
+      }).then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res.success) {
+            var appShell = document.querySelector('.app-shell');
+            if (appShell) appShell.style.display = '';
+            document.getElementById('lockScreenOverlay').classList.add('auth-hidden');
+            renderDialCards();
+          } else {
+            error.textContent = res.error || 'PIN 不正确';
+            unlockBtn.disabled = false;
+            unlockBtn.textContent = '解锁';
+            pinInput.value = '';
+            pinInput.focus();
+          }
+        })
+        .catch(function(err) {
+          error.textContent = '网络错误，请重试';
+          unlockBtn.disabled = false;
+          unlockBtn.textContent = '解锁';
+        });
     }
 
     function doLogin() {

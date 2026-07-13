@@ -171,6 +171,32 @@ export default {
       }
     }
 
+    // Unlock: verify PIN only (keeps existing session)
+    if (path === '/api/dialer/auth/unlock' && request.method === 'POST') {
+      try {
+        var body = await request.json();
+        var pin = (body.pin || '').trim();
+        if (!pin || pin.length < 4 || pin.length > 6) throw new Error('PIN 格式不正确');
+        var unlockToken = (request.headers.get('Authorization') || '').replace('Bearer ', '');
+        var unlockSession = await dialerValidateSession(env, unlockToken);
+        if (!unlockSession) throw new Error('会话已过期，请重新登录');
+        var accounts = await dialerGetAccounts(env);
+        var found = null;
+        for (var ui = 0; ui < accounts.length; ui++) {
+          if (accounts[ui].account_id === unlockSession.account_id) { found = accounts[ui]; break; }
+        }
+        if (!found) throw new Error('账户不存在');
+        if (found.pin !== pin) throw new Error('PIN 不正确');
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 401, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
     if (path === '/api/dialer/auth/accounts' && request.method === 'GET') {
       try {
         var accounts = await dialerGetAccounts(env);
@@ -472,6 +498,56 @@ export default {
         });
       } catch (e) {
         return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
+    // ==================== WeChat Count API (KV-synced per account) ====================
+
+    if (path === '/api/dialer/wechat/count' && request.method === 'GET') {
+      var wcAuth = (request.headers.get('Authorization') || '').replace('Bearer ', '');
+      var wcSession = await dialerValidateSession(env, wcAuth);
+      if (!wcSession) {
+        return new Response(JSON.stringify({ error: 'Authentication required' }), {
+          status: 401, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+      var d = new Date();
+      var today = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+      var dateParam = new URL(request.url).searchParams.get('date') || today;
+      var raw = await env.DATA_KV.get('dialer:wc:' + wcSession.account_id + ':' + dateParam);
+      var count = raw ? parseInt(raw, 10) : 0;
+      return new Response(JSON.stringify({ count: count, date: dateParam }), {
+        headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+      });
+    }
+
+    if (path === '/api/dialer/wechat/count' && request.method === 'POST') {
+      var wcPostAuth = (request.headers.get('Authorization') || '').replace('Bearer ', '');
+      var wcPostSession = await dialerValidateSession(env, wcPostAuth);
+      if (!wcPostSession) {
+        return new Response(JSON.stringify({ error: 'Authentication required' }), {
+          status: 401, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+      try {
+        var wcBody = await request.json();
+        var wcDelta = parseInt(wcBody.delta, 10) || 0;
+        var wcDate = wcBody.date;
+        if (!wcDate) {
+          var wcNow = new Date();
+          wcDate = wcNow.getFullYear() + '-' + String(wcNow.getMonth() + 1).padStart(2, '0') + '-' + String(wcNow.getDate()).padStart(2, '0');
+        }
+        var wcKey = 'dialer:wc:' + wcPostSession.account_id + ':' + wcDate;
+        var wcCurrent = parseInt(await env.DATA_KV.get(wcKey) || '0', 10);
+        var wcNew = Math.max(wcCurrent + wcDelta, 0);
+        await env.DATA_KV.put(wcKey, String(wcNew));
+        return new Response(JSON.stringify({ count: wcNew, date: wcDate }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
           status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       }
