@@ -71,7 +71,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
       display: flex;
       flex-direction: column;
       padding-top: env(safe-area-inset-top);
-      padding-bottom: env(safe-area-inset-bottom);
     }
     .container {
       flex: 1;
