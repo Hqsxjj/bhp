@@ -1403,7 +1403,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
             <button class="dropdown-item" id="exportBtn" style="display:none;">导出记录</button>
             <button class="dropdown-item" id="clearBtn" style="display:none; color: #e74c3c;">清空数据</button>
             <button class="dropdown-item" id="darkToggleBtn">切换主题</button>
-	            <button class="dropdown-item" id="fullscreenBtn">全屏浏览</button>
             <button class="dropdown-item" id="headerLogoutBtn" style="color: #e74c3c;">退出登录</button>
           </div>
         </div>
@@ -2259,19 +2258,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
           }
         });
       }
-    }
-
-    // Fullscreen Control
-    function initFullscreen() {
-      var btn = document.getElementById('fullscreenBtn');
-      if (!btn) return;
-      var updateLabel = function() { btn.textContent = document.fullscreenElement ? '退出全屏' : '全屏浏览'; };
-      btn.addEventListener('click', function() {
-        if (document.fullscreenElement) { document.exitFullscreen(); }
-        else { document.documentElement.requestFullscreen().catch(function() {}); }
-      });
-      document.addEventListener('fullscreenchange', updateLabel);
-      updateLabel();
     }
 
     // Helper functions
@@ -9062,7 +9048,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
     }
     safeInit('initAuth', initAuth);
     safeInit('initDark', initDark);
-    safeInit('initFullscreen', initFullscreen);
     safeInit('initFileInputs', initFileInputs);
     safeInit('initCallControls', initCallControls);
     safeInit('initFilters', initFilters);
