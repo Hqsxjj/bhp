@@ -8582,6 +8582,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
         var headerLogoutBtn = document.getElementById('headerLogoutBtn');
         if (headerLogoutBtn) {
           headerLogoutBtn.addEventListener('click', function() {
+            sessionStorage.removeItem('dialer_locked');
             clearSession();
             location.reload();
           });
@@ -8724,6 +8725,11 @@ export const DIALER_HTML = `<!DOCTYPE html>
         showAppShell();
         return;
       }
+      // Check lock state first (sessionStorage persists across refresh, survives session expiry)
+      if (sessionStorage.getItem('dialer_locked') === '1') {
+        showLockScreen();
+        return;
+      }
       // Check 12-hour session expiry (client-side, avoids unnecessary network request)
       var sessTs = parseInt(localStorage.getItem(SESS_TS_K) || '0');
       if (sessTs && (Date.now() - sessTs > 12 * 60 * 60 * 1000)) {
@@ -8813,6 +8819,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
     // ========== Lock Screen (PIN only, keeps session) ==========
 
     function showLockScreen() {
+      sessionStorage.setItem('dialer_locked', '1');
       var appShell = document.querySelector('.app-shell');
       if (appShell) appShell.style.display = 'none';
       document.getElementById('authLoginOverlay').classList.add('auth-hidden');
@@ -8860,8 +8867,20 @@ export const DIALER_HTML = `<!DOCTYPE html>
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getSessionToken() },
         body: JSON.stringify({ pin: pin })
       }).then(function(r) { return r.json(); })
+        .then(function(r) {
+          if (r.status === 401) {
+            // Session expired — clear and go to login
+            sessionStorage.removeItem('dialer_locked');
+            clearSession();
+            showAuthScreen();
+            return;
+          }
+          return r.json();
+        })
         .then(function(res) {
+          if (!res) return;
           if (res.success) {
+            sessionStorage.removeItem('dialer_locked');
             var appShell = document.querySelector('.app-shell');
             if (appShell) appShell.style.display = '';
             document.getElementById('lockScreenOverlay').classList.add('auth-hidden');
