@@ -1598,8 +1598,9 @@ export const DIALER_HTML = `<!DOCTYPE html>
           <button class="filter-tab" data-filter="success">已接通</button>
           <button class="filter-tab" data-filter="failed">未接通</button>
         </div>
+        <button id="lockScreenBtn" title="锁定屏幕" style="flex-shrink:0;width:28px;height:28px;border:1px solid var(--card-border);background:var(--btn-bg);color:var(--text-soft);border-radius:var(--radius-xs);font-size:0.8rem;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">锁</button>
       </div>
-      
+
       <!-- Contacts List -->
       <div class="cards-content" id="cardsContainer">
         <div style="text-align:center;padding:80px 20px;"></div>
@@ -6178,6 +6179,14 @@ export const DIALER_HTML = `<!DOCTYPE html>
  currentSort = this.value;
  currentPage = 1; // Reset to page 1
  renderDialCards();
+ });
+ }
+
+ var lockBtn = document.getElementById('lockScreenBtn');
+ if (lockBtn) {
+ lockBtn.addEventListener('click', function() {
+ clearSession();
+ showAuthScreen();
  });
  }
 
