@@ -7585,7 +7585,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
                 localStorage.setItem(CLIENTS_K, JSON.stringify(importedClients));
                 renderDialCards();
                 updateStats();
-                alert('已加载 ' + customers.length + ' 个客户到待拨打列表');
               })
               .catch(function(err) {
                 clearTimeout(timeoutId);
