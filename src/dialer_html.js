@@ -8992,7 +8992,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
             showAuthScreen();
             return null;
           }
-          return r.json().then(function(data) { console.log('[unlock] status=' + r.status + ' resp=', data); return data; });
+          return r.json();
         })
         .then(function(res) {
           if (!res) return;
@@ -9007,10 +9007,8 @@ export const DIALER_HTML = `<!DOCTYPE html>
             renderDialCards();
           } else {
             var errMsg = res.error || 'PIN 不正确';
-            console.log('[unlock] errMsg=' + errMsg);
             // Parse LOCKOUT:seconds:message prefix from server
             var m = errMsg.match(/LOCKOUT:(\d+):/);
-            console.log('[unlock] regex match=', m);
             if (m) {
               startLockoutCooldown(parseInt(m[1]));
             } else {
