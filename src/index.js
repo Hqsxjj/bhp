@@ -171,7 +171,8 @@ export default {
       }
     }
 
-    // Unlock: verify PIN only (keeps existing session)
+    // Unlock: verify PIN with cooldown lockout
+    // 2nd wrong → 1min, 3rd wrong → 5min, 4th+ wrong → 10min
     if (path === '/api/dialer/auth/unlock' && request.method === 'POST') {
       try {
         var body = await request.json();
@@ -186,7 +187,35 @@ export default {
           if (accounts[ui].account_id === unlockSession.account_id) { found = accounts[ui]; break; }
         }
         if (!found) throw new Error('账户不存在');
-        if (found.pin_hash !== dialerHashPin(pin)) throw new Error('PIN 不正确');
+
+        // Cooldown check
+        var failKey = 'dialer:unlock:fail:' + found.account_id;
+        var failRaw = await env.DATA_KV.get(failKey);
+        var failState = failRaw ? JSON.parse(failRaw) : { count: 0, lastAttempt: 0 };
+        if (failState.count >= 2) {
+          var cd = failState.count >= 4 ? 600 : (failState.count === 3 ? 300 : 60);
+          var elapsed = (Date.now() - failState.lastAttempt) / 1000;
+          if (elapsed < cd) {
+            var remain = Math.ceil(cd - elapsed);
+            throw new Error('LOCKOUT:' + remain + ':请 ' + remain + ' 秒后重试');
+          }
+        }
+
+        if (found.pin_hash !== dialerHashPin(pin)) {
+          failState.count = (failState.count || 0) + 1;
+          failState.lastAttempt = Date.now();
+          var ttl = failState.count >= 4 ? 1800 : 3600;
+          await env.DATA_KV.put(failKey, JSON.stringify(failState), { expirationTtl: ttl });
+          var cd2 = failState.count >= 4 ? 600 : (failState.count >= 3 ? 300 : (failState.count >= 2 ? 60 : 0));
+          if (cd2 > 0) {
+            throw new Error('LOCKOUT:' + cd2 + ':PIN 不正确，请 ' + cd2 + ' 秒后重试');
+          }
+          throw new Error('PIN 不正确');
+        }
+
+        // Success — clear fail state
+        await env.DATA_KV.delete(failKey);
+
         return new Response(JSON.stringify({ success: true }), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });

@@ -8897,11 +8897,46 @@ export const DIALER_HTML = `<!DOCTYPE html>
       pinInput.focus();
     }
 
+    var lockoutTimer = null;
+
+    function startLockoutCooldown(seconds) {
+      var pinInput = document.getElementById('lockPinInput');
+      var error = document.getElementById('lockScreenError');
+      var unlockBtn = document.getElementById('lockUnlockBtn');
+
+      pinInput.disabled = true;
+      unlockBtn.disabled = true;
+      clearInterval(lockoutTimer);
+
+      function tick() {
+        if (seconds <= 0) {
+          clearInterval(lockoutTimer);
+          lockoutTimer = null;
+          pinInput.disabled = false;
+          unlockBtn.disabled = false;
+          unlockBtn.textContent = '解锁';
+          error.textContent = '';
+          pinInput.value = '';
+          pinInput.focus();
+          return;
+        }
+        var m = Math.floor(seconds / 60);
+        var s = seconds % 60;
+        error.textContent = 'PIN 错误次数过多，请 ' + (m > 0 ? m + '分' : '') + s + '秒 后重试';
+        unlockBtn.textContent = m > 0 ? m + '分' + s + '秒' : s + '秒';
+        seconds--;
+      }
+      tick();
+      lockoutTimer = setInterval(tick, 1000);
+    }
+
     function doUnlock() {
       var pinInput = document.getElementById('lockPinInput');
       var error = document.getElementById('lockScreenError');
       var unlockBtn = document.getElementById('lockUnlockBtn');
       var pin = pinInput.value.trim();
+
+      if (lockoutTimer) return;
 
       if (!pin || pin.length < 4 || pin.length > 6) {
         error.textContent = '请输入 4-6 位 PIN';
@@ -8928,17 +8963,26 @@ export const DIALER_HTML = `<!DOCTYPE html>
         .then(function(res) {
           if (!res) return;
           if (res.success) {
+            clearInterval(lockoutTimer);
+            lockoutTimer = null;
             sessionStorage.removeItem('dialer_locked');
             var appShell = document.querySelector('.app-shell');
             if (appShell) appShell.style.display = '';
             document.getElementById('lockScreenOverlay').classList.add('auth-hidden');
             renderDialCards();
           } else {
-            error.textContent = res.error || 'PIN 不正确';
-            unlockBtn.disabled = false;
-            unlockBtn.textContent = '解锁';
-            pinInput.value = '';
-            pinInput.focus();
+            var errMsg = res.error || 'PIN 不正确';
+            // Parse LOCKOUT:seconds:message prefix from server
+            var m = errMsg.match(/^LOCKOUT:(\d+):(.*)/);
+            if (m) {
+              startLockoutCooldown(parseInt(m[1]));
+            } else {
+              error.textContent = errMsg;
+              unlockBtn.disabled = false;
+              unlockBtn.textContent = '解锁';
+              pinInput.value = '';
+              pinInput.focus();
+            }
           }
         })
         .catch(function(err) {
