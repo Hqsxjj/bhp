@@ -2259,15 +2259,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
       }
     }
 
-    // Auto-fullscreen on first touch
-    function initAutoFullscreen() {
-      var go = function() {
-        if (document.fullscreenElement) return;
-        document.documentElement.requestFullscreen().catch(function() {});
-      };
-      document.addEventListener('click', go, {once: true});
-      document.addEventListener('touchend', go, {once: true});
-    }
 
     // Helper functions
     function esc(s) {
@@ -9070,7 +9061,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
     }
     safeInit('initAuth', initAuth);
     safeInit('initDark', initDark);
-    safeInit('initAutoFullscreen', initAutoFullscreen);
     safeInit('initFileInputs', initFileInputs);
     safeInit('initCallControls', initCallControls);
     safeInit('initFilters', initFilters);
