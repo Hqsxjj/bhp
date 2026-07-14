@@ -8894,7 +8894,15 @@ export const DIALER_HTML = `<!DOCTYPE html>
 
       unlockBtn.onclick = doUnlock;
       pinInput.onkeypress = function(e) { if (e.key === 'Enter') doUnlock(); };
-      pinInput.focus();
+
+      // Resume cooldown if page was refreshed during lockout
+      var savedUntil = parseInt(sessionStorage.getItem('dialer_lockout_until') || '0');
+      if (savedUntil > Date.now()) {
+        startLockoutCooldown(Math.ceil((savedUntil - Date.now()) / 1000));
+      } else {
+        sessionStorage.removeItem('dialer_lockout_until');
+        pinInput.focus();
+      }
     }
 
     var lockoutTimer = null;
@@ -8908,10 +8916,15 @@ export const DIALER_HTML = `<!DOCTYPE html>
       unlockBtn.disabled = true;
       clearInterval(lockoutTimer);
 
+      var until = Date.now() + seconds * 1000;
+      sessionStorage.setItem('dialer_lockout_until', until);
+
       function tick() {
-        if (seconds <= 0) {
+        var remain = Math.ceil((until - Date.now()) / 1000);
+        if (remain <= 0) {
           clearInterval(lockoutTimer);
           lockoutTimer = null;
+          sessionStorage.removeItem('dialer_lockout_until');
           pinInput.disabled = false;
           unlockBtn.disabled = false;
           unlockBtn.textContent = '解锁';
@@ -8920,14 +8933,13 @@ export const DIALER_HTML = `<!DOCTYPE html>
           pinInput.focus();
           return;
         }
-        var m = Math.floor(seconds / 60);
-        var s = seconds % 60;
+        var m = Math.floor(remain / 60);
+        var s = remain % 60;
         error.textContent = 'PIN 错误次数过多，请 ' + (m > 0 ? m + '分' : '') + s + '秒 后重试';
         unlockBtn.textContent = m > 0 ? m + '分' + s + '秒' : s + '秒';
-        seconds--;
       }
       tick();
-      lockoutTimer = setInterval(tick, 1000);
+      lockoutTimer = setInterval(tick, 250);
     }
 
     function doUnlock() {
@@ -8966,6 +8978,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
             clearInterval(lockoutTimer);
             lockoutTimer = null;
             sessionStorage.removeItem('dialer_locked');
+            sessionStorage.removeItem('dialer_lockout_until');
             var appShell = document.querySelector('.app-shell');
             if (appShell) appShell.style.display = '';
             document.getElementById('lockScreenOverlay').classList.add('auth-hidden');
