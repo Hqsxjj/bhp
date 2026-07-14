@@ -2485,11 +2485,11 @@ export const DIALER_HTML = `<!DOCTYPE html>
     }
 
     function uploadCustomersToSupabase(customers, batchLabel) {
-      if (!customers || customers.length === 0) return;
+      if (!customers || customers.length === 0) return Promise.resolve({ success: false, error: '无数据' });
       var label = batchLabel || ("导入-" + new Date().toISOString().slice(0, 19).replace("T", " "));
       var payload = serializeCustomersForSupabase(customers);
       var accountId = getOrCreateAccountId();
-      fetch("/api/dialer/upload-customers", {
+      return fetch("/api/dialer/upload-customers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ customers: payload, batch_label: label, account_id: accountId })
@@ -2497,13 +2497,26 @@ export const DIALER_HTML = `<!DOCTYPE html>
       .then(function(res) { return res.json(); })
       .then(function(data) {
         if (!data.success) {
+          alert('上传失败: ' + (data.error || '未知错误'));
           console.error("Supabase upload failed:", data.error || "未知错误");
-        } else if (data.skipped > 0) {
-          console.warn("Supabase upload: " + data.count + " 条成功，" + data.skipped + " 条因归属其他账户而跳过");
+        } else {
+          var msg = '成功上传 ' + data.count + ' 条客户数据到云端';
+          if (data.skipped > 0) {
+            msg += '\n(其中 ' + data.skipped + ' 条手机号已归属其他账户，已跳过)';
+          }
+          var tip = document.createElement('div');
+          tip.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#27ae60;color:#fff;padding:10px 24px;border-radius:8px;font-size:0.85rem;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.2);pointer-events:none;transition:opacity 0.3s;';
+          tip.textContent = msg;
+          document.body.appendChild(tip);
+          setTimeout(function() { tip.style.opacity = '0'; setTimeout(function() { tip.remove(); }, 300); }, 2500);
+          console.log("Supabase upload:", msg);
         }
+        return data;
       })
       .catch(function(err) {
+        alert('上传失败: 网络错误，请检查连接后重试');
         console.error("Supabase upload error:", err);
+        return { success: false, error: err.message };
       });
     }
 

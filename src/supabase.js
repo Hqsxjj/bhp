@@ -334,17 +334,25 @@ export function createSupabaseClient(env) {
 
         var resp = null;
         var batch = null;
+        var anySuccess = false;
 
         for (var ci = 0; ci < colSets.length; ci++) {
           var url2 = baseUrl + '/rest/v1/customers?select=' + colSets[ci] + orderClause + baseSearch + excludeFilter + accountFilter + filterParams;
           resp = await fetch(url2, { headers: headersWithCount });
           if (resp.ok) {
             batch = await resp.json();
+            anySuccess = true;
             break;
           }
         }
 
-        if (!batch || !Array.isArray(batch)) break;
+        if (!batch || !Array.isArray(batch)) {
+          if (!anySuccess) {
+            console.error('[supabase] getAllCustomers query failed — all column sets returned non-ok');
+            return { data: [], total: 0, page: p, pageSize: ps, error: 'Supabase 查询失败，请检查数据库连接' };
+          }
+          break;
+        }
 
         allData = allData.concat(batch);
 
@@ -358,12 +366,8 @@ export function createSupabaseClient(env) {
         currentFrom += fetchSize;
       }
 
-      if (allData.length === 0) {
-        console.error('[supabase] getAllCustomers failed, returning empty');
-        return { data: [], total: 0, page: p, pageSize: ps };
-      }
-
-      // Use Content-Range total if available, otherwise fetched count
+      // Return result — may be empty for new accounts with no data yet
+      // (real query failures are caught earlier by anySuccess check)
       return { data: allData, total: totalCount || allData.length, page: p, pageSize: ps };
     } catch (e) {
       console.error('[supabase] getAllCustomers error:', e.message);
@@ -657,13 +661,20 @@ export function createSupabaseClient(env) {
 
       var data = null;
       var resp = null;
+      var anySuccess = false;
       for (var ci = 0; ci < colSets.length; ci++) {
         var qUrl = baseUrl + '/rest/v1/customers?select=' + colSets[ci] + orderFilter + cooldownFilter + accountFilter + notInFilter;
         resp = await fetch(qUrl, { headers: hdrs });
         if (resp.ok) {
           data = await resp.json();
+          anySuccess = true;
           break;
         }
+      }
+
+      if (!anySuccess) {
+        console.error('[supabase] getCustomersForDialer query failed — all column sets returned non-ok');
+        return { data: [], total: 0, limit: lim, error: 'Supabase 查询失败' };
       }
 
       var totalCount = 0;
