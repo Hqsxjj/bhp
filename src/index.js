@@ -197,7 +197,9 @@ export default {
           var elapsed = (Date.now() - failState.lastAttempt) / 1000;
           if (elapsed < cd) {
             var remain = Math.ceil(cd - elapsed);
-            throw new Error('LOCKOUT:' + remain + ':请 ' + remain + ' 秒后重试');
+            return new Response(JSON.stringify({ error: 'LOCKOUT:' + remain + ':请 ' + remain + ' 秒后重试' }), {
+              status: 423, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+            });
           }
         }
 
@@ -208,9 +210,13 @@ export default {
           await env.DATA_KV.put(failKey, JSON.stringify(failState), { expirationTtl: ttl });
           var cd2 = failState.count >= 4 ? 600 : (failState.count >= 3 ? 300 : (failState.count >= 2 ? 60 : 0));
           if (cd2 > 0) {
-            throw new Error('LOCKOUT:' + cd2 + ':PIN 不正确，请 ' + cd2 + ' 秒后重试');
+            return new Response(JSON.stringify({ error: 'LOCKOUT:' + cd2 + ':PIN 不正确，请 ' + cd2 + ' 秒后重试' }), {
+              status: 423, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+            });
           }
-          throw new Error('PIN 不正确');
+          return new Response(JSON.stringify({ error: 'PIN 不正确' }), {
+            status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
         }
 
         // Success — clear fail state
