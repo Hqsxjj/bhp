@@ -1669,7 +1669,11 @@ export const DIALER_HTML = `<!DOCTYPE html>
       
       <!-- Remark Input Field (Directly Visible) -->
       <div style="text-align:left;display:flex;flex-direction:column;gap:4px;width:100%;">
-        <span class="client-card-label" style="font-size:0.65rem;color:var(--text-light);font-weight:800;">通话小记 / 沟通记录</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="client-card-label" style="font-size:0.65rem;color:var(--text-light);font-weight:800;">通话小记 / 沟通记录</span>
+          <button type="button" id="bhpBoldBtn" title="加粗 (Alt+B)" style="height:22px;width:22px;font-weight:900;font-size:0.6rem;border:1px solid var(--card-border);background:var(--btn-bg);color:var(--text-main);cursor:pointer;border-radius:3px;padding:0;line-height:1;flex-shrink:0;">B</button>
+          <button type="button" id="bhpDelBtn" title="删除线 (Alt+D)" style="height:22px;width:22px;font-weight:700;font-size:0.5rem;border:1px solid var(--card-border);background:var(--btn-bg);color:var(--text-main);cursor:pointer;border-radius:3px;padding:0;line-height:1;text-decoration:line-through;flex-shrink:0;">D</button>
+        </div>
         <textarea id="callLogNote" placeholder="在这里输入通话记录、客户意向等备注信息..." style="width:100%;height:100px;font-size:0.8rem;padding:8px 10px;background:var(--btn-bg);border:1px solid var(--card-border);border-radius:var(--radius-xs);color:var(--text-main);outline:none;font-weight:700;resize:none;"></textarea>
       </div>
 
@@ -6131,6 +6135,24 @@ export const DIALER_HTML = `<!DOCTYPE html>
  btn.style.borderColor = '';
  }
  }
+
+ // Format helpers for call notes
+ function doWrapCallNote(tag) {
+   var ta = document.getElementById('callLogNote');
+   var s = ta.selectionStart, e = ta.selectionEnd, v = ta.value;
+   var idx = tag.indexOf('|');
+   var open = idx >= 0 ? tag.slice(0, idx) : tag, close = idx >= 0 ? tag.slice(idx + 1) : tag;
+   if (s === e) { ta.value = v.slice(0, s) + open + close + v.slice(e); ta.selectionStart = ta.selectionEnd = s + open.length; }
+   else { ta.value = v.slice(0, s) + open + v.slice(s, e) + close + v.slice(e); ta.selectionStart = s + open.length; ta.selectionEnd = e + open.length; }
+   ta.focus();
+ }
+ document.getElementById('bhpBoldBtn').addEventListener('click', function() { doWrapCallNote('**|**'); });
+ document.getElementById('bhpDelBtn').addEventListener('click', function() { doWrapCallNote('~~|~~'); });
+ document.addEventListener('keydown', function(e) {
+   if (e.target.tagName === 'INPUT' || e.target.isContentEditable) return;
+   if (e.altKey && e.key === 'b') { e.preventDefault(); doWrapCallNote('**|**'); }
+   else if (e.altKey && e.key === 'd') { e.preventDefault(); doWrapCallNote('~~|~~'); }
+ });
 
  document.getElementById('autoDialBtn').addEventListener('click', function() {
  autoDialActive = !autoDialActive;
