@@ -2502,7 +2502,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
         } else {
           var msg = '成功上传 ' + data.count + ' 条客户数据到云端';
           if (data.skipped > 0) {
-            msg += '\n(其中 ' + data.skipped + ' 条手机号已归属其他账户，已跳过)';
+            msg += '\\n(其中 ' + data.skipped + ' 条手机号已归属其他账户，已跳过)';
           }
           var tip = document.createElement('div');
           tip.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#27ae60;color:#fff;padding:10px 24px;border-radius:8px;font-size:0.85rem;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.2);pointer-events:none;transition:opacity 0.3s;';
