@@ -198,7 +198,7 @@ export default {
           if (elapsed < cd) {
             var remain = Math.ceil(cd - elapsed);
             return new Response(JSON.stringify({ error: 'LOCKOUT:' + remain + ':请 ' + remain + ' 秒后重试' }), {
-              status: 423, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+              status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
             });
           }
         }
@@ -211,7 +211,7 @@ export default {
           var cd2 = failState.count >= 4 ? 600 : (failState.count >= 3 ? 300 : (failState.count >= 2 ? 60 : 0));
           if (cd2 > 0) {
             return new Response(JSON.stringify({ error: 'LOCKOUT:' + cd2 + ':PIN 不正确，请 ' + cd2 + ' 秒后重试' }), {
-              status: 423, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+              status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
             });
           }
           return new Response(JSON.stringify({ error: 'PIN 不正确' }), {
