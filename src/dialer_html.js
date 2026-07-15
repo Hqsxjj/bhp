@@ -79,7 +79,7 @@
       display: flex;
       flex-direction: column;
       gap: 0;
-      overflow: visible;
+      overflow: hidden;
     }
     .container > * { margin-top: 0; margin-bottom: 0; }
     .cards-content {
