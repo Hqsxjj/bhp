@@ -665,22 +665,89 @@
     }
     .global-wallpaper.loaded { opacity: 1; }
     /* Glass-morphism lock screen card */
-    /* iOS-style ultra-glass lock card */
+    /* ── Anime-style lock card ── */
     #lockScreenOverlay .auth-card {
       position: relative; z-index: 3;
-      background: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.35) 100%);
+      background: linear-gradient(160deg, rgba(255,255,255,0.55) 0%, rgba(255,240,245,0.4) 40%, rgba(245,225,255,0.35) 100%);
       backdrop-filter: blur(50px) saturate(180%);
       -webkit-backdrop-filter: blur(50px) saturate(180%);
-      border: 1px solid rgba(255,255,255,0.25);
-      border-radius: 28px;
-      box-shadow: 0 8px 40px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.4);
+      border: 1.5px solid rgba(255,140,180,0.35);
+      border-radius: 32px;
+      box-shadow:
+        0 0 30px rgba(255,150,200,0.15),
+        0 8px 40px rgba(0,0,0,0.06),
+        inset 0 1px 0 rgba(255,255,255,0.5);
+      overflow: hidden;
+    }
+    /* Subtle anime glow ring */
+    #lockScreenOverlay .auth-card::before {
+      content: ''; position: absolute; top: -1px; left: 20px; right: 20px; height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(255,180,210,0.6), rgba(200,160,255,0.6), rgba(255,180,210,0.6), transparent);
+      z-index: 10; pointer-events: none; border-radius: 1px;
     }
     body.dark-mode #lockScreenOverlay .auth-card {
-      background: linear-gradient(135deg, rgba(30,30,30,0.48) 0%, rgba(20,20,20,0.38) 100%);
+      background: linear-gradient(160deg, rgba(35,25,35,0.55) 0%, rgba(30,20,30,0.45) 40%, rgba(25,20,30,0.4) 100%);
       backdrop-filter: blur(50px) saturate(150%);
       -webkit-backdrop-filter: blur(50px) saturate(150%);
-      border: 1px solid rgba(255,255,255,0.1);
-      box-shadow: 0 8px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
+      border: 1.5px solid rgba(200,120,180,0.25);
+      box-shadow:
+        0 0 40px rgba(200,100,180,0.12),
+        0 8px 40px rgba(0,0,0,0.3),
+        inset 0 1px 0 rgba(255,255,255,0.04);
+    }
+    body.dark-mode #lockScreenOverlay .auth-card::before {
+      background: linear-gradient(90deg, transparent, rgba(200,140,200,0.4), rgba(160,120,200,0.4), rgba(200,140,200,0.4), transparent);
+    }
+    /* ── Anime PIN input ── */
+    #lockScreenOverlay .auth-input {
+      background: rgba(255,255,255,0.55);
+      border: 2px solid rgba(255,180,210,0.5);
+      border-radius: 18px;
+      color: #5c3d5c;
+      font-weight: 800;
+      letter-spacing: 6px;
+      transition: all 0.3s ease;
+    }
+    #lockScreenOverlay .auth-input:focus {
+      border-color: rgba(255,130,180,0.8);
+      box-shadow: 0 0 20px rgba(255,150,200,0.2), 0 0 0 4px rgba(255,180,210,0.08);
+      background: rgba(255,255,255,0.8);
+    }
+    #lockScreenOverlay .auth-input::placeholder {
+      color: rgba(180,140,170,0.6);
+      letter-spacing: 2px;
+    }
+    body.dark-mode #lockScreenOverlay .auth-input {
+      background: rgba(40,25,40,0.5);
+      border-color: rgba(180,100,160,0.4);
+      color: #e0d0e0;
+    }
+    body.dark-mode #lockScreenOverlay .auth-input:focus {
+      border-color: rgba(220,130,190,0.7);
+      box-shadow: 0 0 24px rgba(200,120,180,0.18), 0 0 0 4px rgba(180,120,170,0.08);
+      background: rgba(50,30,50,0.7);
+    }
+    /* ── Anime unlock button ── */
+    #lockScreenOverlay .auth-btn {
+      background: linear-gradient(135deg, #f8a0c8 0%, #d08ae8 50%, #a8a0f0 100%);
+      border: none;
+      border-radius: 22px;
+      font-weight: 800;
+      letter-spacing: 4px;
+      box-shadow: 0 6px 24px rgba(210,130,200,0.35), 0 0 40px rgba(200,150,220,0.1);
+      transition: all 0.3s ease;
+    }
+    #lockScreenOverlay .auth-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 28px rgba(210,130,200,0.45), 0 0 50px rgba(200,150,220,0.18);
+    }
+    #lockScreenOverlay .auth-btn:active {
+      transform: scale(0.97);
+      box-shadow: 0 4px 16px rgba(210,130,200,0.3);
+    }
+    body.dark-mode #lockScreenOverlay .auth-btn {
+      background: linear-gradient(135deg, #c06090 0%, #a060c0 50%, #7878d0 100%);
+      box-shadow: 0 6px 24px rgba(160,80,150,0.35), 0 0 40px rgba(140,80,160,0.12);
     }.auth-overlay.auth-hidden {
       display: none;
     }
