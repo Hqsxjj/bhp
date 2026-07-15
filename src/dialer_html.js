@@ -1432,7 +1432,12 @@
           <div class="progress-fill" id="progressFill" style="height: 100%; width: 0%; transition: width 0.3s ease;"></div>
         </div>
       </div>
-      
+
+      <!-- Contacts List — immediately after header, no gaps -->
+      <div class="cards-content" id="cardsContainer">
+        <div style="text-align:center;padding:80px 20px;"></div>
+      </div>
+
       <!-- Dashboard -->
       <div class="dashboard-panel" id="dashboardPanel">
         <!-- AI Drag & Drop Zone -->
@@ -1651,10 +1656,6 @@
         </div>
       </div>
 
-      <!-- Contacts List -->
-      <div class="cards-content" id="cardsContainer">
-        <div style="text-align:center;padding:80px 20px;"></div>
-      </div>
     </div>
   </div>
   
