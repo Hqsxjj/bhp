@@ -86,6 +86,7 @@
       flex: 1;
       overflow: auto;
       padding: 0;
+      margin-top: -2px;
       position: relative;
       z-index: 1;
     }
@@ -173,7 +174,8 @@
       z-index: 5000;
       opacity: 0;
       pointer-events: none;
-      transition: all 0.25s ease;
+      visibility: hidden;
+      transition: opacity 0.25s ease, visibility 0.25s ease;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -182,6 +184,7 @@
     .dashboard-panel.active {
       opacity: 1;
       pointer-events: auto;
+      visibility: visible;
     }
     .dashboard-panel .import-zone {
       background: var(--modal-card);
