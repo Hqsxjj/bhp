@@ -79,7 +79,7 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      background: var(--bg-app);
+      background: transparent;
     }
 
     /* Header Bar — full width */
