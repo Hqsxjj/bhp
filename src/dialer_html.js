@@ -373,7 +373,9 @@
     }
     .crm-table thead th {
       position: sticky; top: 0; z-index: 2;
-      background: #f0f0f0;
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       padding: 6px 10px;
       text-align: left;
       font-weight: 700;
@@ -386,7 +388,7 @@
       cursor: pointer;
       user-select: none;
     }
-    .crm-table thead th:hover { background: #e4e4e4; }
+    .crm-table thead th:hover { background: rgba(255,255,255,0.88); }
     .crm-table thead th .sort-arrow { font-size: 10px; margin-left: 2px; opacity: 0.35; }
     .crm-table thead th.sorted .sort-arrow { opacity: 1; color: #4a6cf7; }
     .crm-table td {
@@ -396,8 +398,9 @@
       white-space: nowrap;
       font-size: 13px;
       vertical-align: middle;
+      background: transparent;
     }
-    .crm-table tbody tr:nth-child(even) td { background: #f8f9fa; }
+    .crm-table tbody tr:nth-child(even) td { background: rgba(0,0,0,0.03); }
     .crm-table tbody tr:hover td { background: rgba(74,108,247,0.05) !important; }
     .crm-table tbody tr.row-dialed td { opacity: 0.55; }
     .crm-table .col-no { width: 40px; text-align: center; color: #aaa; font-size: 11px; }
@@ -408,10 +411,10 @@
     .crm-table .col-note { min-width: 80px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
     .crm-table .col-batch { min-width: 90px; }
     .crm-table .col-action { width: 60px; text-align: center; }
-    body.dark-mode .crm-table thead th { background: #2a2a2a; border-color: #444; color: #ccc; border-bottom-color: #555; }
-    body.dark-mode .crm-table thead th:hover { background: #333; }
-    body.dark-mode .crm-table td { color: #ddd; border-color: #3a3a3a; }
-    body.dark-mode .crm-table tbody tr:nth-child(even) td { background: #232323; }
+    body.dark-mode .crm-table thead th { background: rgba(26,26,26,0.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-color: #444; color: #ccc; border-bottom-color: #555; }
+    body.dark-mode .crm-table thead th:hover { background: rgba(26,26,26,0.9); }
+    body.dark-mode .crm-table td { color: #ddd; border-color: #3a3a3a; background: transparent; }
+    body.dark-mode .crm-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
     body.dark-mode .crm-table tbody tr:hover td { background: rgba(74,108,247,0.1) !important; }
     .xls-dial-card {
       background: var(--card-bg);
