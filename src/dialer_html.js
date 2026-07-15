@@ -8947,29 +8947,70 @@
 
       function fallbackToGradient() {
         if (_wallpaperLoaded) return;
-        globalEl.style.backgroundImage = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
-        globalEl.classList.add('loaded');
-        if (lockEl) {
-          lockEl.style.backgroundImage = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
-          lockEl.classList.add('loaded');
+        // Try direct anime image URLs before gradient
+        var directUrls = [
+          'https://t.alcy.cc/mp',
+          'https://t.alcy.cc/pc',
+          'https://api.ixiaowai.cn/api/api.php'
+        ];
+        var di = 0;
+        function tryDirect() {
+          if (di >= directUrls.length) {
+            // Final fallback: gradient
+            globalEl.style.backgroundImage = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
+            globalEl.classList.add('loaded');
+            if (lockEl) {
+              lockEl.style.backgroundImage = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
+              lockEl.classList.add('loaded');
+            }
+            _wallpaperLoaded = true;
+            return;
+          }
+          var img = new Image();
+          img.onload = function() {
+            applyWallpaper(directUrls[di]);
+          };
+          img.onerror = function() {
+            di++;
+            tryDirect();
+          };
+          img.src = directUrls[di];
         }
-        _wallpaperLoaded = true;
+        tryDirect();
       }
 
-      fetch('https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=8')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          if (data && data.images && data.images.length > 0) {
-            var idx = Math.floor(Math.random() * data.images.length);
-            var wallUrl = 'https://www.bing.com' + data.images[idx].url;
-            applyWallpaper(wallUrl);
-          } else {
-            fallbackToGradient();
-          }
-        })
-        .catch(function() {
+      // Try multiple anime wallpaper sources (Bing blocked in China)
+      var wallSources = [
+        'https://api.ixiaowai.cn/api/api.php',
+        'https://api.ixiaowai.cn/gqapi/gqapi.php',
+        'https://www.dmoe.cc/random.php'
+      ];
+      var srcIdx = Math.floor(Math.random() * wallSources.length);
+
+      function tryNextSource(idx) {
+        if (idx >= wallSources.length) {
           fallbackToGradient();
-        });
+          return;
+        }
+        var url = wallSources[idx];
+        var img = new Image();
+        img.onload = function() {
+          applyWallpaper(url);
+        };
+        img.onerror = function() {
+          tryNextSource(idx + 1);
+        };
+        // 5s timeout per source
+        var timedOut = false;
+        setTimeout(function() {
+          if (!timedOut && !_wallpaperLoaded) {
+            timedOut = true;
+            tryNextSource(idx + 1);
+          }
+        }, 5000);
+        img.src = url;
+      }
+      tryNextSource(0);
     }
     function showLockScreen() {
       sessionStorage.setItem('dialer_locked', '1');
