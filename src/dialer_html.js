@@ -2522,7 +2522,7 @@
       if (minimalStats) {
         minimalStats.style.display = hasData ? 'flex' : 'none';
       }
-      document.getElementById('controlBar').style.display = flexStyle;
+      document.getElementById('controlBar').style.display = 'none';
 
       var expBtn = document.getElementById('exportBtn');
       var clrBtn = document.getElementById('clearBtn');
