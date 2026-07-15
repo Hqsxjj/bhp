@@ -1387,6 +1387,7 @@
 
   <!-- Lock Screen Overlay (PIN only, keeps session) -->
   <div id="lockScreenOverlay" class="auth-overlay auth-hidden">
+    <div id="lockWallpaper" class="lock-wallpaper"></div>
     <div class="lock-wallpaper-overlay"></div>
     <div class="auth-card">
       <input type="password" id="lockPinInput" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="输入 PIN 解锁" autocomplete="off">
@@ -8905,14 +8906,19 @@
 
     function loadWallpaper() {
       if (_wallpaperLoaded) return;
-      var el = document.getElementById('globalWallpaper');
-      if (!el) return;
+      var globalEl = document.getElementById('globalWallpaper');
+      var lockEl = document.getElementById('lockWallpaper');
+      if (!globalEl) return;
 
       function applyWallpaper(url) {
         var img = new Image();
         img.onload = function() {
-          el.style.backgroundImage = 'url(' + url + ')';
-          el.classList.add('loaded');
+          globalEl.style.backgroundImage = 'url(' + url + ')';
+          globalEl.classList.add('loaded');
+          if (lockEl) {
+            lockEl.style.backgroundImage = 'url(' + url + ')';
+            lockEl.classList.add('loaded');
+          }
           _wallpaperLoaded = true;
         };
         img.onerror = function() {
@@ -8922,8 +8928,12 @@
         clearTimeout(_wallpaperTimer);
         _wallpaperTimer = setTimeout(function() {
           if (!_wallpaperLoaded) {
-            el.style.backgroundImage = 'url(' + url + ')';
-            el.classList.add('loaded');
+            globalEl.style.backgroundImage = 'url(' + url + ')';
+            globalEl.classList.add('loaded');
+            if (lockEl) {
+              lockEl.style.backgroundImage = 'url(' + url + ')';
+              lockEl.classList.add('loaded');
+            }
             _wallpaperLoaded = true;
           }
         }, 5000);
@@ -8931,8 +8941,12 @@
 
       function fallbackToGradient() {
         if (_wallpaperLoaded) return;
-        el.style.backgroundImage = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
-        el.classList.add('loaded');
+        globalEl.style.backgroundImage = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
+        globalEl.classList.add('loaded');
+        if (lockEl) {
+          lockEl.style.backgroundImage = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
+          lockEl.classList.add('loaded');
+        }
         _wallpaperLoaded = true;
       }
 
