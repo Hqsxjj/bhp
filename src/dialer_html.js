@@ -79,7 +79,10 @@
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      background: transparent;
+      background: rgba(255,255,255,0.72);
+    }
+    body.dark-mode .container {
+      background: rgba(26,26,26,0.72);
     }
 
     /* Header Bar — full width */
