@@ -665,16 +665,22 @@
     }
     .global-wallpaper.loaded { opacity: 1; }
     /* Glass-morphism lock screen card */
+    /* iOS-style ultra-glass lock card */
     #lockScreenOverlay .auth-card {
       position: relative; z-index: 3;
-      background: rgba(255,255,255,0.72);
-      backdrop-filter: blur(24px);
-      -webkit-backdrop-filter: blur(24px);
-      border: 1px solid rgba(255,255,255,0.3);
+      background: linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0.35) 100%);
+      backdrop-filter: blur(50px) saturate(180%);
+      -webkit-backdrop-filter: blur(50px) saturate(180%);
+      border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 28px;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.4);
     }
     body.dark-mode #lockScreenOverlay .auth-card {
-      background: rgba(26,26,26,0.72);
-      border: 1px solid rgba(255,255,255,0.08);
+      background: linear-gradient(135deg, rgba(30,30,30,0.48) 0%, rgba(20,20,20,0.38) 100%);
+      backdrop-filter: blur(50px) saturate(150%);
+      -webkit-backdrop-filter: blur(50px) saturate(150%);
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow: 0 8px 40px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.06);
     }.auth-overlay.auth-hidden {
       display: none;
     }
