@@ -78,12 +78,10 @@
       margin: 0;
       display: flex;
       flex-direction: column;
+      gap: 0;
       overflow: hidden;
-      background: rgba(255,255,255,0.72);
     }
-    body.dark-mode .container {
-      background: rgba(26,26,26,0.72);
-    }
+    .container > * { margin-top: 0; margin-bottom: 0; }
 
     /* Header Bar — full width */
     .header-bar {
