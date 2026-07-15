@@ -8908,7 +8908,6 @@
 
 
     var _wallpaperLoaded = false;
-    var _wallpaperTimer = null;
 
     function loadWallpaper() {
       if (_wallpaperLoaded) return;
@@ -8916,102 +8915,25 @@
       var lockEl = document.getElementById('lockWallpaper');
       if (!globalEl) return;
 
-      function applyWallpaper(url) {
-        var img = new Image();
-        img.onload = function() {
-          globalEl.style.backgroundImage = 'url(' + url + ')';
-          globalEl.classList.add('loaded');
-          if (lockEl) {
-            lockEl.style.backgroundImage = 'url(' + url + ')';
-            lockEl.classList.add('loaded');
-          }
-          _wallpaperLoaded = true;
-        };
-        img.onerror = function() {
-          fallbackToGradient();
-        };
-        img.src = url;
-        clearTimeout(_wallpaperTimer);
-        _wallpaperTimer = setTimeout(function() {
-          if (!_wallpaperLoaded) {
-            globalEl.style.backgroundImage = 'url(' + url + ')';
-            globalEl.classList.add('loaded');
-            if (lockEl) {
-              lockEl.style.backgroundImage = 'url(' + url + ')';
-              lockEl.classList.add('loaded');
-            }
-            _wallpaperLoaded = true;
-          }
-        }, 5000);
-      }
-
-      function fallbackToGradient() {
-        if (_wallpaperLoaded) return;
-        // Try direct anime image URLs before gradient
-        var directUrls = [
-          'https://t.alcy.cc/mp',
-          'https://t.alcy.cc/pc',
-          'https://api.ixiaowai.cn/api/api.php'
-        ];
-        var di = 0;
-        function tryDirect() {
-          if (di >= directUrls.length) {
-            // Final fallback: gradient
-            globalEl.style.backgroundImage = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
-            globalEl.classList.add('loaded');
-            if (lockEl) {
-              lockEl.style.backgroundImage = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
-              lockEl.classList.add('loaded');
-            }
-            _wallpaperLoaded = true;
-            return;
-          }
-          var img = new Image();
-          img.onload = function() {
-            applyWallpaper(directUrls[di]);
-          };
-          img.onerror = function() {
-            di++;
-            tryDirect();
-          };
-          img.src = directUrls[di];
-        }
-        tryDirect();
-      }
-
-      // Try multiple anime wallpaper sources (Bing blocked in China)
-      var wallSources = [
+      var wallUrls = [
         'https://api.ixiaowai.cn/api/api.php',
         'https://api.ixiaowai.cn/gqapi/gqapi.php',
-        'https://www.dmoe.cc/random.php'
+        'https://www.dmoe.cc/random.php',
+        'https://t.alcy.cc/mp',
+        'https://t.alcy.cc/pc'
       ];
-      var srcIdx = Math.floor(Math.random() * wallSources.length);
 
-      function tryNextSource(idx) {
-        if (idx >= wallSources.length) {
-          fallbackToGradient();
-          return;
-        }
-        var url = wallSources[idx];
-        var img = new Image();
-        img.onload = function() {
-          applyWallpaper(url);
-        };
-        img.onerror = function() {
-          tryNextSource(idx + 1);
-        };
-        // 5s timeout per source
-        var timedOut = false;
-        setTimeout(function() {
-          if (!timedOut && !_wallpaperLoaded) {
-            timedOut = true;
-            tryNextSource(idx + 1);
-          }
-        }, 5000);
-        img.src = url;
+      // Set directly — browser handles loading (redirect APIs don't work with Image() preloader)
+      var url = wallUrls[Math.floor(Math.random() * wallUrls.length)];
+      globalEl.style.backgroundImage = 'url(' + url + ')';
+      globalEl.classList.add('loaded');
+      if (lockEl) {
+        lockEl.style.backgroundImage = 'url(' + url + ')';
+        lockEl.classList.add('loaded');
       }
-      tryNextSource(0);
+      _wallpaperLoaded = true;
     }
+
     function showLockScreen() {
       sessionStorage.setItem('dialer_locked', '1');
       var appShell = document.querySelector('.app-shell');
