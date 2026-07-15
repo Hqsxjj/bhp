@@ -2014,27 +2014,6 @@
       var d = new Date();
       return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     }
-
-      var today = getTodayStr();
-      var token = getSessionToken();
-      if (!token) { callback(0); return; }
-      fetch('/api/dialer/wechat/count?date=' + today, {
-        headers: { 'Authorization': 'Bearer ' + token }
-      }).then(function(r) { return r.json(); })
-        .then(function(res) {
-          _wcCacheNum = res.count || 0;
-          _wcCacheDate = today;
-          callback(_wcCacheNum);
-        })
-        .catch(function() {
-          // Fallback to localStorage
-          var map = getWechatCountMap();
-          _wcCacheNum = map[today] || 0;
-          _wcCacheDate = today;
-          callback(_wcCacheNum);
-        });
-    }
-
     function modWechatCount(delta) {
       var today = getTodayStr();
       var token = getSessionToken();
