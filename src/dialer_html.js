@@ -370,38 +370,39 @@
       border-collapse: collapse;
       font-size: 13px;
       min-width: 900px;
+      background: transparent;
     }
     .crm-table thead th {
       position: sticky; top: 0; z-index: 2;
-      background: rgba(255,255,255,0.72);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      background: rgba(255,255,255,0.55);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
       padding: 6px 10px;
       text-align: left;
       font-weight: 700;
       color: #444;
-      border: 1px solid #d0d0d0;
+      border: 1px solid rgba(0,0,0,0.08);
       border-top: none;
-      border-bottom: 2px solid #c0c0c0;
+      border-bottom: 2px solid rgba(0,0,0,0.12);
       white-space: nowrap;
       font-size: 12px;
       cursor: pointer;
       user-select: none;
     }
-    .crm-table thead th:hover { background: rgba(255,255,255,0.88); }
+    .crm-table thead th:hover { background: rgba(255,255,255,0.78); }
     .crm-table thead th .sort-arrow { font-size: 10px; margin-left: 2px; opacity: 0.35; }
     .crm-table thead th.sorted .sort-arrow { opacity: 1; color: #4a6cf7; }
     .crm-table td {
       padding: 4px 10px;
-      border: 1px solid #e0e0e0;
+      border: 1px solid rgba(0,0,0,0.06);
       color: #333;
       white-space: nowrap;
       font-size: 13px;
       vertical-align: middle;
       background: transparent;
     }
-    .crm-table tbody tr:nth-child(even) td { background: rgba(0,0,0,0.03); }
-    .crm-table tbody tr:hover td { background: rgba(74,108,247,0.05) !important; }
+    .crm-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.25); }
+    .crm-table tbody tr:hover td { background: rgba(74,108,247,0.08) !important; }
     .crm-table tbody tr.row-dialed td { opacity: 0.55; }
     .crm-table .col-no { width: 40px; text-align: center; color: #aaa; font-size: 11px; }
     .crm-table .col-status { width: 80px; }
@@ -411,11 +412,12 @@
     .crm-table .col-note { min-width: 80px; max-width: 150px; overflow: hidden; text-overflow: ellipsis; }
     .crm-table .col-batch { min-width: 90px; }
     .crm-table .col-action { width: 60px; text-align: center; }
-    body.dark-mode .crm-table thead th { background: rgba(26,26,26,0.72); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-color: #444; color: #ccc; border-bottom-color: #555; }
-    body.dark-mode .crm-table thead th:hover { background: rgba(26,26,26,0.9); }
-    body.dark-mode .crm-table td { color: #ddd; border-color: #3a3a3a; background: transparent; }
-    body.dark-mode .crm-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.03); }
-    body.dark-mode .crm-table tbody tr:hover td { background: rgba(74,108,247,0.1) !important; }
+    body.dark-mode .crm-table { background: transparent; }
+    body.dark-mode .crm-table thead th { background: rgba(26,26,26,0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-color: rgba(255,255,255,0.08); color: #ccc; border-bottom-color: rgba(255,255,255,0.1); }
+    body.dark-mode .crm-table thead th:hover { background: rgba(26,26,26,0.8); }
+    body.dark-mode .crm-table td { color: #ddd; border-color: rgba(255,255,255,0.05); background: transparent; }
+    body.dark-mode .crm-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.04); }
+    body.dark-mode .crm-table tbody tr:hover td { background: rgba(74,108,247,0.12) !important; }
     .xls-dial-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
