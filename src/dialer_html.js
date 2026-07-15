@@ -968,7 +968,7 @@
         font-size: 0.72rem;
       }
       .cards-content {
-        padding: 6px 8px;
+        padding: 0 8px 6px 8px;
         gap: 6px;
         grid-template-columns: 1fr; /* single column on mobile */
       }
