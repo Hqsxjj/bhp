@@ -79,9 +79,16 @@
       display: flex;
       flex-direction: column;
       gap: 0;
-      overflow: hidden;
+      overflow: visible;
     }
     .container > * { margin-top: 0; margin-bottom: 0; }
+    .cards-content {
+      flex: 1;
+      overflow: auto;
+      padding: 0;
+      position: relative;
+      z-index: 1;
+    }
 
     /* Header Bar — full width */
     .header-bar {
