@@ -60,7 +60,7 @@
       height: 100%;
       width: 100%;
       overflow: hidden;
-      background: var(--bg-app);
+      background: transparent;
       font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", sans-serif;
       font-weight: 700;
       transition: background 0.3s;
@@ -619,7 +619,7 @@
     .auth-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: var(--bg-app);
+      background: transparent;
       z-index: 999999;
       display: flex;
       align-items: center;
@@ -637,9 +637,29 @@
     .lock-wallpaper.loaded { opacity: 1; }
     .lock-wallpaper-overlay {
       position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.3); z-index: 2;
+      background: rgba(0,0,0,0.18); z-index: 2;
     }
-    #lockScreenOverlay .auth-card { position: relative; z-index: 3; }.auth-overlay.auth-hidden {
+    /* Global wallpaper — shared by main interface & lock screen */
+    .global-wallpaper {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background-size: cover; background-position: center;
+      background-image: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      z-index: 0; opacity: 1;
+      transition: opacity 0.8s ease-in-out;
+    }
+    .global-wallpaper.loaded { opacity: 1; }
+    /* Glass-morphism lock screen card */
+    #lockScreenOverlay .auth-card {
+      position: relative; z-index: 3;
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    body.dark-mode #lockScreenOverlay .auth-card {
+      background: rgba(26,26,26,0.72);
+      border: 1px solid rgba(255,255,255,0.08);
+    }.auth-overlay.auth-hidden {
       display: none;
     }
     .auth-card {
@@ -1346,9 +1366,11 @@
     </div>
   </div>
 
+  <!-- Global Wallpaper (shared by main interface & lock screen) -->
+  <div id="globalWallpaper" class="global-wallpaper"></div>
+
   <!-- Lock Screen Overlay (PIN only, keeps session) -->
   <div id="lockScreenOverlay" class="auth-overlay auth-hidden">
-    <div id="lockWallpaper" class="lock-wallpaper"></div>
     <div class="lock-wallpaper-overlay"></div>
     <div class="auth-card">
       <input type="password" id="lockPinInput" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="输入 PIN 解锁" autocomplete="off">
@@ -8864,9 +8886,9 @@
     var _wallpaperLoaded = false;
     var _wallpaperTimer = null;
 
-    function loadLockScreenWallpaper() {
+    function loadWallpaper() {
       if (_wallpaperLoaded) return;
-      var el = document.getElementById('lockWallpaper');
+      var el = document.getElementById('globalWallpaper');
       if (!el) return;
 
       function applyWallpaper(url) {
@@ -8920,7 +8942,6 @@
       document.getElementById('authSetupOverlay').classList.add('auth-hidden');
       var overlay = document.getElementById('lockScreenOverlay');
       overlay.classList.remove('auth-hidden');
-      loadLockScreenWallpaper();
 
 
       var pinInput = document.getElementById('lockPinInput');
@@ -9155,6 +9176,7 @@
     function safeInit(name, fn) {
       try { fn(); } catch (e) { console.error('Init error: ' + name, e); }
     }
+    safeInit('loadWallpaper', loadWallpaper);
     safeInit('initAuth', initAuth);
     safeInit('initDark', initDark);
     safeInit('initFileInputs', initFileInputs);
