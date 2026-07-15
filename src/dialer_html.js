@@ -8934,6 +8934,17 @@
       _wallpaperLoaded = true;
     }
 
+    function syncLockWallpaper() {
+      var globalEl = document.getElementById('globalWallpaper');
+      var lockEl = document.getElementById('lockWallpaper');
+      if (!globalEl || !lockEl) return;
+      var bg = globalEl.style.backgroundImage;
+      if (bg && bg !== 'none') {
+        lockEl.style.backgroundImage = bg;
+        lockEl.classList.add('loaded');
+      }
+    }
+
     function showLockScreen() {
       sessionStorage.setItem('dialer_locked', '1');
       var appShell = document.querySelector('.app-shell');
@@ -8942,6 +8953,7 @@
       document.getElementById('authSetupOverlay').classList.add('auth-hidden');
       var overlay = document.getElementById('lockScreenOverlay');
       overlay.classList.remove('auth-hidden');
+      syncLockWallpaper();
 
 
       var pinInput = document.getElementById('lockPinInput');
