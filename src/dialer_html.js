@@ -8869,7 +8869,7 @@
       var el = document.getElementById('lockWallpaper');
       if (!el) return;
 
-      function tryLoad(url) {
+      function applyWallpaper(url) {
         var img = new Image();
         img.onload = function() {
           el.style.backgroundImage = 'url(' + url + ')';
@@ -8877,9 +8877,7 @@
           _wallpaperLoaded = true;
         };
         img.onerror = function() {
-          if (url.indexOf('picsum') !== -1) {
-            tryLoad('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1080&h=1920&fit=crop');
-          }
+          fallbackToGradient();
         };
         img.src = url;
         clearTimeout(_wallpaperTimer);
@@ -8891,7 +8889,28 @@
           }
         }, 5000);
       }
-      tryLoad('https://picsum.photos/1080/1920?random=' + Date.now());
+
+      function fallbackToGradient() {
+        if (_wallpaperLoaded) return;
+        el.style.backgroundImage = 'linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)';
+        el.classList.add('loaded');
+        _wallpaperLoaded = true;
+      }
+
+      fetch('https://www.bing.com/HPImageArchive.aspx?format=js&idx=0&n=8')
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          if (data && data.images && data.images.length > 0) {
+            var idx = Math.floor(Math.random() * data.images.length);
+            var wallUrl = 'https://www.bing.com' + data.images[idx].url;
+            applyWallpaper(wallUrl);
+          } else {
+            fallbackToGradient();
+          }
+        })
+        .catch(function() {
+          fallbackToGradient();
+        });
     }
     function showLockScreen() {
       sessionStorage.setItem('dialer_locked', '1');
