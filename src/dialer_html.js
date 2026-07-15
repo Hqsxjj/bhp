@@ -1,9 +1,9 @@
-export const DIALER_HTML = `<!DOCTYPE html>
+﻿export const DIALER_HTML = `<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover, shrink-to-fit=no">
-  <title>拨号盘</title>
+  <title>减肥打卡</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -627,7 +627,19 @@ export const DIALER_HTML = `<!DOCTYPE html>
       transition: opacity 0.3s ease;
       padding: 24px;
     }
-    .auth-overlay.auth-hidden {
+    
+    .lock-wallpaper {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background-size: cover; background-position: center;
+      z-index: 1; opacity: 0;
+      transition: opacity 0.8s ease-in-out;
+    }
+    .lock-wallpaper.loaded { opacity: 1; }
+    .lock-wallpaper-overlay {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.3); z-index: 2;
+    }
+    #lockScreenOverlay .auth-card { position: relative; z-index: 3; }.auth-overlay.auth-hidden {
       display: none;
     }
     .auth-card {
@@ -1327,14 +1339,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
   <!-- Auth: Login Overlay -->
   <div id="authLoginOverlay" class="auth-overlay auth-hidden">
     <div class="auth-card">
-      <div class="auth-wechat-count">
-        <div class="auth-wc-label">今日通过微信</div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:12px;">
-          <button class="auth-wc-btn auth-wc-minus" id="authWcMinus" title="减一">-</button>
-          <span class="auth-wc-num" id="authWcNum">0</span>
-          <button class="auth-wc-btn auth-wc-plus" id="authWcPlus" title="加一">+</button>
-        </div>
-      </div>
       <input type="text" id="authLoginAccountName" class="auth-input" placeholder="账号" autocomplete="off">
       <input type="password" id="authLoginPin" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="PIN" autocomplete="off">
       <div id="authLoginError" class="auth-error"></div>
@@ -1344,15 +1348,9 @@ export const DIALER_HTML = `<!DOCTYPE html>
 
   <!-- Lock Screen Overlay (PIN only, keeps session) -->
   <div id="lockScreenOverlay" class="auth-overlay auth-hidden">
+    <div id="lockWallpaper" class="lock-wallpaper"></div>
+    <div class="lock-wallpaper-overlay"></div>
     <div class="auth-card">
-      <div class="auth-wechat-count">
-        <div class="auth-wc-label">今日通过微信</div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:12px;">
-          <button class="auth-wc-btn auth-wc-minus" id="lockWcMinus" title="减一">-</button>
-          <span class="auth-wc-num" id="lockWcNum">0</span>
-          <button class="auth-wc-btn auth-wc-plus" id="lockWcPlus" title="加一">+</button>
-        </div>
-      </div>
       <input type="password" id="lockPinInput" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="输入 PIN 解锁" autocomplete="off">
       <div id="lockScreenError" class="auth-error"></div>
       <button id="lockUnlockBtn" class="auth-btn">解锁</button>
@@ -2017,7 +2015,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
       return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     }
 
-    function fetchWechatCount(callback) {
       var today = getTodayStr();
       var token = getSessionToken();
       if (!token) { callback(0); return; }
@@ -8864,12 +8861,7 @@ export const DIALER_HTML = `<!DOCTYPE html>
       var overlay = document.getElementById('authLoginOverlay');
       overlay.classList.remove('auth-hidden');
 
-      fetchWechatCount(function() { updateAllWcDisplays(); });
 
-      var plusBtn = document.getElementById('authWcPlus');
-      var minusBtn = document.getElementById('authWcMinus');
-      if (plusBtn) plusBtn.onclick = function() { modWechatCount(1); };
-      if (minusBtn) minusBtn.onclick = function() { modWechatCount(-1); };
 
       var accountInput = document.getElementById('authLoginAccountName');
       var pinInput = document.getElementById('authLoginPin');
@@ -8889,6 +8881,39 @@ export const DIALER_HTML = `<!DOCTYPE html>
 
     // ========== Lock Screen (PIN only, keeps session) ==========
 
+
+    var _wallpaperLoaded = false;
+    var _wallpaperTimer = null;
+
+    function loadLockScreenWallpaper() {
+      if (_wallpaperLoaded) return;
+      var el = document.getElementById('lockWallpaper');
+      if (!el) return;
+
+      function tryLoad(url) {
+        var img = new Image();
+        img.onload = function() {
+          el.style.backgroundImage = 'url(' + url + ')';
+          el.classList.add('loaded');
+          _wallpaperLoaded = true;
+        };
+        img.onerror = function() {
+          if (url.indexOf('picsum') !== -1) {
+            tryLoad('https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1080&h=1920&fit=crop');
+          }
+        };
+        img.src = url;
+        clearTimeout(_wallpaperTimer);
+        _wallpaperTimer = setTimeout(function() {
+          if (!_wallpaperLoaded) {
+            el.style.backgroundImage = 'url(' + url + ')';
+            el.classList.add('loaded');
+            _wallpaperLoaded = true;
+          }
+        }, 5000);
+      }
+      tryLoad('https://picsum.photos/1080/1920?random=' + Date.now());
+    }
     function showLockScreen() {
       sessionStorage.setItem('dialer_locked', '1');
       var appShell = document.querySelector('.app-shell');
@@ -8897,8 +8922,8 @@ export const DIALER_HTML = `<!DOCTYPE html>
       document.getElementById('authSetupOverlay').classList.add('auth-hidden');
       var overlay = document.getElementById('lockScreenOverlay');
       overlay.classList.remove('auth-hidden');
+      loadLockScreenWallpaper();
 
-      fetchWechatCount(function() { updateAllWcDisplays(); });
 
       var pinInput = document.getElementById('lockPinInput');
       var error = document.getElementById('lockScreenError');
@@ -8909,10 +8934,6 @@ export const DIALER_HTML = `<!DOCTYPE html>
       unlockBtn.disabled = false;
       unlockBtn.textContent = '解锁';
 
-      var plusBtn = document.getElementById('lockWcPlus');
-      var minusBtn = document.getElementById('lockWcMinus');
-      if (plusBtn) plusBtn.onclick = function() { modWechatCount(1); };
-      if (minusBtn) minusBtn.onclick = function() { modWechatCount(-1); };
 
       unlockBtn.onclick = doUnlock;
       pinInput.onkeypress = function(e) { if (e.key === 'Enter') doUnlock(); };

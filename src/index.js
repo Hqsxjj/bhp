@@ -1,4 +1,4 @@
-// BHP 智能快捷拨号助手 - Cloudflare Worker
+﻿// BHP 智能快捷拨号助手 - Cloudflare Worker
 // 部署后绑定 DATA_KV 即可使用
 
 import { DIALER_HTML } from './dialer_html.js';
@@ -1895,9 +1895,9 @@ export default {
 
     if (path === '/manifest.json') {
       const manifest = {
-        name: '拨号盘',
-        short_name: '拨号盘',
-        description: 'BHP 智能快捷拨号助手',
+        name: '减肥打卡',
+        short_name: '减肥打卡',
+        description: '减肥打卡',
         start_url: '/dialer',
         display: 'standalone',
         background_color: '#ededed',
