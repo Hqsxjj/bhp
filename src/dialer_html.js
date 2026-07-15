@@ -666,7 +666,7 @@
     .global-wallpaper.loaded { opacity: 1; }
     /* Glass-morphism lock screen card */
     /* ── Anime-style lock card ── */
-    #lockScreenOverlay .auth-card {
+    .auth-overlay .auth-card {
       position: relative; z-index: 3;
       background: linear-gradient(160deg, rgba(255,255,255,0.55) 0%, rgba(255,240,245,0.4) 40%, rgba(245,225,255,0.35) 100%);
       backdrop-filter: blur(50px) saturate(180%);
@@ -680,12 +680,12 @@
       overflow: hidden;
     }
     /* Subtle anime glow ring */
-    #lockScreenOverlay .auth-card::before {
+    .auth-overlay .auth-card::before {
       content: ''; position: absolute; top: -1px; left: 20px; right: 20px; height: 1px;
       background: linear-gradient(90deg, transparent, rgba(255,180,210,0.6), rgba(200,160,255,0.6), rgba(255,180,210,0.6), transparent);
       z-index: 10; pointer-events: none; border-radius: 1px;
     }
-    body.dark-mode #lockScreenOverlay .auth-card {
+    body.dark-mode .auth-overlay .auth-card {
       background: linear-gradient(160deg, rgba(35,25,35,0.55) 0%, rgba(30,20,30,0.45) 40%, rgba(25,20,30,0.4) 100%);
       backdrop-filter: blur(50px) saturate(150%);
       -webkit-backdrop-filter: blur(50px) saturate(150%);
@@ -695,40 +695,41 @@
         0 8px 40px rgba(0,0,0,0.3),
         inset 0 1px 0 rgba(255,255,255,0.04);
     }
-    body.dark-mode #lockScreenOverlay .auth-card::before {
+    body.dark-mode .auth-overlay .auth-card::before {
       background: linear-gradient(90deg, transparent, rgba(200,140,200,0.4), rgba(160,120,200,0.4), rgba(200,140,200,0.4), transparent);
     }
     /* ── Anime PIN input ── */
-    #lockScreenOverlay .auth-input {
+    .auth-overlay .auth-input {
       background: rgba(255,255,255,0.55);
       border: 2px solid rgba(255,180,210,0.5);
       border-radius: 18px;
       color: #5c3d5c;
       font-weight: 800;
-      letter-spacing: 6px;
+      letter-spacing: 1px;
       transition: all 0.3s ease;
     }
-    #lockScreenOverlay .auth-input:focus {
+    .auth-overlay .auth-pin-input { letter-spacing: 6px; }
+    .auth-overlay .auth-input:focus {
       border-color: rgba(255,130,180,0.8);
       box-shadow: 0 0 20px rgba(255,150,200,0.2), 0 0 0 4px rgba(255,180,210,0.08);
       background: rgba(255,255,255,0.8);
     }
-    #lockScreenOverlay .auth-input::placeholder {
+    .auth-overlay .auth-input::placeholder {
       color: rgba(180,140,170,0.6);
-      letter-spacing: 2px;
+      letter-spacing: 1px;
     }
-    body.dark-mode #lockScreenOverlay .auth-input {
+    body.dark-mode .auth-overlay .auth-input {
       background: rgba(40,25,40,0.5);
       border-color: rgba(180,100,160,0.4);
       color: #e0d0e0;
     }
-    body.dark-mode #lockScreenOverlay .auth-input:focus {
+    body.dark-mode .auth-overlay .auth-input:focus {
       border-color: rgba(220,130,190,0.7);
       box-shadow: 0 0 24px rgba(200,120,180,0.18), 0 0 0 4px rgba(180,120,170,0.08);
       background: rgba(50,30,50,0.7);
     }
     /* ── Anime unlock button ── */
-    #lockScreenOverlay .auth-btn {
+    .auth-overlay .auth-btn {
       background: linear-gradient(135deg, #f8a0c8 0%, #d08ae8 50%, #a8a0f0 100%);
       border: none;
       border-radius: 22px;
@@ -737,15 +738,15 @@
       box-shadow: 0 6px 24px rgba(210,130,200,0.35), 0 0 40px rgba(200,150,220,0.1);
       transition: all 0.3s ease;
     }
-    #lockScreenOverlay .auth-btn:hover {
+    .auth-overlay .auth-btn:hover {
       transform: translateY(-1px);
       box-shadow: 0 8px 28px rgba(210,130,200,0.45), 0 0 50px rgba(200,150,220,0.18);
     }
-    #lockScreenOverlay .auth-btn:active {
+    .auth-overlay .auth-btn:active {
       transform: scale(0.97);
       box-shadow: 0 4px 16px rgba(210,130,200,0.3);
     }
-    body.dark-mode #lockScreenOverlay .auth-btn {
+    body.dark-mode .auth-overlay .auth-btn {
       background: linear-gradient(135deg, #c06090 0%, #a060c0 50%, #7878d0 100%);
       box-shadow: 0 6px 24px rgba(160,80,150,0.35), 0 0 40px rgba(140,80,160,0.12);
     }.auth-overlay.auth-hidden {
@@ -1447,6 +1448,8 @@
 
   <!-- Auth: Login Overlay -->
   <div id="authLoginOverlay" class="auth-overlay auth-hidden">
+    <div class="lock-wallpaper" id="loginWallpaper"></div>
+    <div class="lock-wallpaper-overlay"></div>
     <div class="auth-card">
       <input type="text" id="authLoginAccountName" class="auth-input" placeholder="账号" autocomplete="off">
       <input type="password" id="authLoginPin" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="PIN" autocomplete="off">
@@ -1471,6 +1474,8 @@
 
   <!-- Auth: Setup Overlay (first time) -->
   <div id="authSetupOverlay" class="auth-overlay auth-hidden">
+    <div class="lock-wallpaper" id="setupWallpaper"></div>
+    <div class="lock-wallpaper-overlay"></div>
     <div class="auth-card">
       <div class="auth-title">首次设置</div>
       <div class="auth-subtitle">创建主账户以保护您的客户数据</div>
@@ -8952,8 +8957,7 @@
       document.getElementById('authSetupOverlay').classList.add('auth-hidden');
       var overlay = document.getElementById('authLoginOverlay');
       overlay.classList.remove('auth-hidden');
-
-
+      syncAllOverlayWallpapers();
 
       var accountInput = document.getElementById('authLoginAccountName');
       var pinInput = document.getElementById('authLoginPin');
@@ -8979,7 +8983,6 @@
     function loadWallpaper() {
       if (_wallpaperLoaded) return;
       var globalEl = document.getElementById('globalWallpaper');
-      var lockEl = document.getElementById('lockWallpaper');
       if (!globalEl) return;
 
       var wallUrls = [
@@ -8990,25 +8993,36 @@
         'https://t.alcy.cc/pc'
       ];
 
-      // Set directly — browser handles loading (redirect APIs don't work with Image() preloader)
       var url = wallUrls[Math.floor(Math.random() * wallUrls.length)];
-      globalEl.style.backgroundImage = 'url(' + url + ')';
+      var bg = 'url(' + url + ')';
+
+      globalEl.style.backgroundImage = bg;
       globalEl.classList.add('loaded');
-      if (lockEl) {
-        lockEl.style.backgroundImage = 'url(' + url + ')';
-        lockEl.classList.add('loaded');
+
+      // Apply to all overlay wallpapers
+      var overlayIds = ['lockWallpaper', 'loginWallpaper', 'setupWallpaper'];
+      for (var oi = 0; oi < overlayIds.length; oi++) {
+        var el = document.getElementById(overlayIds[oi]);
+        if (el) {
+          el.style.backgroundImage = bg;
+          el.classList.add('loaded');
+        }
       }
       _wallpaperLoaded = true;
     }
 
-    function syncLockWallpaper() {
+    function syncAllOverlayWallpapers() {
       var globalEl = document.getElementById('globalWallpaper');
-      var lockEl = document.getElementById('lockWallpaper');
-      if (!globalEl || !lockEl) return;
+      if (!globalEl) return;
       var bg = globalEl.style.backgroundImage;
-      if (bg && bg !== 'none') {
-        lockEl.style.backgroundImage = bg;
-        lockEl.classList.add('loaded');
+      if (!bg || bg === 'none') return;
+      var overlayIds = ['lockWallpaper', 'loginWallpaper', 'setupWallpaper'];
+      for (var oi = 0; oi < overlayIds.length; oi++) {
+        var el = document.getElementById(overlayIds[oi]);
+        if (el) {
+          el.style.backgroundImage = bg;
+          el.classList.add('loaded');
+        }
       }
     }
 
@@ -9020,7 +9034,7 @@
       document.getElementById('authSetupOverlay').classList.add('auth-hidden');
       var overlay = document.getElementById('lockScreenOverlay');
       overlay.classList.remove('auth-hidden');
-      syncLockWallpaper();
+      syncAllOverlayWallpapers();
 
 
       var pinInput = document.getElementById('lockPinInput');
@@ -9189,6 +9203,7 @@
       document.getElementById('authLoginOverlay').classList.add('auth-hidden');
       var overlay = document.getElementById('authSetupOverlay');
       overlay.classList.remove('auth-hidden');
+      syncAllOverlayWallpapers();
 
       document.getElementById('authSetupName').value = '';
       document.getElementById('authSetupLabel').value = '';
