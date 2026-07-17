@@ -8,49 +8,74 @@ export const DIET_HTML = `<!DOCTYPE html>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --bg: #f0f4f0;
-      --card: #ffffff;
-      --card-border: rgba(0,0,0,0.06);
+      --card: rgba(255,255,255,0.55);
+      --card-border: rgba(255,255,255,0.3);
       --text: #1a1a1a;
       --text2: #555;
       --text3: #888;
       --green: #10b981;
-      --green-bg: #ecfdf5;
-      --blue: #3b82f6;
-      --blue-bg: #eff6ff;
-      --orange: #f59e0b;
-      --orange-bg: #fffbeb;
-      --purple: #8b5cf6;
-      --purple-bg: #f5f3ff;
+      --green-bg: rgba(16,185,129,0.12);
       --red: #ef4444;
       --radius: 14px;
       --radius-sm: 10px;
+      --wallpaper-url: '';
     }
     body.dark {
-      --bg: #111;
-      --card: #1c1c1c;
+      --card: rgba(30,30,30,0.6);
       --card-border: rgba(255,255,255,0.08);
       --text: #e5e5e5;
       --text2: #999;
       --text3: #666;
-      --green-bg: #064e3b;
-      --blue-bg: #1e3a5f;
-      --orange-bg: #3d2e0a;
-      --purple-bg: #2d1f4e;
     }
-    html, body { height: 100%; width: 100%; background: var(--bg); font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei UI", sans-serif; font-weight: 600; color: var(--text); }
-    body { padding: 16px; max-width: 720px; margin: 0 auto; }
+    html, body { height: 100%; width: 100%; font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei UI", sans-serif; font-weight: 600; color: var(--text); }
+
+    /* Wallpaper */
+    .wallpaper-bg {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0;
+      background-image: var(--wallpaper-url);
+      background-size: cover; background-position: center;
+      opacity: 0.5; transition: opacity 0.8s;
+    }
+    body.dark .wallpaper-bg { opacity: 0.25; }
+
+    /* Main container */
+    .main-container {
+      position: relative; z-index: 1;
+      padding: 16px; max-width: 720px; margin: 0 auto;
+      min-height: 100%;
+    }
 
     /* Header */
     .header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-    .header h1 { font-size: 1.3rem; font-weight: 900; flex: 1; }
+    .header h1 { font-size: 1.3rem; font-weight: 900; flex: 1; color: var(--text); }
     .header .date { font-size: 0.78rem; color: var(--text2); font-weight: 700; }
-    .header .day-badge { background: var(--green-bg); color: var(--green); font-size: 0.75rem; font-weight: 800; padding: 4px 10px; border-radius: 20px; }
-    .header .settings-btn { width: 32px; height: 32px; border: none; background: var(--card); border-radius: 50%; font-size: 1rem; cursor: pointer; color: var(--text2); box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+    .header .day-badge {
+      background: rgba(255,255,255,0.5); backdrop-filter: blur(8px);
+      color: var(--green); font-size: 0.75rem; font-weight: 800;
+      padding: 4px 10px; border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.3);
+    }
+    body.dark .header .day-badge { background: rgba(255,255,255,0.1); }
+    .header .lock-btn, .header .settings-btn {
+      width: 32px; height: 32px; border: none;
+      background: var(--card); backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-radius: 50%; font-size: 1rem; cursor: pointer;
+      color: var(--text2); box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+      border: 1px solid var(--card-border);
+      text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
+    }
 
-    /* Cards */
-    .card { background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius); padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.04); }
-    .card-label { font-size: 0.72rem; color: var(--text3); font-weight: 700; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; }
+    /* Frosted glass cards */
+    .card {
+      background: var(--card); backdrop-filter: blur(16px) saturate(160%);
+      -webkit-backdrop-filter: blur(16px) saturate(160%);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius); padding: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+      margin-bottom: 10px;
+    }
+    .card-label { font-size: 0.72rem; color: var(--text2); font-weight: 700; margin-bottom: 6px; letter-spacing: 0.5px; }
     .card-value { font-size: 1.6rem; font-weight: 900; }
     .card-sub { font-size: 0.72rem; color: var(--text2); margin-top: 4px; }
     .card-change { font-size: 0.8rem; font-weight: 800; }
@@ -58,28 +83,42 @@ export const DIET_HTML = `<!DOCTYPE html>
     .card-change.up { color: var(--red); }
 
     /* Row layouts */
-    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-    .row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 10px; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 0; }
+    .row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 0; }
 
     /* Weight input */
     .weight-input-row { display: flex; gap: 8px; margin-top: 10px; }
-    .weight-input-row input { flex: 1; height: 38px; padding: 0 12px; font-size: 0.9rem; font-weight: 700; border: 1.5px solid #d0d0d0; border-radius: 8px; background: #fff; color: #111; outline: none; }
+    .weight-input-row input {
+      flex: 1; height: 38px; padding: 0 12px; font-size: 0.9rem; font-weight: 700;
+      border: 1.5px solid rgba(0,0,0,0.12); border-radius: 8px;
+      background: rgba(255,255,255,0.7); backdrop-filter: blur(8px);
+      color: #111; outline: none;
+    }
     .weight-input-row input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
-    body.dark .weight-input-row input { background: #2a2a2a; border-color: #444; color: #ddd; }
-    .weight-input-row button { padding: 0 16px; height: 38px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-weight: 800; font-size: 0.82rem; cursor: pointer; }
+    body.dark .weight-input-row input { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: #ddd; }
+    .weight-input-row button {
+      padding: 0 16px; height: 38px; background: var(--green); color: #fff;
+      border: none; border-radius: 8px; font-weight: 800; font-size: 0.82rem; cursor: pointer;
+    }
 
     /* Progress bar */
-    .progress-wrap { margin-bottom: 10px; }
     .progress-bar { height: 8px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; margin-top: 6px; }
     body.dark .progress-bar { background: rgba(255,255,255,0.08); }
     .progress-fill { height: 100%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 4px; transition: width 0.5s; }
     .progress-text { font-size: 0.75rem; color: var(--text2); font-weight: 700; }
 
     /* Metric cards */
-    .metric-card { background: var(--card); border: 1px solid var(--card-border); border-radius: var(--radius-sm); padding: 14px; text-align: center; cursor: pointer; transition: 0.15s; }
-    .metric-card:hover { border-color: rgba(0,0,0,0.15); }
+    .metric-card {
+      background: var(--card); backdrop-filter: blur(14px) saturate(150%);
+      -webkit-backdrop-filter: blur(14px) saturate(150%);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-sm); padding: 14px; text-align: center;
+      cursor: pointer; transition: 0.15s;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.03);
+    }
+    .metric-card:hover { border-color: rgba(0,0,0,0.15); transform: translateY(-1px); }
     .metric-icon { font-size: 1.2rem; margin-bottom: 4px; }
-    .metric-title { font-size: 0.7rem; color: var(--text3); font-weight: 700; margin-bottom: 6px; }
+    .metric-title { font-size: 0.7rem; color: var(--text2); font-weight: 700; margin-bottom: 6px; }
     .metric-val { font-size: 0.85rem; font-weight: 900; color: var(--text); }
     .metric-sub { font-size: 0.65rem; color: var(--text3); margin-top: 2px; font-weight: 600; }
 
@@ -92,51 +131,61 @@ export const DIET_HTML = `<!DOCTYPE html>
     .task-item input:checked + label { text-decoration: line-through; color: var(--text3); }
 
     /* Notes */
-    .notes-area { width: 100%; min-height: 60px; padding: 12px; font-size: 0.85rem; font-weight: 600; border: 1.5px solid #d0d0d0; border-radius: 8px; background: #fff; color: #111; resize: vertical; outline: none; line-height: 1.6; font-family: inherit; }
-    body.dark .notes-area { background: #2a2a2a; border-color: #444; color: #ddd; }
-    .notes-area:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
+    .notes-area {
+      width: 100%; min-height: 60px; padding: 12px; font-size: 0.85rem; font-weight: 600;
+      border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px;
+      background: rgba(255,255,255,0.6); backdrop-filter: blur(8px);
+      color: #111; resize: vertical; outline: none; line-height: 1.6; font-family: inherit;
+    }
+    body.dark .notes-area { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: #ddd; }
+    .notes-area:focus { border-color: var(--green); }
 
     /* Check-in button */
-    .checkin-btn { width: 100%; height: 48px; background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; border-radius: 12px; font-size: 1rem; font-weight: 900; cursor: pointer; transition: 0.2s; letter-spacing: 1px; margin-top: 8px; }
-    .checkin-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(16,185,129,0.3); }
+    .checkin-btn { width: 100%; height: 48px; background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; border-radius: 12px; font-size: 1rem; font-weight: 900; cursor: pointer; transition: 0.2s; letter-spacing: 1px; margin-top: 8px; box-shadow: 0 4px 16px rgba(16,185,129,0.25); }
+    .checkin-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(16,185,129,0.35); }
     .checkin-btn:active { transform: translateY(0); }
-    .checkin-btn.done { background: #d0d0d0; cursor: default; }
+    .checkin-btn.done { background: #c0c0c0; cursor: default; box-shadow: none; }
     .checkin-btn.done:hover { transform: none; box-shadow: none; }
 
-    /* Settings modal */
-    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); z-index: 100; display: flex; align-items: center; justify-content: center; visibility: hidden; opacity: 0; transition: 0.2s; }
+    /* Modal */
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); z-index: 100; display: flex; align-items: center; justify-content: center; visibility: hidden; opacity: 0; transition: 0.2s; }
     .modal.show { visibility: visible; opacity: 1; }
-    .modal-card { background: #fff; border-radius: var(--radius); padding: 24px; width: 90%; max-width: 400px; box-shadow: 0 16px 48px rgba(0,0,0,0.2); }
-    body.dark .modal-card { background: #1c1c1c; }
+    .modal-card { background: rgba(255,255,255,0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: var(--radius); padding: 24px; width: 90%; max-width: 400px; box-shadow: 0 16px 48px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); }
+    body.dark .modal-card { background: rgba(30,30,30,0.9); border-color: rgba(255,255,255,0.08); }
     .modal-card h2 { font-size: 1.1rem; margin-bottom: 16px; }
     .modal-card label { display: block; font-size: 0.78rem; color: var(--text2); font-weight: 700; margin-bottom: 4px; margin-top: 10px; }
-    .modal-card input { width: 100%; height: 40px; padding: 0 12px; font-size: 0.9rem; font-weight: 700; border: 1.5px solid #d0d0d0; border-radius: 8px; background: #fff; color: #111; outline: none; margin-bottom: 6px; }
-    body.dark .modal-card input { background: #2a2a2a; border-color: #444; color: #ddd; }
+    .modal-card input { width: 100%; height: 40px; padding: 0 12px; font-size: 0.9rem; font-weight: 700; border: 1.5px solid rgba(0,0,0,0.12); border-radius: 8px; background: rgba(255,255,255,0.7); color: #111; outline: none; margin-bottom: 6px; }
+    body.dark .modal-card input { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: #ddd; }
     .modal-card input:focus { border-color: var(--green); }
     .modal-card button { width: 100%; height: 42px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 800; cursor: pointer; margin-top: 8px; }
 
-    .empty-state { text-align: center; padding: 40px 20px; color: var(--text3); }
-    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #1a1a1a; color: #fff; padding: 10px 24px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; z-index: 200; opacity: 0; transition: 0.3s; pointer-events: none; }
-    body.dark .toast { background: #eee; color: #111; }
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(30,30,30,0.85); backdrop-filter: blur(10px); color: #fff; padding: 10px 24px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; z-index: 200; opacity: 0; transition: 0.3s; pointer-events: none; border: 1px solid rgba(255,255,255,0.1); }
+    body.dark .toast { background: rgba(255,255,255,0.85); color: #111; }
     .toast.show { opacity: 1; }
 
     @media (max-width: 500px) {
       .row2, .row4 { grid-template-columns: 1fr 1fr; }
-      body { padding: 10px; }
+      body { padding: 0; }
+      .main-container { padding: 10px; }
       .card { padding: 12px; }
       .card-value { font-size: 1.3rem; }
     }
   </style>
 </head>
 <body>
-  <div class="header">
-    <h1>减肥打卡</h1>
-    <span class="date" id="headerDate"></span>
-    <span class="day-badge" id="headerDay"></span>
-    <button class="settings-btn" id="settingsBtn" title="设置">⚙</button>
-  </div>
+  <div class="wallpaper-bg" id="wallpaperBg"></div>
 
-  <div id="mainContent"></div>
+  <div class="main-container">
+    <div class="header">
+      <h1>减肥打卡</h1>
+      <span class="date" id="headerDate"></span>
+      <span class="day-badge" id="headerDay"></span>
+      <a href="/" class="lock-btn" title="锁屏返回">🔒</a>
+      <button class="settings-btn" id="settingsBtn" title="设置">⚙</button>
+    </div>
+
+    <div id="mainContent"></div>
+  </div>
 
   <!-- Settings Modal -->
   <div class="modal" id="settingsModal">
@@ -160,6 +209,37 @@ export const DIET_HTML = `<!DOCTYPE html>
   <script>
     var todayData = null;
     var config = null;
+
+    // Load wallpaper from same source as main app
+    (function loadWallpaper() {
+      var bg = document.getElementById('wallpaperBg');
+      var cached = localStorage.getItem('diet_wp_url');
+      var cachedTs = parseInt(localStorage.getItem('diet_wp_ts') || '0');
+      if (cached && (Date.now() - cachedTs < 3600000)) {
+        document.body.style.setProperty('--wallpaper-url', 'url(' + cached + ')');
+        bg.style.backgroundImage = 'url(' + cached + ')';
+      }
+      // Try multiple anime wallpaper APIs
+      var apis = [
+        'https://api.waifu.pics/sfw/waifu',
+        'https://api.loliapi.com/acg/pe?type=json',
+        'https://www.dmoe.cc/random.php?ret=json'
+      ];
+      function tryApi(i) {
+        if (i >= apis.length) return;
+        fetch(apis[i]).then(function(r) { return r.json(); })
+          .then(function(j) {
+            var url = j.url || j.img || j.pic;
+            if (url) {
+              document.body.style.setProperty('--wallpaper-url', 'url(' + url + ')');
+              bg.style.backgroundImage = 'url(' + url + ')';
+              localStorage.setItem('diet_wp_url', url);
+              localStorage.setItem('diet_wp_ts', Date.now());
+            }
+          }).catch(function() { tryApi(i + 1); });
+      }
+      tryApi(0);
+    })();
 
     function todayKey() {
       var d = new Date();
@@ -254,7 +334,7 @@ export const DIET_HTML = `<!DOCTYPE html>
       html += '</div></div></div>';
 
       // Progress
-      html += '<div class="card progress-wrap">';
+      html += '<div class="card">';
       html += '<div style="display:flex;justify-content:space-between;"><span class="progress-text">今日完成进度</span><span class="progress-text" style="font-weight:900;">' + progressPct + '%</span></div>';
       html += '<div class="progress-bar"><div class="progress-fill" style="width:' + progressPct + '%;"></div></div></div>';
 
@@ -267,7 +347,7 @@ export const DIET_HTML = `<!DOCTYPE html>
       html += '</div>';
 
       // Tasks
-      html += '<div class="card" style="margin-bottom:10px;">';
+      html += '<div class="card">';
       html += '<div class="card-label" style="margin-bottom:10px;">今日任务</div>';
       for (var i = 0; i < tasks.length; i++) {
         html += '<div class="task-item">';
@@ -278,7 +358,7 @@ export const DIET_HTML = `<!DOCTYPE html>
       html += '</div>';
 
       // Notes
-      html += '<div class="card" style="margin-bottom:10px;">';
+      html += '<div class="card">';
       html += '<div class="card-label">今日备注</div>';
       html += '<textarea class="notes-area" id="notesArea" placeholder="记录今天的感受...">' + escHtml(notes) + '</textarea>';
       html += '</div>';
@@ -288,7 +368,6 @@ export const DIET_HTML = `<!DOCTYPE html>
 
       document.getElementById('mainContent').innerHTML = html;
 
-      // Bind events
       var saveWtBtn = document.getElementById('saveWeightBtn');
       if (saveWtBtn) {
         saveWtBtn.addEventListener('click', function() {
@@ -403,7 +482,6 @@ export const DIET_HTML = `<!DOCTYPE html>
     var dm = localStorage.getItem('diet_dark');
     if (dm === '1') document.body.classList.add('dark');
 
-    // Init
     fetchData();
   </script>
 </body>
