@@ -1463,7 +1463,6 @@
       <input type="password" id="authLoginPin" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="PIN" autocomplete="off">
       <div id="authLoginError" class="auth-error"></div>
       <button id="authLoginBtn" class="auth-btn">登录</button>
-      <a href="/diet" style="display:block;text-align:center;margin-top:12px;font-size:0.72rem;color:var(--text-soft);text-decoration:none;font-weight:600;">不登录，直接进入减肥打卡</a>
     </div>
   </div>
 
@@ -1478,7 +1477,6 @@
       <input type="password" id="lockPinInput" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="输入 PIN 解锁" autocomplete="off">
       <div id="lockScreenError" class="auth-error"></div>
       <button id="lockUnlockBtn" class="auth-btn">解锁</button>
-      <a href="/diet" style="display:block;text-align:center;margin-top:12px;font-size:0.72rem;color:var(--text-soft);text-decoration:none;font-weight:600;">不输入PIN，直接进入减肥打卡</a>
     </div>
   </div>
 

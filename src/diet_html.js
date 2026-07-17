@@ -8,24 +8,25 @@ export const DIET_HTML = `<!DOCTYPE html>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --card: rgba(255,255,255,0.55);
-      --card-border: rgba(255,255,255,0.3);
-      --text: #1a1a1a;
-      --text2: #555;
-      --text3: #888;
-      --green: #10b981;
-      --green-bg: rgba(16,185,129,0.12);
-      --red: #ef4444;
+      --card: linear-gradient(160deg, rgba(255,255,255,0.55) 0%, rgba(255,240,245,0.4) 40%, rgba(245,225,255,0.35) 100%);
+      --card-border: rgba(255,140,180,0.35);
+      --text: #3d2d3d;
+      --text2: #6b5a6b;
+      --text3: #9b8a9b;
+      --accent: #f0a0c0;
+      --accent2: #c888e0;
+      --accent-gradient: linear-gradient(135deg, #f8a0c8 0%, #d08ae8 50%, #a8a0f0 100%);
+      --red: #e05060;
       --radius: 14px;
       --radius-sm: 10px;
       --wallpaper-url: '';
     }
     body.dark {
-      --card: rgba(30,30,30,0.6);
-      --card-border: rgba(255,255,255,0.08);
-      --text: #e5e5e5;
-      --text2: #999;
-      --text3: #666;
+      --card: linear-gradient(160deg, rgba(35,25,35,0.55) 0%, rgba(30,20,30,0.45) 40%, rgba(25,20,30,0.4) 100%);
+      --card-border: rgba(200,120,180,0.25);
+      --text: #e0d0e0;
+      --text2: #b0a0b0;
+      --text3: #807080;
     }
     html, body { height: 100%; width: 100%; font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei UI", sans-serif; font-weight: 600; color: var(--text); }
 
@@ -51,7 +52,7 @@ export const DIET_HTML = `<!DOCTYPE html>
     .header .date { font-size: 0.78rem; color: var(--text2); font-weight: 700; }
     .header .day-badge {
       background: rgba(255,255,255,0.5); backdrop-filter: blur(8px);
-      color: var(--green); font-size: 0.75rem; font-weight: 800;
+      color: #d08ae8; font-size: 0.75rem; font-weight: 800;
       padding: 4px 10px; border-radius: 20px;
       border: 1px solid rgba(255,255,255,0.3);
     }
@@ -79,7 +80,7 @@ export const DIET_HTML = `<!DOCTYPE html>
     .card-value { font-size: 1.6rem; font-weight: 900; }
     .card-sub { font-size: 0.72rem; color: var(--text2); margin-top: 4px; }
     .card-change { font-size: 0.8rem; font-weight: 800; }
-    .card-change.down { color: var(--green); }
+    .card-change.down { color: #d08ae8; }
     .card-change.up { color: var(--red); }
 
     /* Row layouts */
@@ -90,21 +91,22 @@ export const DIET_HTML = `<!DOCTYPE html>
     .weight-input-row { display: flex; gap: 8px; margin-top: 10px; }
     .weight-input-row input {
       flex: 1; height: 38px; padding: 0 12px; font-size: 0.9rem; font-weight: 700;
-      border: 1.5px solid rgba(0,0,0,0.12); border-radius: 8px;
-      background: rgba(255,255,255,0.7); backdrop-filter: blur(8px);
-      color: #111; outline: none;
+      border: 2px solid rgba(255,180,210,0.5); border-radius: 18px;
+      background: rgba(255,255,255,0.55); backdrop-filter: blur(8px);
+      color: #5c3d5c; outline: none;
     }
-    .weight-input-row input:focus { border-color: var(--green); box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
-    body.dark .weight-input-row input { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: #ddd; }
+    .weight-input-row input:focus { border-color: rgba(255,130,180,0.8); box-shadow: 0 0 20px rgba(255,150,200,0.2), 0 0 0 4px rgba(255,180,210,0.08); }
+    body.dark .weight-input-row input { background: rgba(40,25,40,0.5); border-color: rgba(180,100,160,0.4); color: #e0d0e0; }
     .weight-input-row button {
-      padding: 0 16px; height: 38px; background: var(--green); color: #fff;
-      border: none; border-radius: 8px; font-weight: 800; font-size: 0.82rem; cursor: pointer;
+      padding: 0 16px; height: 38px; background: var(--accent-gradient); color: #fff;
+      border: none; border-radius: 22px; font-weight: 800; font-size: 0.82rem; cursor: pointer;
+      box-shadow: 0 4px 16px rgba(210,130,200,0.3);
     }
 
     /* Progress bar */
     .progress-bar { height: 8px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; margin-top: 6px; }
     body.dark .progress-bar { background: rgba(255,255,255,0.08); }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, #10b981, #34d399); border-radius: 4px; transition: width 0.5s; }
+    .progress-fill { height: 100%; background: var(--accent-gradient); border-radius: 4px; transition: width 0.5s; }
     .progress-text { font-size: 0.75rem; color: var(--text2); font-weight: 700; }
 
     /* Metric cards */
@@ -126,24 +128,24 @@ export const DIET_HTML = `<!DOCTYPE html>
     .task-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(0,0,0,0.04); }
     body.dark .task-item { border-color: rgba(255,255,255,0.04); }
     .task-item:last-child { border-bottom: none; }
-    .task-item input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--green); cursor: pointer; flex-shrink: 0; }
+    .task-item input[type=checkbox] { width: 20px; height: 20px; accent-color: #d08ae8; cursor: pointer; flex-shrink: 0; }
     .task-item label { flex: 1; font-size: 0.85rem; cursor: pointer; color: var(--text); }
     .task-item input:checked + label { text-decoration: line-through; color: var(--text3); }
 
     /* Notes */
     .notes-area {
       width: 100%; min-height: 60px; padding: 12px; font-size: 0.85rem; font-weight: 600;
-      border: 1.5px solid rgba(0,0,0,0.1); border-radius: 8px;
-      background: rgba(255,255,255,0.6); backdrop-filter: blur(8px);
-      color: #111; resize: vertical; outline: none; line-height: 1.6; font-family: inherit;
+      border: 2px solid rgba(255,180,210,0.5); border-radius: 18px;
+      background: rgba(255,255,255,0.55); backdrop-filter: blur(8px);
+      color: #5c3d5c; resize: vertical; outline: none; line-height: 1.6; font-family: inherit;
     }
-    body.dark .notes-area { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: #ddd; }
-    .notes-area:focus { border-color: var(--green); }
+    body.dark .notes-area { background: rgba(40,25,40,0.5); border-color: rgba(180,100,160,0.4); color: #e0d0e0; }
+    .notes-area:focus { border-color: rgba(255,130,180,0.8); box-shadow: 0 0 20px rgba(255,150,200,0.15); }
 
     /* Check-in button */
-    .checkin-btn { width: 100%; height: 48px; background: linear-gradient(135deg, #10b981, #059669); color: #fff; border: none; border-radius: 12px; font-size: 1rem; font-weight: 900; cursor: pointer; transition: 0.2s; letter-spacing: 1px; margin-top: 8px; box-shadow: 0 4px 16px rgba(16,185,129,0.25); }
-    .checkin-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(16,185,129,0.35); }
-    .checkin-btn:active { transform: translateY(0); }
+    .checkin-btn { width: 100%; height: 48px; background: var(--accent-gradient); color: #fff; border: none; border-radius: 22px; font-size: 1rem; font-weight: 800; cursor: pointer; transition: all 0.3s; letter-spacing: 4px; margin-top: 8px; box-shadow: 0 6px 24px rgba(210,130,200,0.35), 0 0 40px rgba(200,150,220,0.1); }
+    .checkin-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(210,130,200,0.45), 0 0 50px rgba(200,150,220,0.18); }
+    .checkin-btn:active { transform: scale(0.97); box-shadow: 0 4px 16px rgba(210,130,200,0.3); }
     .checkin-btn.done { background: #c0c0c0; cursor: default; box-shadow: none; }
     .checkin-btn.done:hover { transform: none; box-shadow: none; }
 
@@ -154,10 +156,10 @@ export const DIET_HTML = `<!DOCTYPE html>
     body.dark .modal-card { background: rgba(30,30,30,0.9); border-color: rgba(255,255,255,0.08); }
     .modal-card h2 { font-size: 1.1rem; margin-bottom: 16px; }
     .modal-card label { display: block; font-size: 0.78rem; color: var(--text2); font-weight: 700; margin-bottom: 4px; margin-top: 10px; }
-    .modal-card input { width: 100%; height: 40px; padding: 0 12px; font-size: 0.9rem; font-weight: 700; border: 1.5px solid rgba(0,0,0,0.12); border-radius: 8px; background: rgba(255,255,255,0.7); color: #111; outline: none; margin-bottom: 6px; }
-    body.dark .modal-card input { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); color: #ddd; }
-    .modal-card input:focus { border-color: var(--green); }
-    .modal-card button { width: 100%; height: 42px; background: var(--green); color: #fff; border: none; border-radius: 8px; font-size: 0.9rem; font-weight: 800; cursor: pointer; margin-top: 8px; }
+    .modal-card input { width: 100%; height: 40px; padding: 0 12px; font-size: 0.9rem; font-weight: 700; border: 2px solid rgba(255,180,210,0.5); border-radius: 18px; background: rgba(255,255,255,0.6); color: #5c3d5c; outline: none; margin-bottom: 6px; }
+    body.dark .modal-card input { background: rgba(40,25,40,0.5); border-color: rgba(180,100,160,0.4); color: #e0d0e0; }
+    .modal-card input:focus { border-color: rgba(255,130,180,0.8); box-shadow: 0 0 20px rgba(255,150,200,0.15); }
+    .modal-card button { width: 100%; height: 42px; background: var(--accent-gradient); color: #fff; border: none; border-radius: 22px; font-size: 0.9rem; font-weight: 800; cursor: pointer; margin-top: 8px; letter-spacing: 2px; box-shadow: 0 4px 16px rgba(210,130,200,0.3); }
 
     .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(30,30,30,0.85); backdrop-filter: blur(10px); color: #fff; padding: 10px 24px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; z-index: 200; opacity: 0; transition: 0.3s; pointer-events: none; border: 1px solid rgba(255,255,255,0.1); }
     body.dark .toast { background: rgba(255,255,255,0.85); color: #111; }
