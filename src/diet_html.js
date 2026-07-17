@@ -58,10 +58,10 @@ export const DIET_HTML = `<!DOCTYPE html>
     }
     body.dark .header .day-badge { background: rgba(255,255,255,0.1); }
     .header .lock-btn, .header .settings-btn {
-      width: 32px; height: 32px; border: none;
+      height: 30px; border: none; padding: 0 12px;
       background: var(--card); backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      border-radius: 50%; font-size: 1rem; cursor: pointer;
+      border-radius: 15px; font-size: 0.72rem; cursor: pointer; font-weight: 700;
       color: var(--text2); box-shadow: 0 1px 3px rgba(0,0,0,0.06);
       border: 1px solid var(--card-border);
       text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
@@ -74,7 +74,7 @@ export const DIET_HTML = `<!DOCTYPE html>
       border: 1px solid var(--card-border);
       border-radius: var(--radius); padding: 16px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-      margin-bottom: 10px;
+      margin-bottom: 14px;
     }
     .card-label { font-size: 0.72rem; color: var(--text2); font-weight: 700; margin-bottom: 6px; letter-spacing: 0.5px; }
     .card-value { font-size: 1.6rem; font-weight: 900; }
@@ -84,8 +84,8 @@ export const DIET_HTML = `<!DOCTYPE html>
     .card-change.up { color: var(--red); }
 
     /* Row layouts */
-    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 0; }
-    .row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 0; }
+    .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 0; }
+    .row4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 0; }
 
     /* Weight input */
     .weight-input-row { display: flex; gap: 8px; margin-top: 10px; }
@@ -119,8 +119,7 @@ export const DIET_HTML = `<!DOCTYPE html>
       box-shadow: 0 1px 6px rgba(0,0,0,0.03);
     }
     .metric-card:hover { border-color: rgba(0,0,0,0.15); transform: translateY(-1px); }
-    .metric-icon { font-size: 1.2rem; margin-bottom: 4px; }
-    .metric-title { font-size: 0.7rem; color: var(--text2); font-weight: 700; margin-bottom: 6px; }
+    .metric-title { font-size: 0.7rem; color: var(--text2); font-weight: 700; margin-bottom: 8px; }
     .metric-val { font-size: 0.85rem; font-weight: 900; color: var(--text); }
     .metric-sub { font-size: 0.65rem; color: var(--text3); margin-top: 2px; font-weight: 600; }
 
@@ -182,8 +181,8 @@ export const DIET_HTML = `<!DOCTYPE html>
       <h1>减肥打卡</h1>
       <span class="date" id="headerDate"></span>
       <span class="day-badge" id="headerDay"></span>
-      <a href="/" class="lock-btn" title="锁屏返回">🔒</a>
-      <button class="settings-btn" id="settingsBtn" title="设置">⚙</button>
+      <a href="/" class="lock-btn" title="锁屏返回">锁屏</a>
+      <button class="settings-btn" id="settingsBtn" title="设置">设置</button>
     </div>
 
     <div id="mainContent"></div>
@@ -337,15 +336,15 @@ export const DIET_HTML = `<!DOCTYPE html>
 
       // Progress
       html += '<div class="card">';
-      html += '<div style="display:flex;justify-content:space-between;"><span class="progress-text">今日完成进度</span><span class="progress-text" style="font-weight:900;">' + progressPct + '%</span></div>';
+      html += '<div style="display:flex;justify-content:space-between;"><span class="progress-text">完成进度</span><span class="progress-text" style="font-weight:900;">' + progressPct + '%</span></div>';
       html += '<div class="progress-bar"><div class="progress-fill" style="width:' + progressPct + '%;"></div></div></div>';
 
       // Metrics
       html += '<div class="row4">';
-      html += metricCard('💧', '饮水', (waterMl || '--') + '/' + waterGoal + 'ml', (waterMl >= waterGoal ? '达标' : ''), 'waterCard');
-      html += metricCard('🍽', '饮食', calories ? calories + ' kcal' : '--', '[记录]', 'dietCard');
-      html += metricCard('🏃', '运动', exerciseMin ? exerciseMin + ' 分钟' : '--', '[记录]', 'exerciseCard');
-      html += metricCard('😴', '睡眠', sleepHr ? sleepHr + ' 小时' : '--', '[记录]', 'sleepCard');
+      html += metricCard('饮水', (waterMl || '--') + '/' + waterGoal + 'ml', (waterMl >= waterGoal ? '达标' : ''), 'waterCard');
+      html += metricCard('饮食', calories ? calories + ' kcal' : '--', '[记录]', 'dietCard');
+      html += metricCard('运动', exerciseMin ? exerciseMin + ' 分钟' : '--', '[记录]', 'exerciseCard');
+      html += metricCard('睡眠', sleepHr ? sleepHr + ' 小时' : '--', '[记录]', 'sleepCard');
       html += '</div>';
 
       // Tasks
@@ -407,8 +406,8 @@ export const DIET_HTML = `<!DOCTYPE html>
       bindMetricClick('sleepCard', 'sleepHr', '睡眠时长 (小时)');
     }
 
-    function metricCard(icon, title, val, sub, id) {
-      return '<div class="metric-card" id="' + id + '"><div class="metric-icon">' + icon + '</div><div class="metric-title">' + title + '</div><div class="metric-val">' + val + '</div><div class="metric-sub">' + sub + '</div></div>';
+    function metricCard(title, val, sub, id) {
+      return '<div class="metric-card" id="' + id + '"><div class="metric-title">' + title + '</div><div class="metric-val">' + val + '</div><div class="metric-sub">' + sub + '</div></div>';
     }
 
     function bindMetricClick(id, field, label) {
