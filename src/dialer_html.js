@@ -68,7 +68,7 @@
     .app-shell {
       height: 100%;
       width: 100%;
-      display: flex;
+      display: none;
       flex-direction: column;
     }
     .container {
@@ -8932,7 +8932,7 @@
 
     function showAppShell() {
       var appShell = document.querySelector('.app-shell');
-      if (appShell) appShell.style.display = '';
+      if (appShell) appShell.style.display = 'flex';
       document.getElementById('authLoginOverlay').classList.add('auth-hidden');
       document.getElementById('authSetupOverlay').classList.add('auth-hidden');
       document.getElementById('lockScreenOverlay').classList.add('auth-hidden');
@@ -9139,7 +9139,7 @@
             sessionStorage.removeItem('dialer_locked');
             sessionStorage.removeItem('dialer_lockout_until');
             var appShell = document.querySelector('.app-shell');
-            if (appShell) appShell.style.display = '';
+            if (appShell) appShell.style.display = 'flex';
             document.getElementById('lockScreenOverlay').classList.add('auth-hidden');
             renderDialCards();
           } else {
