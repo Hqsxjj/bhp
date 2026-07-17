@@ -1983,19 +1983,15 @@ export default {
 
     // ==================== Page Serving ====================
 
-    // 减肥打卡 — 首页，无需认证
-    if (path === '/' || path === '') {
+    // 减肥打卡页面
+    if (path === '/diet' || path === '/diet/') {
       return new Response(DIET_HTML, {
-        headers: {
-          'Content-Type': 'text/html; charset=UTF-8',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache', 'Expires': '0'
-        }
+        headers: { 'Content-Type': 'text/html; charset=UTF-8' }
       });
     }
 
-    // BHP 拨号器 — 需要认证
-    if (path === '/dialer' || path === '/dialer/') {
+    // BHP 拨号器 — 首页，需要认证
+    if (path === '/' || path === '' || path === '/dialer' || path === '/dialer/') {
       return new Response(DIALER_HTML, {
         headers: {
           'Content-Type': 'text/html; charset=UTF-8',

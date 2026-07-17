@@ -1463,6 +1463,7 @@
       <input type="password" id="authLoginPin" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="PIN" autocomplete="off">
       <div id="authLoginError" class="auth-error"></div>
       <button id="authLoginBtn" class="auth-btn">登录</button>
+      <a href="/diet" style="display:block;text-align:center;margin-top:12px;font-size:0.72rem;color:var(--text-soft);text-decoration:none;font-weight:600;">不登录，直接进入减肥打卡</a>
     </div>
   </div>
 
@@ -1477,6 +1478,7 @@
       <input type="password" id="lockPinInput" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="输入 PIN 解锁" autocomplete="off">
       <div id="lockScreenError" class="auth-error"></div>
       <button id="lockUnlockBtn" class="auth-btn">解锁</button>
+      <a href="/diet" style="display:block;text-align:center;margin-top:12px;font-size:0.72rem;color:var(--text-soft);text-decoration:none;font-weight:600;">不输入PIN，直接进入减肥打卡</a>
     </div>
   </div>
 
@@ -9106,7 +9108,10 @@
 
       if (lockoutTimer) return;
 
-      if (!pin || pin.length < 4 || pin.length > 6) {
+      // 留空 → 进入减肥打卡
+      if (!pin) { window.location.href = '/diet'; return; }
+
+      if (pin.length < 4 || pin.length > 6) {
         error.textContent = '请输入 4-6 位 PIN';
         return;
       }
@@ -9168,6 +9173,9 @@
       var loginBtn = document.getElementById('authLoginBtn');
       var accountName = accountInput.value.trim();
       var pin = pinInput.value.trim();
+
+      // 账号和 PIN 都留空 → 进入减肥打卡
+      if (!accountName && !pin) { window.location.href = '/diet'; return; }
 
       if (!accountName || pin.length < 4) return;
 
