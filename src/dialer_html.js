@@ -717,6 +717,7 @@
       transition: all 0.3s ease;
     }
     .auth-overlay .auth-pin-input { letter-spacing: 6px; }
+    .auth-pin-mask { -webkit-text-security: disc; }
     .auth-overlay .auth-input:focus {
       border-color: rgba(255,130,180,0.8);
       box-shadow: 0 0 20px rgba(255,150,200,0.2), 0 0 0 4px rgba(255,180,210,0.08);
@@ -1460,10 +1461,8 @@
     <div class="lock-wallpaper-overlay"></div>
     <div class="auth-card">
       <form autocomplete="off" style="margin:0;">
-        <input type="text" autocomplete="username" readonly style="opacity:0;position:absolute;width:0;height:0;padding:0;border:0;" tabindex="-1" aria-hidden="true">
-        <input type="password" autocomplete="current-password" readonly style="opacity:0;position:absolute;width:0;height:0;padding:0;border:0;" tabindex="-1" aria-hidden="true">
-        <input type="text" id="authLoginAccountName" class="auth-input" placeholder="账号" autocomplete="off" name="a" readonly onfocus="this.removeAttribute('readonly')" spellcheck="false">
-        <input type="password" id="authLoginPin" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="PIN" autocomplete="off" name="p" readonly onfocus="this.removeAttribute('readonly')" spellcheck="false">
+        <input type="text" id="authLoginAccountName" class="auth-input" placeholder="账号" autocomplete="off" spellcheck="false" data-lpignore="true">
+        <input type="text" id="authLoginPin" class="auth-input auth-pin-input auth-pin-mask" maxlength="6" inputmode="numeric" placeholder="PIN" autocomplete="off" spellcheck="false" data-lpignore="true">
         <div id="authLoginError" class="auth-error"></div>
         <button type="button" id="authLoginBtn" class="auth-btn">登录</button>
       </form>
@@ -1479,9 +1478,7 @@
     <div class="lock-wallpaper-overlay"></div>
     <div class="auth-card">
       <form autocomplete="off" style="margin:0;">
-        <input type="text" autocomplete="username" readonly style="opacity:0;position:absolute;width:0;height:0;padding:0;border:0;" tabindex="-1" aria-hidden="true">
-        <input type="password" autocomplete="current-password" readonly style="opacity:0;position:absolute;width:0;height:0;padding:0;border:0;" tabindex="-1" aria-hidden="true">
-        <input type="password" id="lockPinInput" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="输入 PIN 解锁" autocomplete="off" name="lp" readonly onfocus="this.removeAttribute('readonly')" spellcheck="false">
+        <input type="text" id="lockPinInput" class="auth-input auth-pin-input auth-pin-mask" maxlength="6" inputmode="numeric" placeholder="输入 PIN 解锁" autocomplete="off" spellcheck="false" data-lpignore="true">
         <div id="lockScreenError" class="auth-error"></div>
         <button type="button" id="lockUnlockBtn" class="auth-btn">解锁</button>
       </form>
