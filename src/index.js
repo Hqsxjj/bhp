@@ -2,6 +2,7 @@
 // 部署后绑定 DATA_KV 即可使用
 
 import { DIALER_HTML } from './dialer_html.js';
+import { DIET_HTML } from './diet_html.js';
 import { createSupabaseClient } from './supabase.js';
 
 // KV 读取缓存
@@ -18,6 +19,12 @@ function getKVCached(env, key, ttlMs = 60000) {
 }
 
 // ========== Auth Helpers ==========
+
+function yesterdayKey(dateKey) {
+  const d = new Date(dateKey + 'T00:00:00');
+  d.setDate(d.getDate() - 1);
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+}
 
 function dialerHashPin(str) {
   var hash = 5381;
@@ -1919,9 +1926,76 @@ export default {
       });
     }
 
+    // ==================== Diet API ====================
+
+    if (path === '/api/diet/data' && request.method === 'GET') {
+      try {
+        const url2 = new URL(request.url);
+        const date = url2.searchParams.get('date') || new Date().toISOString().slice(0,10);
+        const raw = await env.DATA_KV.get('diet:' + date);
+        const rawCfg = await env.DATA_KV.get('diet:config');
+        let config = {}; try { config = JSON.parse(rawCfg); } catch(e) {}
+        let data = {}; try { data = JSON.parse(raw); } catch(e) {}
+        if (!data.yesterdayWeight) {
+          const yd = yesterdayKey(date);
+          const rawY = await env.DATA_KV.get('diet:' + yd);
+          if (rawY) { try { const yD = JSON.parse(rawY); if (yD.weight) data.yesterdayWeight = yD.weight; } catch(e) {} }
+        }
+        return new Response(JSON.stringify({ data, config }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
+    if (path === '/api/diet/data' && request.method === 'POST') {
+      try {
+        const body = await request.json();
+        const date = body.date || new Date().toISOString().slice(0,10);
+        const data = body.data || {};
+        await env.DATA_KV.put('diet:' + date, JSON.stringify(data));
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
+    if (path === '/api/diet/config' && request.method === 'POST') {
+      try {
+        const cfg = await request.json();
+        await env.DATA_KV.put('diet:config', JSON.stringify(cfg));
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
     // ==================== Page Serving ====================
 
-    if (path === '/dialer' || path === '/dialer/' || path === '/') {
+    // 减肥打卡 — 首页，无需认证
+    if (path === '/' || path === '') {
+      return new Response(DIET_HTML, {
+        headers: {
+          'Content-Type': 'text/html; charset=UTF-8',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache', 'Expires': '0'
+        }
+      });
+    }
+
+    // BHP 拨号器 — 需要认证
+    if (path === '/dialer' || path === '/dialer/') {
       return new Response(DIALER_HTML, {
         headers: {
           'Content-Type': 'text/html; charset=UTF-8',
