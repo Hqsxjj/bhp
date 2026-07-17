@@ -8981,11 +8981,27 @@
 
     var _wallpaperLoaded = false;
 
+    function applyWallpaper(url) {
+      var bg = 'url(' + url + ')';
+      // Global wallpaper
+      var globalEl = document.getElementById('globalWallpaper');
+      if (globalEl) { globalEl.style.backgroundImage = bg; globalEl.classList.add('loaded'); }
+      // Overlay wallpapers
+      var overlayIds = ['lockWallpaper', 'loginWallpaper', 'setupWallpaper'];
+      for (var oi = 0; oi < overlayIds.length; oi++) {
+        var el = document.getElementById(overlayIds[oi]);
+        if (el) { el.style.backgroundImage = bg; el.classList.add('loaded'); }
+      }
+    }
+
     function loadWallpaper() {
       if (_wallpaperLoaded) return;
-      var globalEl = document.getElementById('globalWallpaper');
-      if (!globalEl) return;
 
+      // 1. 先从 localStorage 恢复上次壁纸，立即显示
+      var cached = localStorage.getItem('bhp_wp_url');
+      if (cached) { applyWallpaper(cached); }
+
+      // 2. 后台拉取新壁纸
       var wallUrls = [
         'https://api.ixiaowai.cn/api/api.php',
         'https://api.ixiaowai.cn/gqapi/gqapi.php',
@@ -8995,24 +9011,27 @@
       ];
 
       var url = wallUrls[Math.floor(Math.random() * wallUrls.length)];
-      var bg = 'url(' + url + ')';
-
-      globalEl.style.backgroundImage = bg;
-      globalEl.classList.add('loaded');
-
-      // Apply to all overlay wallpapers
-      var overlayIds = ['lockWallpaper', 'loginWallpaper', 'setupWallpaper'];
-      for (var oi = 0; oi < overlayIds.length; oi++) {
-        var el = document.getElementById(overlayIds[oi]);
-        if (el) {
-          el.style.backgroundImage = bg;
-          el.classList.add('loaded');
+      var img = new Image();
+      img.onload = function() {
+        localStorage.setItem('bhp_wp_url', url);
+        applyWallpaper(url);
+      };
+      img.onerror = function() {
+        // Try next API
+        wallUrls.splice(wallUrls.indexOf(url), 1);
+        if (wallUrls.length > 0) {
+          url = wallUrls[Math.floor(Math.random() * wallUrls.length)];
+          img.src = url;
         }
-      }
+      };
+      img.src = url;
       _wallpaperLoaded = true;
     }
 
     function syncAllOverlayWallpapers() {
+      // 优先从缓存恢复
+      var cached = localStorage.getItem('bhp_wp_url');
+      if (cached) { applyWallpaper(cached); return; }
       var globalEl = document.getElementById('globalWallpaper');
       if (!globalEl) return;
       var bg = globalEl.style.backgroundImage;
