@@ -419,16 +419,24 @@
     body.dark-mode .crm-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.04); }
     body.dark-mode .crm-table tbody tr:hover td { background: rgba(74,108,247,0.12) !important; }
     .xls-dial-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(10px) saturate(140%);
+      -webkit-backdrop-filter: blur(10px) saturate(140%);
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 8px;
       padding: 10px 14px;
       display: flex;
       flex-direction: column;
       gap: 6px;
-      box-shadow: none;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
       position: relative;
       transition: all 0.15s ease;
+    }
+    body.dark-mode .xls-dial-card {
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(10px) saturate(110%);
+      -webkit-backdrop-filter: blur(10px) saturate(110%);
+      border-color: rgba(255,255,255,0.08);
     }
     .xls-dial-card:hover {
       border-color: rgba(74,108,247,0.3);
@@ -8890,11 +8898,7 @@
         showAppShell();
         return;
       }
-      // Check lock state first (sessionStorage persists across refresh, survives session expiry)
-      if (sessionStorage.getItem('dialer_locked') === '1') {
-        showLockScreen();
-        return;
-      }
+      // 刷新页面始终要求 PIN 解锁
       // Check 12-hour session expiry (client-side, avoids unnecessary network request)
       var sessTs = parseInt(localStorage.getItem(SESS_TS_K) || '0');
       if (sessTs && (Date.now() - sessTs > 12 * 60 * 60 * 1000)) {
@@ -8905,23 +8909,20 @@
       var token = getSessionToken();
       var aid = getSessionAccountId();
       if (token && aid) {
-        // Have session — silently verify, proceed either way
+        // Have session — verify, then show lock screen
         fetch('/api/dialer/auth/accounts')
           .then(function(r) { return r.json(); })
           .then(function(res) {
             if (res.accounts) {
-              // Valid — proceed
-              showAppShell();
+              showLockScreen();
               updateAccountDisplay();
             } else {
-              // Invalid — clear and show login
               clearSession();
               showAuthScreen();
             }
           })
           .catch(function() {
-            // Network error — proceed with cached session (server also enforces expiry)
-            showAppShell();
+            showLockScreen();
             updateAccountDisplay();
           });
       } else {
