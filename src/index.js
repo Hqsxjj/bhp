@@ -1981,6 +1981,34 @@ export default {
       }
     }
 
+    // GET /api/diet/monthly?month=YYYY-MM — 返回当月每天是否有打卡记录
+    if (path === '/api/diet/monthly' && request.method === 'GET') {
+      try {
+        const url2 = new URL(request.url);
+        const month = url2.searchParams.get('month') || new Date().toISOString().slice(0, 7);
+        const prefix = 'diet:' + month;
+        const list = await env.DATA_KV.list({ prefix });
+        const days = {};
+        for (const k of list.keys) {
+          const dateKey = k.name.replace('diet:', '');
+          try {
+            const raw = await env.DATA_KV.get(k.name);
+            const d = JSON.parse(raw);
+            if (d && d.completed) {
+              days[dateKey] = true;
+            }
+          } catch(e) {}
+        }
+        return new Response(JSON.stringify({ days }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
     // ==================== Page Serving ====================
 
     // 减肥打卡页面

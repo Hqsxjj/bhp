@@ -160,6 +160,22 @@ export const DIET_HTML = `<!DOCTYPE html>
     .modal-card input:focus { border-color: rgba(255,130,180,0.8); box-shadow: 0 0 20px rgba(255,150,200,0.15); }
     .modal-card button { width: 100%; height: 42px; background: var(--accent-gradient); color: #fff; border: none; border-radius: 22px; font-size: 0.9rem; font-weight: 800; cursor: pointer; margin-top: 8px; letter-spacing: 2px; box-shadow: 0 4px 16px rgba(210,130,200,0.3); }
 
+    /* Calendar */
+    .cal-card { margin-bottom: 14px; }
+    .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .cal-head button { width: 28px; height: 28px; border: none; background: rgba(255,255,255,0.5); backdrop-filter: blur(8px); border-radius: 50%; font-size: 0.9rem; cursor: pointer; color: var(--text2); font-weight: 700; border: 1px solid var(--card-border); }
+    .cal-head .cal-title { font-size: 0.9rem; font-weight: 900; color: var(--text); }
+    .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.65rem; font-weight: 800; color: var(--text3); margin-bottom: 4px; }
+    .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+    .cal-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; border-radius: 8px; cursor: pointer; color: var(--text); transition: 0.15s; position: relative; }
+    .cal-day:hover { background: rgba(255,255,255,0.3); }
+    .cal-day.other-month { color: var(--text3); opacity: 0.4; }
+    .cal-day.today { background: var(--accent-gradient); color: #fff; font-weight: 900; }
+    .cal-day.checked { background: rgba(200,130,220,0.2); }
+    .cal-day.today.checked { background: var(--accent-gradient); }
+    .cal-dot { width: 5px; height: 5px; border-radius: 50%; background: #d08ae8; margin-top: 1px; }
+    .cal-day.today .cal-dot { background: rgba(255,255,255,0.7); }
+
     .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(30,30,30,0.85); backdrop-filter: blur(10px); color: #fff; padding: 10px 24px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; z-index: 200; opacity: 0; transition: 0.3s; pointer-events: none; border: 1px solid rgba(255,255,255,0.1); }
     body.dark .toast { background: rgba(255,255,255,0.85); color: #111; }
     .toast.show { opacity: 1; }
@@ -183,6 +199,19 @@ export const DIET_HTML = `<!DOCTYPE html>
       <span class="day-badge" id="headerDay"></span>
       <a href="/" class="lock-btn" title="锁屏返回">锁屏</a>
       <button class="settings-btn" id="settingsBtn" title="设置">设置</button>
+    </div>
+
+    <!-- Monthly Calendar -->
+    <div class="card cal-card">
+      <div class="cal-head">
+        <button id="calPrevBtn">◀</button>
+        <span class="cal-title" id="calTitle"></span>
+        <button id="calNextBtn">▶</button>
+      </div>
+      <div class="cal-weekdays">
+        <span>日</span><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span>
+      </div>
+      <div class="cal-grid" id="calGrid"></div>
     </div>
 
     <div id="mainContent"></div>
@@ -247,21 +276,84 @@ export const DIET_HTML = `<!DOCTYPE html>
       return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
     }
 
+    var calYear, calMonth, monthlyData = {};
+    var viewDate = null; // non-null when viewing a past day
+
     function fetchData() {
-      fetch('/api/diet/data?date=' + todayKey())
+      var dateKey = viewDate || todayKey();
+      fetch('/api/diet/data?date=' + dateKey)
         .then(function(r) { return r.json(); })
         .then(function(j) {
           todayData = j.data || {};
           config = j.config || {};
           render();
         });
+      var d = new Date();
+      if (!calYear) { calYear = d.getFullYear(); calMonth = d.getMonth() + 1; }
+      loadMonthData();
+    }
+
+    function loadMonthData() {
+      var m = String(calMonth).padStart(2, '0');
+      fetch('/api/diet/monthly?month=' + calYear + '-' + m)
+        .then(function(r) { return r.json(); })
+        .then(function(j) {
+          monthlyData = j.days || {};
+          renderCalendar();
+        });
+    }
+
+    function renderCalendar() {
+      document.getElementById('calTitle').textContent = calYear + '年' + calMonth + '月';
+      var grid = document.getElementById('calGrid');
+      var today = new Date();
+      var firstDay = new Date(calYear, calMonth - 1, 1).getDay();
+      var daysInMonth = new Date(calYear, calMonth, 0).getDate();
+      var daysInPrevMonth = new Date(calYear, calMonth - 1, 0).getDate();
+      var html = '';
+
+      for (var i = firstDay - 1; i >= 0; i--) {
+        var pd = daysInPrevMonth - i;
+        html += '<div class="cal-day other-month"><span>' + pd + '</span></div>';
+      }
+
+      for (var d = 1; d <= daysInMonth; d++) {
+        var key = calYear + '-' + String(calMonth).padStart(2, '0') + '-' + String(d).padStart(2, '0');
+        var isToday = (d === today.getDate() && calMonth === today.getMonth() + 1 && calYear === today.getFullYear());
+        var cls = 'cal-day';
+        if (isToday) cls += ' today';
+        if (monthlyData[key]) cls += ' checked';
+        html += '<div class="' + cls + '" data-date="' + key + '">';
+        html += '<span>' + d + '</span>';
+        if (monthlyData[key]) html += '<div class="cal-dot"></div>';
+        html += '</div>';
+      }
+
+      var remaining = 7 - ((firstDay + daysInMonth) % 7);
+      if (remaining < 7) {
+        for (var d = 1; d <= remaining; d++) {
+          html += '<div class="cal-day other-month"><span>' + d + '</span></div>';
+        }
+      }
+
+      grid.innerHTML = html;
+
+      var days = grid.querySelectorAll('.cal-day:not(.other-month)');
+      for (var i = 0; i < days.length; i++) {
+        days[i].addEventListener('click', function() {
+          var dateKey = this.getAttribute('data-date');
+          viewDate = dateKey;
+          fetchData();
+        });
+      }
     }
 
     function saveData(data) {
+      var dateKey = viewDate || todayKey();
       return fetch('/api/diet/data', {
         method: 'POST',
         headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({date: todayKey(), data: data})
+        body: JSON.stringify({date: dateKey, data: data})
       });
     }
 
@@ -284,10 +376,10 @@ export const DIET_HTML = `<!DOCTYPE html>
       var d = todayData || {};
       var cfg = config || {};
       var startDate = cfg.startDate || '2026-01-01';
-      var tk = todayKey();
+      var tk = viewDate || todayKey();
       var day = dayNumber(startDate, tk);
-      var startWt = parseFloat(cfg.startWeight) || 90;
-      var targetWt = parseFloat(cfg.targetWeight) || 72;
+      var startWt = parseFloat(cfg.startWeight) || 48;
+      var targetWt = parseFloat(cfg.targetWeight) || 45;
       var todayWt = parseFloat(d.weight) || 0;
       var yesterdayWt = parseFloat(d.yesterdayWeight) || 0;
       var lostWt = startWt - todayWt;
@@ -308,6 +400,17 @@ export const DIET_HTML = `<!DOCTYPE html>
 
       document.getElementById('headerDate').textContent = tk;
       document.getElementById('headerDay').textContent = 'Day ' + day;
+      if (viewDate && viewDate !== todayKey()) {
+        document.getElementById('headerDate').style.color = 'var(--accent)';
+        document.getElementById('headerDate').style.cursor = 'pointer';
+        document.getElementById('headerDate').title = '点击返回今天';
+        document.getElementById('headerDate').onclick = function() { viewDate = null; fetchData(); };
+      } else {
+        document.getElementById('headerDate').style.color = '';
+        document.getElementById('headerDate').style.cursor = '';
+        document.getElementById('headerDate').title = '';
+        document.getElementById('headerDate').onclick = null;
+      }
 
       var html = '';
 
@@ -453,10 +556,21 @@ export const DIET_HTML = `<!DOCTYPE html>
       return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
+    // Calendar navigation
+    document.getElementById('calPrevBtn').addEventListener('click', function() {
+      calMonth--; if (calMonth < 1) { calMonth = 12; calYear--; }
+      loadMonthData();
+    });
+    document.getElementById('calNextBtn').addEventListener('click', function() {
+      calMonth++; if (calMonth > 12) { calMonth = 1; calYear++; }
+      loadMonthData();
+    });
+
     // Settings
     document.getElementById('settingsBtn').addEventListener('click', function() {
       var cfg = config || {};
       document.getElementById('cfgStartWeight').value = cfg.startWeight || '';
+      document.getElementById('cfgTargetWeight').value = cfg.targetWeight || '';
       document.getElementById('cfgTargetWeight').value = cfg.targetWeight || '';
       document.getElementById('cfgStartDate').value = cfg.startDate || '';
       document.getElementById('cfgWaterGoal').value = cfg.waterGoal || '3000';
@@ -467,10 +581,10 @@ export const DIET_HTML = `<!DOCTYPE html>
     });
     document.getElementById('saveSettingsBtn').addEventListener('click', function() {
       var cfg = {
-        startWeight: parseFloat(document.getElementById('cfgStartWeight').value) || 90,
-        targetWeight: parseFloat(document.getElementById('cfgTargetWeight').value) || 72,
+        startWeight: parseFloat(document.getElementById('cfgStartWeight').value) || 48,
+        targetWeight: parseFloat(document.getElementById('cfgTargetWeight').value) || 45,
         startDate: document.getElementById('cfgStartDate').value || '2026-01-01',
-        waterGoal: parseInt(document.getElementById('cfgWaterGoal').value) || 3000
+        waterGoal: parseInt(document.getElementById('cfgWaterGoal').value) || 2000
       };
       saveConfig(cfg).then(function() {
         document.getElementById('settingsModal').classList.remove('show');
