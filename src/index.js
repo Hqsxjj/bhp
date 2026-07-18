@@ -1920,7 +1920,67 @@ export default {
     }
 
     if (path === '/icon.svg') {
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4a6cf7"/><stop offset="100%" stop-color="#ff5722"/></linearGradient></defs><rect width="512" height="512" rx="110" fill="url(#bg)"/><text x="256" y="310" text-anchor="middle" font-family="Arial,sans-serif" font-size="240" font-weight="bold" fill="white">B</text></svg>`;
+      const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8a0c8"/>
+      <stop offset="50%" stop-color="#d08ae8"/>
+      <stop offset="100%" stop-color="#a8a0f0"/>
+    </linearGradient>
+    <linearGradient id="hair" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#4a3050"/>
+      <stop offset="100%" stop-color="#3d2840"/>
+    </linearGradient>
+    <radialGradient id="blush" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#ff90a8" stop-opacity="0.6"/>
+      <stop offset="100%" stop-color="#ff90a8" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <!-- bg -->
+  <rect width="512" height="512" rx="120" fill="url(#bg)"/>
+  <!-- hair back -->
+  <ellipse cx="256" cy="180" rx="200" ry="160" fill="url(#hair)"/>
+  <!-- hair sides -->
+  <path d="M56 200 Q56 340 120 400 Q80 320 60 220 Z" fill="url(#hair)"/>
+  <path d="M456 200 Q456 340 392 400 Q432 320 452 220 Z" fill="url(#hair)"/>
+  <!-- face -->
+  <ellipse cx="256" cy="260" rx="130" ry="140" fill="#ffe4d0"/>
+  <!-- bangs -->
+  <path d="M56 200 Q100 100 180 120 Q200 70 256 90 Q312 70 332 120 Q412 100 456 200 Q380 140 256 130 Q132 140 56 200 Z" fill="url(#hair)"/>
+  <!-- ahoge -->
+  <path d="M240 92 Q256 50 272 92" fill="none" stroke="#4a3050" stroke-width="5" stroke-linecap="round"/>
+  <!-- eyes -->
+  <ellipse cx="195" cy="250" rx="28" ry="34" fill="white"/>
+  <ellipse cx="317" cy="250" rx="28" ry="34" fill="white"/>
+  <ellipse cx="200" cy="252" rx="18" ry="22" fill="#3d2840"/>
+  <ellipse cx="322" cy="252" rx="18" ry="22" fill="#3d2840"/>
+  <!-- eye highlights -->
+  <circle cx="208" cy="240" r="7" fill="white"/>
+  <circle cx="195" cy="258" r="3.5" fill="white"/>
+  <circle cx="330" cy="240" r="7" fill="white"/>
+  <circle cx="317" cy="258" r="3.5" fill="white"/>
+  <!-- eyebrows -->
+  <path d="M165 210 Q190 200 220 212" fill="none" stroke="#3d2840" stroke-width="5" stroke-linecap="round"/>
+  <path d="M347 210 Q322 200 292 212" fill="none" stroke="#3d2840" stroke-width="5" stroke-linecap="round"/>
+  <!-- blush -->
+  <ellipse cx="145" cy="285" rx="30" ry="18" fill="url(#blush)"/>
+  <ellipse cx="367" cy="285" rx="30" ry="18" fill="url(#blush)"/>
+  <!-- mouth -->
+  <path d="M230 300 Q256 330 282 300" fill="none" stroke="#e88090" stroke-width="5" stroke-linecap="round"/>
+  <!-- ribbon accessory -->
+  <g transform="translate(360, 100)">
+    <ellipse cx="0" cy="0" rx="30" ry="18" fill="#ff7090"/>
+    <ellipse cx="-20" cy="-10" rx="18" ry="24" fill="#ff6088" transform="rotate(-30)"/>
+    <ellipse cx="20" cy="-10" rx="18" ry="24" fill="#ff80a0" transform="rotate(30)"/>
+    <circle cx="0" cy="-5" r="8" fill="#ffe040"/>
+  </g>
+  <!-- sparkles -->
+  <g fill="white" opacity="0.7">
+    <polygon points="420,160 424,150 428,160 438,164 428,168 424,178 420,168 410,164" />
+    <polygon points="80,120 83,113 86,120 93,123 86,126 83,133 80,126 73,123" />
+    <polygon points="440,320 443,313 446,320 453,323 446,326 443,333 440,326 433,323" />
+  </g>
+</svg>`;
       return new Response(svg, {
         headers: { 'Content-Type': 'image/svg+xml', 'Cache-Control': 'public, max-age=86400', 'Access-Control-Allow-Origin': '*' }
       });
