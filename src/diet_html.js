@@ -187,6 +187,35 @@ export const DIET_HTML = `<!DOCTYPE html>
       .card { padding: 12px; }
       .card-value { font-size: 1.3rem; }
     }
+
+    /* ===== Desktop landscape fullscreen ===== */
+    @media (min-width: 900px) {
+      html, body { overflow: hidden; }
+      .main-container {
+        max-width: none;
+        padding: 16px 24px;
+        height: 100vh;
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 16px;
+      }
+      .header { grid-column: 1 / -1; margin-bottom: 0; }
+      .cal-card { margin-bottom: 0; }
+      #mainContent {
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      #mainContent::-webkit-scrollbar { width: 4px; }
+      #mainContent::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 2px; }
+      body.dark #mainContent::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
+      .card-value { font-size: 1.8rem; }
+      .row2 { gap: 18px; }
+      .row4 { gap: 14px; }
+      /* Prevent the last element's margin from creating extra scroll */
+      #mainContent > :last-child { margin-bottom: 4px; }
+    }
   </style>
 </head>
 <body>
