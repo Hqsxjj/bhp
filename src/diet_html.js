@@ -406,7 +406,7 @@ export const DIET_HTML = `<!DOCTYPE html>
     function render() {
       var d = todayData || {};
       var cfg = config || {};
-      var startDate = cfg.startDate || '2026-01-01';
+      var startDate = cfg.startDate || todayKey();
       var tk = viewDate || todayKey();
       var day = dayNumber(startDate, tk);
       var startWt = parseFloat(cfg.startWeight) || 48;
@@ -614,7 +614,7 @@ export const DIET_HTML = `<!DOCTYPE html>
       var cfg = {
         startWeight: parseFloat(document.getElementById('cfgStartWeight').value) || 48,
         targetWeight: parseFloat(document.getElementById('cfgTargetWeight').value) || 45,
-        startDate: document.getElementById('cfgStartDate').value || '2026-01-01',
+        startDate: document.getElementById('cfgStartDate').value || todayKey(),
         waterGoal: parseInt(document.getElementById('cfgWaterGoal').value) || 2000
       };
       saveConfig(cfg).then(function() {
