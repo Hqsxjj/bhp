@@ -430,7 +430,7 @@ export const DIET_HTML = `<!DOCTYPE html>
       var isUp = weightChange !== null && parseFloat(weightChange) > 0;
 
       document.getElementById('headerDate').textContent = tk;
-      document.getElementById('headerDay').textContent = 'Day ' + day;
+      document.getElementById('headerDay').textContent = '第' + day + '天';
       if (viewDate && viewDate !== todayKey()) {
         document.getElementById('headerDate').style.color = 'var(--accent)';
         document.getElementById('headerDate').style.cursor = 'pointer';
