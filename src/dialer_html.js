@@ -542,7 +542,7 @@
     }
     .client-card-tag-company {
       background: rgba(7,193,96,0.08);
-      color: var(--accent-wechat);
+      color: #222;
       cursor: pointer;
       transition: all 0.2s;
     }

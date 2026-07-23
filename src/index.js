@@ -1144,7 +1144,7 @@ export default {
             if (seenPhones[phone]) return;
             seenPhones[phone] = true;
 
-            var name = '', company = '', note = '';
+            var name = '', company = '', note = '', fund = '';
             var cols = line.split(/\t/);
 
             if (cols.length >= 3) {
@@ -1161,7 +1161,13 @@ export default {
                 }
                 for (var ci2 = phoneCol + 1; ci2 < cols.length; ci2++) {
                   var val = cols[ci2].trim();
-                  if (val && !/^[\d.]+$/.test(val) && val !== '新增跟进' && val !== '已拨') {
+                  if (!val) continue;
+                  // 公积金/金额：纯数字（支持小数点和千分位逗号，如 18662.00 / 27,501）
+                  if (/^[\d,]+\.?\d*$/.test(val)) {
+                    if (!fund) fund = val.replace(/,/g, '');
+                    continue;
+                  }
+                  if (val !== '新增跟进' && val !== '已拨') {
                     company = val; break;
                   }
                 }
@@ -1185,23 +1191,43 @@ export default {
               var after = line.substring(line.indexOf(phone) + phone.length).trim();
 
               if (after && /^\d+/.test(after)) {
-                // Phone line has trailing number → note/amount
-                note = after;
-                // Company on next line
-                for (var k = i + 1; k < lines.length && k <= i + 2; k++) {
-                  var nl = lines[k].trim();
-                  if (nl && !/^\d+$/.test(nl) && nl.length > 1) { company = nl; break; }
+                // 公积金/金额在前（如 18662.00），后面可能跟公司名
+                var fundMatch = after.match(/^([\d,]+\.?\d*)\s*(.*)/);
+                if (fundMatch) {
+                  fund = fundMatch[1].replace(/,/g, '');
+                  var rest = fundMatch[2].trim();
+                  if (rest && !/^\d+$/.test(rest)) {
+                    company = rest.replace(/\s*(新增跟进|已拨|正常号|空号|停机|无法接通).*$/, '').trim();
+                  }
                 }
+                // 如果同行没有公司名，检查下一行
+                if (!company) {
+                  for (var k = i + 1; k < lines.length && k <= i + 2; k++) {
+                    var nl = lines[k].trim();
+                    if (nl && !/^\d+$/.test(nl) && nl.length > 1) { company = nl; break; }
+                  }
+                }
+                // 兜底：确实无法解析时放入 note
+                if (!fund && !company) note = after;
               } else if (after) {
-                // Phone line has trailing text → company (possibly + status)
-                company = after.replace(/[\d.]+[\d\s]*$/g, '').replace(/\s*(新增跟进|已拨|正常号|空号|停机|无法接通).*$/, '').trim();
+                // Phone line has trailing text → company，可能末尾带公积金数字
+                var fundAtEnd = after.match(/([\d,]+\.?\d*)$/);
+                if (fundAtEnd) {
+                  fund = fundAtEnd[1].replace(/,/g, '');
+                  company = after.replace(/[\d,]+\.?\d*$/g, '').replace(/\s*(新增跟进|已拨|正常号|空号|停机|无法接通).*$/, '').trim();
+                } else {
+                  company = after.replace(/[\d.]+[\d\s]*$/g, '').replace(/\s*(新增跟进|已拨|正常号|空号|停机|无法接通).*$/, '').trim();
+                }
               } else {
                 // Nothing after phone — scan next lines
                 for (var k2 = i + 1; k2 < lines.length && k2 <= i + 3; k2++) {
                   var nl2 = lines[k2].trim();
                   if (!nl2) continue;
-                  if (/^\d+$/.test(nl2)) {
-                    // Number → note/amount
+                  if (/^[\d,]+\.?\d*$/.test(nl2)) {
+                    // 纯数字（含小数） → 公积金/金额
+                    if (!fund) fund = nl2.replace(/,/g, '');
+                  } else if (/^\d+$/.test(nl2)) {
+                    // 纯整数 → note/amount
                     if (!note) note = nl2;
                   } else if (nl2.length > 1 && !/^\d{11}$/.test(nl2)) {
                     // Text → company
@@ -1211,7 +1237,7 @@ export default {
               }
             }
 
-            extractedContacts.push({ name: name, phone: phone, company: company, note: note });
+            extractedContacts.push({ name: name, phone: phone, company: company, note: note, fund: fund });
           });
         }
 
@@ -1711,15 +1737,22 @@ export default {
         phones.forEach(function(phone) {
           if (seenPhones[phone]) return;
           seenPhones[phone] = true;
-          var name = '', company = '';
+          var name = '', company = '', fund = '';
           var before = line.substring(0, line.indexOf(phone)).trim();
           var nm = before.match(/(?:^|\s)([一-龥]{2,4})(?=\s|$)/);
           if (!nm) nm = before.match(/^([一-龥]{2,4})/);
           if (!nm) nm = before.match(/([一-龥]{1,4})\s*$/);
           if (nm) name = nm[1].replace(/^[新旧听一]+[\s\-\|]*/, '');
           var after = line.substring(line.indexOf(phone) + phone.length).trim();
-          company = after.replace(/[\d.]+[\d\s]*$/g, '').replace(/\s*(新增跟进|已拨|正常号|空号|停机|无法接通|挂断|意向|备注).*$/, '').trim();
-          contacts.push({ name: name, phone: phone, company: company, fund: '', note: '' });
+          // 提取末尾公积金数字（含小数点，如 18662.00 / 27,501）
+          var fundAtEnd = after.match(/([\d,]+\.?\d*)$/);
+          if (fundAtEnd) {
+            fund = fundAtEnd[1].replace(/,/g, '');
+            company = after.replace(/[\d,]+\.?\d*$/g, '').replace(/\s*(新增跟进|已拨|正常号|空号|停机|无法接通|挂断|意向|备注).*$/, '').trim();
+          } else {
+            company = after.replace(/[\d.]+[\d\s]*$/g, '').replace(/\s*(新增跟进|已拨|正常号|空号|停机|无法接通|挂断|意向|备注).*$/, '').trim();
+          }
+          contacts.push({ name: name, phone: phone, company: company, fund: fund, note: '' });
         });
       });
       return contacts;
