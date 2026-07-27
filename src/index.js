@@ -765,19 +765,9 @@ export default {
       }
     }
 
-    // 批量转入公海（仅主账户）
+    // 批量转入公海
     if (path === '/api/dialer/customers/transfer-to-pool' && request.method === 'POST') {
       try {
-        var _masterCheck = false;
-        var _allAccts = await dialerGetAccounts(env);
-        for (var _mai = 0; _mai < _allAccts.length; _mai++) {
-          if (_allAccts[_mai].account_id === _dialerAccountId && _allAccts[_mai].is_master !== false) { _masterCheck = true; break; }
-        }
-        if (!_masterCheck) {
-          return new Response(JSON.stringify({ success: false, error: '仅主账户可执行此操作' }), {
-            status: 403, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-          });
-        }
         const poolBody = await request.json();
         const mobiles = poolBody.mobiles || [];
         if (!Array.isArray(mobiles) || mobiles.length === 0) {

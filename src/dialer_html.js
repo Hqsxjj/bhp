@@ -8414,13 +8414,9 @@
           });
       }
 
-      // Toolbar action: 转入公海（仅主账户可见可用）
+      // Toolbar action: 转入公海
       var movePublicBtn = document.getElementById('crmMovePublicBtn');
       if (movePublicBtn) {
-        // 非主账户隐藏按钮
-        if (!isSessionMaster()) {
-          movePublicBtn.style.display = 'none';
-        } else {
           movePublicBtn.onclick = function() {
             var mobiles = Object.keys(DB.selectedIds);
             if (mobiles.length === 0) { alert('请先勾选要转入公海的数据'); return; }
@@ -8455,7 +8451,6 @@
               movePublicBtn.textContent = '转入公海';
             });
           };
-        }
       }
 
       // Toolbar action: 添加协助人
