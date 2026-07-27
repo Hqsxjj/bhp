@@ -776,16 +776,8 @@ export default {
           });
         }
         const sb = createSupabaseClient(env);
-        let transferCount = 0;
-        for (let mi = 0; mi < mobiles.length; mi++) {
-          try {
-            await sb.transferToPool(mobiles[mi], _dialerAccountId);
-            transferCount++;
-          } catch (e2) {
-            console.error('[transfer-to-pool] Failed for ' + mobiles[mi] + ': ' + e2.message);
-          }
-        }
-        return new Response(JSON.stringify({ success: true, transferred: transferCount, total: mobiles.length }), {
+        const transferred = await sb.transferToPool(mobiles, _dialerAccountId);
+        return new Response(JSON.stringify({ success: true, transferred: transferred, total: mobiles.length }), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       } catch (e) {

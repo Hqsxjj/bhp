@@ -706,29 +706,45 @@ export function createSupabaseClient(env) {
   }
 
   /**
-   * Transfer a customer to the public pool.
+   * Batch transfer customers to the public pool.
    * Sets account_id to null and category to '公海客户'.
    * Only affects records belonging to the specified accountId.
+   * Chunked into batches of 100 to stay within URL and Worker limits.
    */
-  async function transferToPool(mobile, accountId) {
+  async function transferToPool(mobiles, accountId) {
     if (!baseUrl || !key) throw new Error('Supabase not configured');
-    if (!mobile) throw new Error('mobile is required');
+    if (!Array.isArray(mobiles) || mobiles.length === 0) return 0;
 
-    var patchUrl = baseUrl + '/rest/v1/customers?mobile=eq.' + encodeURIComponent(mobile);
-    if (accountId) {
-      patchUrl += '&account_id=eq.' + encodeURIComponent(accountId);
+    // Deduplicate
+    var unique = [];
+    var seen = {};
+    for (var mi = 0; mi < mobiles.length; mi++) {
+      var m = (mobiles[mi] || '').trim();
+      if (m && !seen[m]) { seen[m] = true; unique.push(m); }
     }
-    var resp = await fetch(patchUrl, {
-      method: 'PATCH',
-      headers: Object.assign({}, headers(), { 'Prefer': 'return=minimal' }),
-      body: JSON.stringify({ account_id: null, category: '公海客户' })
-    });
 
-    if (!resp.ok) {
-      var text = await resp.text();
-      throw new Error('Supabase transferToPool failed [' + resp.status + ']: ' + text);
+    var total = 0;
+    var chunkSize = 100;
+    for (var ci = 0; ci < unique.length; ci += chunkSize) {
+      var chunk = unique.slice(ci, ci + chunkSize);
+      var inFilter = 'mobile=in.(' + chunk.map(function(m) { return encodeURIComponent(m); }).join(',') + ')';
+      var patchUrl = baseUrl + '/rest/v1/customers?' + inFilter;
+      if (accountId) {
+        patchUrl += '&account_id=eq.' + encodeURIComponent(accountId);
+      }
+      var resp = await fetch(patchUrl, {
+        method: 'PATCH',
+        headers: Object.assign({}, headers(), { 'Prefer': 'return=minimal' }),
+        body: JSON.stringify({ account_id: null, category: '公海客户' })
+      });
+
+      if (!resp.ok) {
+        var text = await resp.text();
+        throw new Error('Supabase transferToPool chunk failed [' + resp.status + ']: ' + text);
+      }
+      total += chunk.length;
     }
-    return true;
+    return total;
   }
 
   /**
