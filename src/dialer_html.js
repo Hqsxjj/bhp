@@ -8425,7 +8425,7 @@
             var mobiles = Object.keys(DB.selectedIds);
             if (mobiles.length === 0) { alert('请先勾选要转入公海的数据'); return; }
 
-            if (!confirm('确认将选中的 ' + mobiles.length + ' 个客户转入「公海」？\n\n转入后该批数据将从当前账户移除，所有账户均无法再添加这些号码。')) return;
+            if (!confirm('确认将选中的 ' + mobiles.length + ' 个客户转入「公海」？\\n\\n转入后该批数据将从当前账户移除，所有账户均无法再添加这些号码。')) return;
 
             movePublicBtn.disabled = true;
             movePublicBtn.textContent = '处理中...';
