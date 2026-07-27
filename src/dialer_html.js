@@ -8442,6 +8442,7 @@
               var selectAllCb = document.getElementById('crmSelectAll');
               if (selectAllCb) selectAllCb.checked = false;
               dbFetch();
+              loadAccountStats();
             })
             .catch(function(err) {
               alert('批量转入公海出错: ' + err.message);
