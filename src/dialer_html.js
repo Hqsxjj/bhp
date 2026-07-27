@@ -8414,47 +8414,48 @@
           });
       }
 
-      // Toolbar action: 转入公海
+      // Toolbar action: 转入公海（仅主账户可见可用）
       var movePublicBtn = document.getElementById('crmMovePublicBtn');
       if (movePublicBtn) {
-        movePublicBtn.onclick = function() {
-          var mobiles = Object.keys(DB.selectedIds);
-          if (mobiles.length === 0) { alert('请先勾选要转入公海的数据'); return; }
-          
-          if (!confirm('确认将选中的 ' + mobiles.length + ' 个客户转入「公海客户」吗？')) return;
-          
-          movePublicBtn.disabled = true;
-          movePublicBtn.textContent = '处理中...';
-          
-          var promises = mobiles.map(function(m) {
-            return fetch('/api/dialer/customers', {
-              method: 'PATCH',
+        // 非主账户隐藏按钮
+        if (!isSessionMaster()) {
+          movePublicBtn.style.display = 'none';
+        } else {
+          movePublicBtn.onclick = function() {
+            var mobiles = Object.keys(DB.selectedIds);
+            if (mobiles.length === 0) { alert('请先勾选要转入公海的数据'); return; }
+
+            if (!confirm('确认将选中的 ' + mobiles.length + ' 个客户转入「公海」？\n\n转入后该批数据将从当前账户移除，所有账户均无法再添加这些号码。')) return;
+
+            movePublicBtn.disabled = true;
+            movePublicBtn.textContent = '处理中...';
+
+            fetch('/api/dialer/customers/transfer-to-pool', {
+              method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                account_id: getOrCreateAccountId(),
-                mobile: m,
-                fields: { category: '公海客户' }
-              })
-            }).then(function(r) { return r.json(); });
-          });
-          
-          Promise.all(promises)
-          .then(function(results) {
-            var successCount = results.filter(function(r) { return r && r.success; }).length;
-            alert('操作完成，成功转入公海客户 ' + successCount + ' / ' + mobiles.length + ' 条');
-            DB.selectedIds = {};
-            var selectAllCb = document.getElementById('crmSelectAll');
-            if (selectAllCb) selectAllCb.checked = false;
-            dbFetch();
-          })
-          .catch(function(err) {
-            alert('批量转入公海出错: ' + err.message);
-          })
-          .then(function() {
-            movePublicBtn.disabled = false;
-            movePublicBtn.textContent = '转入公海';
-          });
-        };
+              body: JSON.stringify({ mobiles: mobiles })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+              if (result.success) {
+                alert('操作完成，成功转入公海 ' + (result.transferred || 0) + ' / ' + mobiles.length + ' 条');
+              } else {
+                alert('转入失败: ' + (result.error || '未知错误'));
+              }
+              DB.selectedIds = {};
+              var selectAllCb = document.getElementById('crmSelectAll');
+              if (selectAllCb) selectAllCb.checked = false;
+              dbFetch();
+            })
+            .catch(function(err) {
+              alert('批量转入公海出错: ' + err.message);
+            })
+            .then(function() {
+              movePublicBtn.disabled = false;
+              movePublicBtn.textContent = '转入公海';
+            });
+          };
+        }
       }
 
       // Toolbar action: 添加协助人

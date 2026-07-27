@@ -765,6 +765,46 @@ export default {
       }
     }
 
+    // 批量转入公海（仅主账户）
+    if (path === '/api/dialer/customers/transfer-to-pool' && request.method === 'POST') {
+      try {
+        var _masterCheck = false;
+        var _allAccts = await dialerGetAccounts(env);
+        for (var _mai = 0; _mai < _allAccts.length; _mai++) {
+          if (_allAccts[_mai].account_id === _dialerAccountId && _allAccts[_mai].is_master !== false) { _masterCheck = true; break; }
+        }
+        if (!_masterCheck) {
+          return new Response(JSON.stringify({ success: false, error: '仅主账户可执行此操作' }), {
+            status: 403, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+        const poolBody = await request.json();
+        const mobiles = poolBody.mobiles || [];
+        if (!Array.isArray(mobiles) || mobiles.length === 0) {
+          return new Response(JSON.stringify({ success: false, error: '缺少 mobiles 参数' }), {
+            status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+        const sb = createSupabaseClient(env);
+        let transferCount = 0;
+        for (let mi = 0; mi < mobiles.length; mi++) {
+          try {
+            await sb.transferToPool(mobiles[mi], _dialerAccountId);
+            transferCount++;
+          } catch (e2) {
+            console.error('[transfer-to-pool] Failed for ' + mobiles[mi] + ': ' + e2.message);
+          }
+        }
+        return new Response(JSON.stringify({ success: true, transferred: transferCount, total: mobiles.length }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
     // Timeline
     if (path === '/api/dialer/timeline' && request.method === 'POST') {
       try {

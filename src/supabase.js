@@ -466,16 +466,24 @@ export function createSupabaseClient(env) {
             }
           }
         }
-        // 过滤掉属于其他账户的记录
+        // 过滤掉属于其他账户或公海的记录
         var safeRows = [];
         for (var ri = 0; ri < uniqueRows.length; ri++) {
           var rowMobile = uniqueRows[ri].mobile;
           var existingOwner = existingMobiles[rowMobile];
-          if (existingOwner && existingOwner !== acctId) {
-            // 此手机号属于其他账户，跳过不覆盖
+          if (existingOwner === undefined) {
+            // 新记录，允许添加
+            safeRows.push(uniqueRows[ri]);
+          } else if (existingOwner === null) {
+            // 已在公海，禁止任何账户重新添加
+            skippedForeignCount++;
+            console.warn('[supabase] Skipping mobile ' + rowMobile.slice(0, 3) + '**** — in public pool (blocked)');
+          } else if (existingOwner !== acctId) {
+            // 属于其他账户，跳过不覆盖
             skippedForeignCount++;
             console.warn('[supabase] Skipping mobile ' + rowMobile.slice(0, 3) + '**** — owned by ' + existingOwner);
           } else {
+            // 属于同一账户，允许更新
             safeRows.push(uniqueRows[ri]);
           }
         }
@@ -698,6 +706,32 @@ export function createSupabaseClient(env) {
   }
 
   /**
+   * Transfer a customer to the public pool.
+   * Sets account_id to null and category to '公海客户'.
+   * Only affects records belonging to the specified accountId.
+   */
+  async function transferToPool(mobile, accountId) {
+    if (!baseUrl || !key) throw new Error('Supabase not configured');
+    if (!mobile) throw new Error('mobile is required');
+
+    var patchUrl = baseUrl + '/rest/v1/customers?mobile=eq.' + encodeURIComponent(mobile);
+    if (accountId) {
+      patchUrl += '&account_id=eq.' + encodeURIComponent(accountId);
+    }
+    var resp = await fetch(patchUrl, {
+      method: 'PATCH',
+      headers: Object.assign({}, headers(), { 'Prefer': 'return=minimal' }),
+      body: JSON.stringify({ account_id: null, category: '公海客户' })
+    });
+
+    if (!resp.ok) {
+      var text = await resp.text();
+      throw new Error('Supabase transferToPool failed [' + resp.status + ']: ' + text);
+    }
+    return true;
+  }
+
+  /**
    * Batch-update pulled_at = NOW() for customers that were just loaded into the dialer.
    * Uses Supabase PATCH with mobile.in filter.
    */
@@ -755,6 +789,7 @@ export function createSupabaseClient(env) {
     getCustomersForDialer: getCustomersForDialer,
     batchSetPulledAt: batchSetPulledAt,
     batchUpdateCategory: batchUpdateCategory,
+    transferToPool: transferToPool,
     deleteCustomer: deleteCustomer,
     deleteCustomers: deleteCustomers,
     saveCorrection: saveCorrection,
