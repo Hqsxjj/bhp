@@ -9127,19 +9127,19 @@ function updateAutoDialBtn() {
       }
     }
 
+    var _lastInteraction = 0;
     function markUserNavigation() {
-      sessionStorage.setItem('dialer_skip_lock', '1');
+      _lastInteraction = Date.now();
     }
     function initAutoLock() {
-      // Intercept clicks on tel: links — user-initiated dial, don't lock
-      document.addEventListener('click', function(e) {
-        var el = e.target.closest('a[href^="tel:"]');
-        if (el) markUserNavigation();
-      });
+      // Track user interactions — any click/touch/key means user is active
+      document.addEventListener('click', function() { _lastInteraction = Date.now(); });
+      document.addEventListener('touchstart', function() { _lastInteraction = Date.now(); });
+      document.addEventListener('keydown', function() { _lastInteraction = Date.now(); });
       document.addEventListener('visibilitychange', function() {
         if (document.visibilityState === 'hidden') {
-          // Skip lock if user just initiated a call or external app switch
-          if (sessionStorage.getItem('dialer_skip_lock') === '1') return;
+          // If user interacted within 2s, they likely initiated the navigation (dial, WeChat, etc.)
+          if (Date.now() - _lastInteraction < 2000) return;
           var locked = sessionStorage.getItem('dialer_locked');
           if (locked === '1') return;
           var appShell = document.querySelector('.app-shell');
@@ -9147,9 +9147,6 @@ function updateAutoDialBtn() {
           var token = getSessionToken();
           if (!token) return;
           showLockScreen();
-        } else {
-          // Clear skip flag when returning
-          sessionStorage.removeItem('dialer_skip_lock');
         }
       });
     }
