@@ -1127,6 +1127,25 @@
     }
 
     /* Copy limit toast */
+    .check-toast {
+      position: fixed;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      background: #27ae60;
+      color: #fff;
+      width: 56px; height: 56px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 99999;
+      box-shadow: 0 4px 24px rgba(39, 174, 96, 0.4);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .check-toast.show {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.05);
+    }
     .copy-limit-toast {
       position: fixed;
       top: 16px;
@@ -1454,6 +1473,7 @@
 </head>
 <body>
   <div class="copy-limit-toast" id="copyLimitToast"></div>
+  <div class="check-toast" id="checkToast"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
 
   <!-- Auth: Login Overlay -->
   <div id="authLoginOverlay" class="auth-overlay auth-hidden">
@@ -2321,6 +2341,16 @@
         toast.classList.remove('show');
       }, 4000);
     }
+    var _checkTimer = null;
+    function showCheckToast() {
+      var el = document.getElementById('checkToast');
+      if (!el) return;
+      if (_checkTimer) clearTimeout(_checkTimer);
+      el.classList.add('show');
+      _checkTimer = setTimeout(function() {
+        el.classList.remove('show');
+      }, 1200);
+    }
 
     // Dark Mode Control (3-state: light / dark / auto)
     function initDark() {
@@ -2604,16 +2634,8 @@
           alert('上传失败: ' + (data.error || '未知错误'));
           console.error("Supabase upload failed:", data.error || "未知错误");
         } else {
-          var msg = '成功上传 ' + data.count + ' 条客户数据到云端';
-          if (data.skipped > 0) {
-            msg += '\\n(其中 ' + data.skipped + ' 条手机号已归属其他账户，已跳过)';
-          }
-          var tip = document.createElement('div');
-          tip.style.cssText = 'position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#27ae60;color:#fff;padding:10px 24px;border-radius:8px;font-size:0.85rem;font-weight:700;z-index:9999;box-shadow:0 4px 20px rgba(0,0,0,0.2);pointer-events:none;transition:opacity 0.3s;';
-          tip.textContent = msg;
-          document.body.appendChild(tip);
-          setTimeout(function() { tip.style.opacity = '0'; setTimeout(function() { tip.remove(); }, 300); }, 2500);
-          console.log("Supabase upload:", msg);
+          showCheckToast();
+          console.log("Supabase upload: 成功上传 " + data.count + " 条客户数据到云端" + (data.skipped > 0 ? " (其中 " + data.skipped + " 条已跳过)" : ""));
         }
         return data;
       })
@@ -2983,7 +3005,7 @@
 
       if (detected.nameIdx !== -1 && detected.phoneIdx !== -1) {
         executeAIImportExcel();
-        alert('Excel 识别：自动对应姓名列「' + headersList[detected.nameIdx].label + '」与电话列「' + headersList[detected.phoneIdx].label + '」成功，已自动入库并同步至 Supabase！');
+        showCheckToast();
         return;
       }
 
@@ -3248,7 +3270,7 @@
       
       if (contactsList && contactsList.length > 0) {
         executeAIImportVcf();
-        alert('VCF 识别：成功自动识别 ' + contactsList.length + ' 个联系人，已直接自动入库并同步至 Supabase！');
+        showCheckToast();
         return;
       }
 
