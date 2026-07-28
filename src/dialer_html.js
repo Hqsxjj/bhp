@@ -2428,6 +2428,7 @@
     // Cross-platform WeChat jump
     var isAndroid = /Android/.test(navigator.userAgent) && !/iPhone|iPad|iPod/.test(navigator.userAgent);
     function jumpToWechat() {
+      markUserNavigation();
       if (isAndroid) {
         // Android: use intent:// scheme for WebView/Chrome
         window.location.href = 'intent://#Intent;scheme=weixin;package=com.tencent.mm;end';
@@ -6239,7 +6240,7 @@
  if (autoDialActive) {
  setTimeout(function() {
  var link = document.getElementById('callAssistDialLink');
- if (link && link.href) window.location.href = link.href;
+ if (link && link.href) { markUserNavigation(); window.location.href = link.href; }
  }, 800);
  }
  } else {
@@ -6298,12 +6299,12 @@ function updateAutoDialBtn() {
  startCallAssistant(firstIdx);
  setTimeout(function() {
  var link = document.getElementById('callAssistDialLink');
- if (link && link.href) window.location.href = link.href;
+ if (link && link.href) { markUserNavigation(); window.location.href = link.href; }
  }, 800);
  }
  } else {
  var link = document.getElementById('callAssistDialLink');
- if (link && link.href) window.location.href = link.href;
+ if (link && link.href) { markUserNavigation(); window.location.href = link.href; }
  }
  }
  });
@@ -6320,6 +6321,7 @@ function updateAutoDialBtn() {
  var dialLink = document.getElementById('callAssistDialLink');
  if (dialLink) {
  dialLink.addEventListener('click', function() {
+ markUserNavigation();
  var client = importedClients[currentCallIdx];
  if (client) recordTimeline(client.phone || client.mobile, 'dial');
  });
@@ -9125,9 +9127,19 @@ function updateAutoDialBtn() {
       }
     }
 
+    function markUserNavigation() {
+      sessionStorage.setItem('dialer_skip_lock', '1');
+    }
     function initAutoLock() {
+      // Intercept clicks on tel: links — user-initiated dial, don't lock
+      document.addEventListener('click', function(e) {
+        var el = e.target.closest('a[href^="tel:"]');
+        if (el) markUserNavigation();
+      });
       document.addEventListener('visibilitychange', function() {
         if (document.visibilityState === 'hidden') {
+          // Skip lock if user just initiated a call or external app switch
+          if (sessionStorage.getItem('dialer_skip_lock') === '1') return;
           var locked = sessionStorage.getItem('dialer_locked');
           if (locked === '1') return;
           var appShell = document.querySelector('.app-shell');
@@ -9135,6 +9147,9 @@ function updateAutoDialBtn() {
           var token = getSessionToken();
           if (!token) return;
           showLockScreen();
+        } else {
+          // Clear skip flag when returning
+          sessionStorage.removeItem('dialer_skip_lock');
         }
       });
     }
