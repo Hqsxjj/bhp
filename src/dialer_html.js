@@ -1461,8 +1461,9 @@
     <div class="lock-wallpaper-overlay"></div>
     <div class="auth-card">
       <form autocomplete="off" style="margin:0;">
-        <input type="text" id="authLoginAccountName" class="auth-input" placeholder="账号" autocomplete="off" spellcheck="false" data-lpignore="true">
-        <input type="text" id="authLoginPin" class="auth-input auth-pin-input auth-pin-mask" maxlength="6" inputmode="numeric" placeholder="PIN" autocomplete="off" spellcheck="false" data-lpignore="true">
+        <div style="position:absolute;opacity:0;pointer-events:none;height:0;overflow:hidden" aria-hidden="true"><input type="text" name="username" autocomplete="username" tabindex="-1"><input type="password" name="password" autocomplete="current-password" tabindex="-1"></div>
+        <input type="text" id="authLoginAccountName" class="auth-input" placeholder="账号" autocomplete="off" spellcheck="false" data-lpignore="true" readonly>
+        <input type="text" id="authLoginPin" class="auth-input auth-pin-input auth-pin-mask" maxlength="6" inputmode="numeric" placeholder="PIN" autocomplete="off" spellcheck="false" data-lpignore="true" readonly>
         <div id="authLoginError" class="auth-error"></div>
         <button type="button" id="authLoginBtn" class="auth-btn">登录</button>
       </form>
@@ -1478,7 +1479,8 @@
     <div class="lock-wallpaper-overlay"></div>
     <div class="auth-card">
       <form autocomplete="off" style="margin:0;">
-        <input type="text" id="lockPinInput" class="auth-input auth-pin-input auth-pin-mask" maxlength="6" inputmode="numeric" placeholder="输入 PIN 解锁" autocomplete="off" spellcheck="false" data-lpignore="true">
+        <div style="position:absolute;opacity:0;pointer-events:none;height:0;overflow:hidden" aria-hidden="true"><input type="password" name="password" autocomplete="current-password" tabindex="-1"></div>
+        <input type="text" id="lockPinInput" class="auth-input auth-pin-input auth-pin-mask" maxlength="6" inputmode="numeric" placeholder="输入 PIN 解锁" autocomplete="off" spellcheck="false" data-lpignore="true" readonly>
         <div id="lockScreenError" class="auth-error"></div>
         <button type="button" id="lockUnlockBtn" class="auth-btn">解锁</button>
       </form>
@@ -1517,7 +1519,7 @@
         
         <!-- Auto Dial Toggle -->
         <button id="autoDialBtn" title="自动拨打" style="font-size: 0.78rem; padding: 4px 10px; border: 1px solid var(--accent-wechat); background: var(--accent-wechat-bg); color: var(--accent-wechat); cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-xs); white-space: nowrap;">自动拨打</button>
-        <button id="refreshBatchBtn" title="从数据库按最新导入顺序拉取，与看板同序，拉过的自动沉底" onclick="if(window.refreshBatch)window.refreshBatch()" style="font-size: 0.78rem; padding: 4px 10px; border: 1px solid #e67e22; background: rgba(230,126,34,0.08); color: #e67e22; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-xs); margin-right: 8px; white-space: nowrap;">换一批</button>
+        <button id="refreshBatchBtn" title="换一批 — 按最新导入顺序拉取，拉过的自动沉底" onclick="if(window.refreshBatch)window.refreshBatch()" style="font-size: 0.78rem; padding: 4px 8px; border: 1px solid #e67e22; background: rgba(230,126,34,0.08); color: #e67e22; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-xs); margin-right: 8px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
         <span id="accountDisplay" style="font-size:0.68rem; color:var(--text-light); font-weight:700; padding:3px 8px; border:1px dashed var(--card-border); border-radius:3px; margin-right:6px; white-space:nowrap; font-family:monospace;"></span>
         <button id="lockScreenBtn" title="锁定屏幕" style="font-size:0.68rem;padding:3px 7px;border:1px solid var(--card-border);background:var(--btn-bg);color:var(--text-soft);cursor:pointer;outline:none;font-weight:700;border-radius:3px;margin-right:6px;white-space:nowrap;flex-shrink:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation;">锁</button>
         <!-- Dropdown Menu Trigger on the Right -->
@@ -7741,6 +7743,8 @@
       var btn = document.getElementById('refreshBatchBtn');
       if (!btn || btn.disabled) return;
 
+      var REFRESH_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
+
       btn.disabled = true;
       btn.textContent = '加载中...';
 
@@ -7781,13 +7785,13 @@
 
             if (res.locked) {
               btn.disabled = false;
-              btn.textContent = '换一批';
+              btn.innerHTML = REFRESH_ICON;
               alert('服务器繁忙，请稍后再试');
               return;
             }
 
                 btn.disabled = false;
-                btn.textContent = '换一批';
+                btn.innerHTML = REFRESH_ICON;
 
                 if (res.error) { alert('加载失败: ' + res.error); return; }
 
@@ -7831,7 +7835,7 @@
               .catch(function(err) {
                 clearTimeout(timeoutId);
                 btn.disabled = false;
-                btn.textContent = '换一批';
+                btn.innerHTML = REFRESH_ICON;
                 if (err.name === 'AbortError') {
                   alert('请求超时，请检查网络后重试');
                 } else {
@@ -7840,7 +7844,7 @@
               });
         } catch (syncErr) {
           btn.disabled = false;
-          btn.textContent = '换一批';
+          btn.innerHTML = REFRESH_ICON;
           alert('操作失败: ' + syncErr.message);
         }
 
@@ -8972,6 +8976,16 @@
       error.textContent = '';
       loginBtn.disabled = false;
 
+      // Safari anti-autofill: readonly + random name + remove on focus
+      var r1 = 'a_' + Math.random().toString(36).substring(2, 10);
+      var r2 = 'p_' + Math.random().toString(36).substring(2, 10);
+      accountInput.name = r1;
+      pinInput.name = r2;
+      accountInput.readOnly = true;
+      pinInput.readOnly = true;
+      accountInput.onfocus = function() { this.removeAttribute('readonly'); };
+      pinInput.onfocus = function() { this.removeAttribute('readonly'); };
+
       loginBtn.onclick = doLogin;
       pinInput.onkeypress = function(e) { if (e.key === 'Enter') doLogin(); };
       accountInput.onkeypress = function(e) { if (e.key === 'Enter') { pinInput.focus(); } };
@@ -9068,6 +9082,10 @@
       unlockBtn.disabled = false;
       unlockBtn.textContent = '解锁';
 
+      // Safari anti-autofill: readonly + random name + remove on focus
+      pinInput.name = 'lp_' + Math.random().toString(36).substring(2, 10);
+      pinInput.readOnly = true;
+      pinInput.onfocus = function() { this.removeAttribute('readonly'); };
 
       unlockBtn.onclick = doUnlock;
       pinInput.onkeypress = function(e) { if (e.key === 'Enter') doUnlock(); };
