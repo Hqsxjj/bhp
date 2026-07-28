@@ -1510,7 +1510,7 @@
       <div class="header-bar">
         <!-- Minimal Stats on the Left -->
         <div class="header-stats-minimal" id="headerStatsMinimal" style="display: none;">
-          <span style="display:inline-flex;align-items:center;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></span>
+          <span style="display:inline-flex;align-items:center;margin-right:1px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></span>
           <span id="doneCount" style="color: var(--accent-wechat);">0</span>
           <span style="color: var(--text-light);">/</span>
           <span id="totalCount">0</span>
@@ -1523,7 +1523,7 @@
         <button id="lockScreenBtn" title="锁定屏幕" style="font-size:0.68rem;padding:3px 6px;border:1px solid var(--card-border);background:var(--btn-bg);color:var(--text-soft);cursor:pointer;outline:none;font-weight:700;border-radius:3px;margin-right:6px;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
         <!-- Dropdown Menu Trigger on the Right -->
         <div style="position: relative; display: inline-block;">
-          <button id="headerMenuBtn" title="更多设置" style="font-size: 0.8rem; padding: 6px 8px; border: none; background: transparent; cursor: pointer; outline: none; font-weight: 800; color: var(--text-soft); min-width: 44px; min-height: 34px; display:inline-flex;align-items:center;justify-content:center; -webkit-tap-highlight-color: transparent; touch-action: manipulation;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+          <button id="headerMenuBtn" title="更多设置" style="font-size: 0.8rem; padding: 6px 8px; border: none; background: transparent; cursor: pointer; outline: none; font-weight: 800; color: var(--text-soft); min-width: 44px; min-height: 34px; display:inline-flex;align-items:center;justify-content:center; -webkit-tap-highlight-color: transparent; touch-action: manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
           <div class="header-dropdown" id="headerDropdown" style="display: none;">
             <button class="dropdown-item" id="toggleImportBtn">导入文件</button>
             <button class="dropdown-item" id="toggleDualSimBtn">双卡轮换: 开</button>
