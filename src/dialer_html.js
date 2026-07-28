@@ -9125,23 +9125,16 @@ function updateAutoDialBtn() {
       }
     }
 
-    var _autoLockTimer = null;
     function initAutoLock() {
       document.addEventListener('visibilitychange', function() {
         if (document.visibilityState === 'hidden') {
-          // Start timer: lock after 5s if still hidden
-          if (_autoLockTimer) clearTimeout(_autoLockTimer);
-          _autoLockTimer = setTimeout(function() {
-            var locked = sessionStorage.getItem('dialer_locked');
-            if (locked === '1') return; // already locked
-            var appShell = document.querySelector('.app-shell');
-            if (!appShell || appShell.style.display === 'none') return; // not in app
-            var token = getSessionToken();
-            if (!token) return; // not logged in
-            showLockScreen();
-          }, 5000);
-        } else if (document.visibilityState === 'visible') {
-          if (_autoLockTimer) { clearTimeout(_autoLockTimer); _autoLockTimer = null; }
+          var locked = sessionStorage.getItem('dialer_locked');
+          if (locked === '1') return;
+          var appShell = document.querySelector('.app-shell');
+          if (!appShell || appShell.style.display === 'none') return;
+          var token = getSessionToken();
+          if (!token) return;
+          showLockScreen();
         }
       });
     }
