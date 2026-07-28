@@ -2428,7 +2428,6 @@
     // Cross-platform WeChat jump
     var isAndroid = /Android/.test(navigator.userAgent) && !/iPhone|iPad|iPod/.test(navigator.userAgent);
     function jumpToWechat() {
-      markUserNavigation();
       if (isAndroid) {
         // Android: use intent:// scheme for WebView/Chrome
         window.location.href = 'intent://#Intent;scheme=weixin;package=com.tencent.mm;end';
@@ -6240,7 +6239,7 @@
  if (autoDialActive) {
  setTimeout(function() {
  var link = document.getElementById('callAssistDialLink');
- if (link && link.href) { markUserNavigation(); window.location.href = link.href; }
+ if (link && link.href) window.location.href = link.href;
  }, 800);
  }
  } else {
@@ -6299,12 +6298,12 @@ function updateAutoDialBtn() {
  startCallAssistant(firstIdx);
  setTimeout(function() {
  var link = document.getElementById('callAssistDialLink');
- if (link && link.href) { markUserNavigation(); window.location.href = link.href; }
+ if (link && link.href) window.location.href = link.href;
  }, 800);
  }
  } else {
  var link = document.getElementById('callAssistDialLink');
- if (link && link.href) { markUserNavigation(); window.location.href = link.href; }
+ if (link && link.href) window.location.href = link.href;
  }
  }
  });
@@ -6321,7 +6320,6 @@ function updateAutoDialBtn() {
  var dialLink = document.getElementById('callAssistDialLink');
  if (dialLink) {
  dialLink.addEventListener('click', function() {
- markUserNavigation();
  var client = importedClients[currentCallIdx];
  if (client) recordTimeline(client.phone || client.mobile, 'dial');
  });
@@ -9127,30 +9125,6 @@ function updateAutoDialBtn() {
       }
     }
 
-    var _lastInteraction = 0;
-    function markUserNavigation() {
-      _lastInteraction = Date.now();
-    }
-    function initAutoLock() {
-      // Track user interactions — any click/touch/key means user is active
-      document.addEventListener('click', function() { _lastInteraction = Date.now(); });
-      document.addEventListener('touchstart', function() { _lastInteraction = Date.now(); });
-      document.addEventListener('keydown', function() { _lastInteraction = Date.now(); });
-      document.addEventListener('visibilitychange', function() {
-        if (document.visibilityState === 'hidden') {
-          // If user interacted within 2s, they likely initiated the navigation (dial, WeChat, etc.)
-          if (Date.now() - _lastInteraction < 2000) return;
-          var locked = sessionStorage.getItem('dialer_locked');
-          if (locked === '1') return;
-          var appShell = document.querySelector('.app-shell');
-          if (!appShell || appShell.style.display === 'none') return;
-          var token = getSessionToken();
-          if (!token) return;
-          showLockScreen();
-        }
-      });
-    }
-
     var lockoutTimer = null;
 
     function startLockoutCooldown(seconds) {
@@ -9378,7 +9352,6 @@ function updateAutoDialBtn() {
     safeInit('initHeaderMenu', initHeaderMenu);
     safeInit('initNoteModal', initNoteModal);
     safeInit('initCustomColumnsHandlers', initCustomColumnsHandlers);
-    safeInit('initAutoLock', initAutoLock);
     safeInit('initAIImporter', initAIImporter);
     safeInit('loadPersistedState', loadPersistedState);
     safeInit('initCustViewer', initCustViewer);
