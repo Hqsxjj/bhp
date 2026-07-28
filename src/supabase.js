@@ -664,7 +664,7 @@ export function createSupabaseClient(env) {
 
       var hdrs = Object.assign({}, headers(), {
         'Range': '0-' + (lim - 1),
-        'Prefer': 'count=exact'
+        'Prefer': 'count=estimated'
       });
 
       var data = null;

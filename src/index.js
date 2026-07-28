@@ -717,19 +717,26 @@ export default {
           const result = await sb.getCustomersForDialer(limit, mergedExclude.length > 0 ? mergedExclude : null, accountId);
           const data = result.data || [];
 
-          if (data.length > 0) {
-            const mobiles = data.map(function(c) { return c.mobile || ''; }).filter(Boolean);
-            // Synchronous: ensure pulled_at is updated BEFORE response is returned
-            await sb.batchSetPulledAt(mobiles, accountId);
-            // Synchronous: write KV cooldown entries before returning
-            for (var mi = 0; mi < mobiles.length; mi++) {
-              var ck = 'dialer:cooldown:' + (accountId || '') + ':' + mobiles[mi];
-              await env.DATA_KV.put(ck, new Date().toISOString(), { expirationTtl: 10 * 24 * 3600 });
+          // Background: update pulled_at + write KV cooldowns + release lock
+          // Fire-and-forget after response so the client gets instant feedback.
+          ctx.waitUntil((async function() {
+            try {
+              if (data.length > 0) {
+                const mobiles = data.map(function(c) { return c.mobile || ''; }).filter(Boolean);
+                // Parallel: PATCH pulled_at in DB + write all cooldown KV entries
+                var bgTasks = [sb.batchSetPulledAt(mobiles, accountId)];
+                for (var mi = 0; mi < mobiles.length; mi++) {
+                  var ck = 'dialer:cooldown:' + (accountId || '') + ':' + mobiles[mi];
+                  bgTasks.push(env.DATA_KV.put(ck, new Date().toISOString(), { expirationTtl: 10 * 24 * 3600 }));
+                }
+                await Promise.all(bgTasks);
+              }
+            } catch (bgErr) {
+              console.error('[pull] background update error:', bgErr.message);
+            } finally {
+              try { await env.DATA_KV.delete(lockKey); } catch (_) {}
             }
-          }
-
-          // Release lock
-          await env.DATA_KV.delete(lockKey);
+          })());
 
           return new Response(JSON.stringify({ data: data, total: result.total || 0, limit: limit }), {
             headers: { 'Content-Type': 'application/json; charset=UTF-8', 'Access-Control-Allow-Origin': '*' }
