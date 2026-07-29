@@ -15,7 +15,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
       --bg-app: #f2f2f7;
-      --card-bg: rgba(255,255,255,0.72);
+      --card-bg: rgba(255,255,255,0.82);
       --card-border: rgba(0,0,0,0.04);
       --separator: rgba(0,0,0,0.08);
       --text-main: #1c1c1e;
@@ -42,7 +42,7 @@
     }
     body.dark-mode {
       --bg-app: #1c1c1e;
-      --card-bg: rgba(28,28,30,0.5);
+      --card-bg: rgba(28,28,30,0.58);
       --card-border: rgba(255,255,255,0.06);
       --separator: rgba(255,255,255,0.1);
       --text-main: #f2f2f7;
@@ -9339,6 +9339,19 @@ function updateAutoDialBtn() {
         btn.textContent = '创建主账户';
       });
     }
+
+    // 修复从微信等外部页面返回时 bfcache 导致卡片空白的问题
+    window.addEventListener('pageshow', function(e) {
+      if (e.persisted || document.visibilityState === 'visible') {
+        if (importedClients.length > 0) renderDialCards();
+      }
+    });
+    // 监听可见性变化，切回页面时也刷新
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden && importedClients.length > 0) {
+        renderDialCards();
+      }
+    });
 
     // Hide app shell on load (auth will show it after login)
     (function() {
