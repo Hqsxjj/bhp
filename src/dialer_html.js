@@ -2673,8 +2673,20 @@
         body: JSON.stringify({ mobiles: mobiles })
       }).then(function(r) { return r.json(); })
         .then(function(d) {
-          if (d.success) console.log('[auto-transfer] 批次 ' + batch + ' 已转入公海, ' + d.transferred + '/' + d.total);
-          else console.error('[auto-transfer] 批次 ' + batch + ' 转公海失败: ' + (d.error || 'unknown'));
+          if (d.success) {
+            console.log('[auto-transfer] 批次 ' + batch + ' 已转入公海, ' + d.transferred + '/' + d.total);
+            // 从本地列表移除已转公海的客户
+            var mobileSet = {};
+            for (var mi = 0; mi < mobiles.length; mi++) { mobileSet[mobiles[mi]] = true; }
+            importedClients = importedClients.filter(function(c) {
+              var cm = c.phone || c.mobile;
+              return !mobileSet[cm];
+            });
+            saveState();
+            renderDialCards();
+          } else {
+            console.error('[auto-transfer] 批次 ' + batch + ' 转公海失败: ' + (d.error || 'unknown'));
+          }
         })
         .catch(function(e) { console.error('[auto-transfer] 请求失败: ' + e.message); });
     }
