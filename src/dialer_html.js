@@ -451,6 +451,23 @@
       border-color: rgba(74,108,247,0.3);
       box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
+    .corner-seq {
+      position: absolute;
+      top: 0; left: 0;
+      width: 30px; height: 30px;
+      background: var(--accent-wechat);
+      clip-path: polygon(0 0, 100% 0, 0 100%);
+      border-radius: var(--radius-sm) 0 0 0;
+      z-index: 1;
+    }
+    .corner-seq span {
+      position: absolute;
+      top: 1px; left: 2px;
+      font-size: 0.52rem;
+      font-weight: 800;
+      color: #fff;
+      line-height: 1;
+    }
     .xls-dial-card.dialed {
       opacity: 0.65;
       border-color: var(--border-light);
@@ -5755,8 +5772,9 @@
 
       if (isMobileDevice) {
         // Mobile View: Render Cards (resembling older versions)
-        var cardsHtml = sorted.map(function(c) {
+        var cardsHtml = sorted.map(function(c, displayIdx) {
           var i = importedClients.indexOf(c);
+          var seq = displayIdx + 1;
 
           var badgeHtml = '<span class="xls-dial-badge xls-dial-badge-todo">待拨打</span>';
           var cardClass = 'xls-dial-card';
@@ -5778,6 +5796,7 @@
           var phoneClass = c.copied ? 'client-phone-btn copied' : 'client-phone-btn';
 
           return '<div class="' + cardClass + '" id="xdc_' + i + '">' +
+            '<div class="corner-seq"><span>' + seq + '</span></div>' +
             '<div class="client-card-top">' +
               '<div class="client-card-primary" style="display: flex; align-items: center; width: 100%; gap: 6px;">' +
                 '<span class="client-card-name-btn" data-name="' + esc(c.name) + '" data-idx="' + i + '" title="点击复制姓名" style="flex: 0 0 62px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;">' + esc(c.name) + '</span>' +
