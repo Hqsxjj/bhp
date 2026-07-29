@@ -453,7 +453,7 @@
     }
     .corner-seq {
       position: absolute;
-      top: -6px; left: -6px;
+      top: 6px; left: 6px;
       width: 22px; height: 22px;
       border-radius: 50%;
       background: var(--accent-wechat);
@@ -461,7 +461,6 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
     .corner-seq span {
       font-size: 0.6rem;
