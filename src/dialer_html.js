@@ -2641,6 +2641,43 @@
       }
     }
 
+    // 批次达标自动转公海：≥50人 且 ≥90%已操作 → 整批转入公海
+    var _transferredBatches = {};
+    function checkAndTransferBatch(client) {
+      if (!client) return;
+      var batch = client.batch_label;
+      if (!batch) return;
+      if (_transferredBatches[batch]) return; // 已转过，跳过
+      // 统计同批次客户
+      var batchClients = importedClients.filter(function(c) { return c.batch_label === batch; });
+      var total = batchClients.length;
+      if (total < 50) return;
+      var operated = 0;
+      for (var i = 0; i < batchClients.length; i++) {
+        var bc = batchClients[i];
+        if (bc.copied || bc.dialedStatus === 'success' || bc.dialedStatus === 'failed') operated++;
+      }
+      if (operated / total < 0.9) return;
+      // 达标：标记已处理，提取手机号，静默转公海
+      _transferredBatches[batch] = true;
+      var mobiles = [];
+      for (var j = 0; j < batchClients.length; j++) {
+        var m = batchClients[j].phone || batchClients[j].mobile;
+        if (m) mobiles.push(m);
+      }
+      console.log('[auto-transfer] 批次 ' + batch + ' 达标: ' + total + '人, ' + operated + '已操作, 转入公海...');
+      fetch('/api/dialer/customers/transfer-to-pool', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobiles: mobiles })
+      }).then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.success) console.log('[auto-transfer] 批次 ' + batch + ' 已转入公海, ' + d.transferred + '/' + d.total);
+          else console.error('[auto-transfer] 批次 ' + batch + ' 转公海失败: ' + (d.error || 'unknown'));
+        })
+        .catch(function(e) { console.error('[auto-transfer] 请求失败: ' + e.message); });
+    }
+
     function uploadCustomersToSupabase(customers, batchLabel) {
       if (!customers || customers.length === 0) return Promise.resolve({ success: false, error: '无数据' });
       var label = batchLabel || ("导入-" + new Date().toISOString().slice(0, 19).replace("T", " "));
@@ -5891,6 +5928,7 @@
             if (client) {
               client.copied = true;
               saveState();
+              checkAndTransferBatch(client);
             }
             b.classList.add('copied');
 
@@ -5925,6 +5963,7 @@
             if (client) {
               client.copied = true;
               saveState();
+              checkAndTransferBatch(client);
             }
 
             var card = document.getElementById('xdc_' + idx);
@@ -5965,6 +6004,12 @@
             var oldColor = b.style.color;
             b.style.color = 'var(--accent-wechat)';
             
+            if (clientComp) {
+              clientComp.copied = true;
+              saveState();
+              checkAndTransferBatch(clientComp);
+            }
+
             setTimeout(function() {
               b.textContent = company;
               b.style.color = oldColor;
@@ -6254,6 +6299,7 @@
  recordTimeline(c.phone || c.mobile, 'call_' + status, note);
  }
  saveState();
+ checkAndTransferBatch(c);
  renderDialCards();
 
  var nextIdx = getNextClientIndex(currentCallIdx);
