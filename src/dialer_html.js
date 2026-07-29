@@ -575,7 +575,7 @@
       text-transform: uppercase;
     }
     .client-card-text {
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       color: var(--text-soft);
       line-height: 1.4;
     }
@@ -1110,7 +1110,7 @@
         padding-left: 6px;
       }
       .client-card-text {
-        font-size: 0.68rem;
+        font-size: 0.63rem;
       }
       .client-card-actions {
         padding-top: 4px;
