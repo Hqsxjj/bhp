@@ -9340,16 +9340,10 @@ function updateAutoDialBtn() {
       });
     }
 
-    // 修复从微信等外部页面返回时 bfcache 导致卡片空白的问题
+    // 修复从微信返回时 bfcache 导致卡片空白（仅 bfcache 恢复时触发）
     window.addEventListener('pageshow', function(e) {
-      if (e.persisted || document.visibilityState === 'visible') {
-        if (importedClients.length > 0) renderDialCards();
-      }
-    });
-    // 监听可见性变化，切回页面时也刷新
-    document.addEventListener('visibilitychange', function() {
-      if (!document.hidden && importedClients.length > 0) {
-        renderDialCards();
+      if (e.persisted && importedClients.length > 0) {
+        setTimeout(function() { renderDialCards(); }, 50);
       }
     });
 
