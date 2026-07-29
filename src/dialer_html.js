@@ -2643,11 +2643,12 @@
 
     // 批次达标自动转公海：≥50人 且 ≥90%已操作 → 整批转入公海
     var _transferredBatches = {};
-    function checkAndTransferBatch(client) {
+    function checkAndTransferBatch(client, seq) {
       if (!client) return;
+      if (!seq || seq < 50) return; // 操作到第50个才检查
       var batch = client.batch_label;
       if (!batch) return;
-      if (_transferredBatches[batch]) return; // 已转过，跳过
+      if (_transferredBatches[batch]) return;
       // 统计同批次客户
       var batchClients = importedClients.filter(function(c) { return c.batch_label === batch; });
       var total = batchClients.length;
@@ -5810,6 +5811,7 @@
         var cardsHtml = sorted.map(function(c, displayIdx) {
           var i = importedClients.indexOf(c);
           var seq = displayIdx + 1;
+          c._seq = seq; // 记录显示序号，供后续批次检查用
 
           var badgeHtml = '<span class="xls-dial-badge xls-dial-badge-todo">待拨打</span>';
           var cardClass = 'xls-dial-card';
@@ -5928,7 +5930,7 @@
             if (client) {
               client.copied = true;
               saveState();
-              checkAndTransferBatch(client);
+              checkAndTransferBatch(client, client._seq);
             }
             b.classList.add('copied');
 
@@ -5963,7 +5965,7 @@
             if (client) {
               client.copied = true;
               saveState();
-              checkAndTransferBatch(client);
+              checkAndTransferBatch(client, client._seq);
             }
 
             var card = document.getElementById('xdc_' + idx);
@@ -6007,7 +6009,7 @@
             if (clientComp) {
               clientComp.copied = true;
               saveState();
-              checkAndTransferBatch(clientComp);
+              checkAndTransferBatch(clientComp, clientComp._seq);
             }
 
             setTimeout(function() {
@@ -6299,7 +6301,7 @@
  recordTimeline(c.phone || c.mobile, 'call_' + status, note);
  }
  saveState();
- checkAndTransferBatch(c);
+ checkAndTransferBatch(c, c._seq);
  renderDialCards();
 
  var nextIdx = getNextClientIndex(currentCallIdx);
