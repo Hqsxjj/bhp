@@ -15,7 +15,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
       --bg-app: #f2f2f7;
-      --card-bg: rgba(255,255,255,0.82);
+      --card-bg: rgba(255,255,255,0.88);
       --card-border: rgba(0,0,0,0.04);
       --separator: rgba(0,0,0,0.08);
       --text-main: #1c1c1e;
@@ -42,7 +42,7 @@
     }
     body.dark-mode {
       --bg-app: #1c1c1e;
-      --card-bg: rgba(28,28,30,0.58);
+      --card-bg: rgba(28,28,30,0.65);
       --card-border: rgba(255,255,255,0.06);
       --separator: rgba(255,255,255,0.1);
       --text-main: #f2f2f7;
