@@ -515,9 +515,8 @@
       gap: 6px;
     }
     .client-phone-btn {
-      font-family: monospace;
-      font-size: 0.82rem;
-      font-weight: 600;
+      font-size: 0.85rem;
+      font-weight: 500;
       color: var(--text-soft);
       cursor: pointer;
       display: inline-flex;
@@ -544,9 +543,9 @@
       flex-wrap: wrap;
     }
     .client-card-tag {
-      font-size: 0.65rem;
-      font-weight: 600;
-      padding: 2px 6px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      padding: 2px 8px;
       border-radius: var(--radius-xs);
     }
     .client-card-tag-company {
@@ -1096,15 +1095,15 @@
         padding: 1px 2px;
       }
       .client-phone {
-        font-size: 0.78rem;
+        font-size: 0.8rem;
       }
       .xls-dial-badge {
         font-size: 0.6rem;
         padding: 1px 4px;
       }
       .client-card-tag {
-        font-size: 0.6rem;
-        padding: 1px 4px;
+        font-size: 0.7rem;
+        padding: 2px 6px;
       }
       .client-card-body {
         gap: 2px;
