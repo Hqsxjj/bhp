@@ -453,18 +453,19 @@
     }
     .corner-seq {
       position: absolute;
-      top: 0; left: 0;
-      width: 30px; height: 30px;
+      top: -6px; left: -6px;
+      width: 22px; height: 22px;
+      border-radius: 50%;
       background: var(--accent-wechat);
-      clip-path: polygon(0 0, 100% 0, 0 100%);
-      border-radius: var(--radius-sm) 0 0 0;
       z-index: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.15);
     }
     .corner-seq span {
-      position: absolute;
-      top: 1px; left: 2px;
-      font-size: 0.52rem;
-      font-weight: 800;
+      font-size: 0.6rem;
+      font-weight: 700;
       color: #fff;
       line-height: 1;
     }
