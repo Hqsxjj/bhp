@@ -452,18 +452,16 @@
       box-shadow: 0 2px 8px rgba(0,0,0,0.04);
     }
     .corner-seq {
-      position: absolute;
-      top: 6px; left: 6px;
-      width: 22px; height: 22px;
-      border-radius: 50%;
-      background: var(--accent-wechat);
-      z-index: 1;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--accent-wechat);
+      flex-shrink: 0;
     }
     .corner-seq span {
-      font-size: 0.6rem;
+      font-size: 0.55rem;
       font-weight: 700;
       color: #fff;
       line-height: 1;
@@ -5796,10 +5794,10 @@
           var phoneClass = c.copied ? 'client-phone-btn copied' : 'client-phone-btn';
 
           return '<div class="' + cardClass + '" id="xdc_' + i + '">' +
-            '<div class="corner-seq"><span>' + seq + '</span></div>' +
             '<div class="client-card-top">' +
               '<div class="client-card-primary" style="display: flex; align-items: center; width: 100%; gap: 6px;">' +
                 '<span class="client-card-name-btn" data-name="' + esc(c.name) + '" data-idx="' + i + '" title="点击复制姓名" style="flex: 0 0 62px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block;">' + esc(c.name) + '</span>' +
+                '<span class="corner-seq"><span>' + seq + '</span></span>' +
                 '<span class="client-card-phone-wrap" style="flex: 0 0 110px; display: inline-flex; align-items: center;">' +
                   '<span class="' + phoneClass + '" data-phone="' + esc(phoneVal) + '" data-idx="' + i + '" title="点击复制号码" style="font-size: 0.82rem;">' + esc(c.copied ? maskPhone(phoneVal) : phoneVal) + '</span>' +
                 '</span>' +
