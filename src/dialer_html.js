@@ -2645,6 +2645,8 @@
     var _transferredBatches = {};
     function checkAndTransferBatch(client) {
       if (!client) return;
+      var seq = client._seq || 0;
+      if (seq < 50) return; // 操作到序号50才检查
       var batch = client.batch_label;
       if (!batch) return;
       if (_transferredBatches[batch]) return;
@@ -2657,7 +2659,6 @@
         var bc = batchClients[i];
         if (bc.copied || bc.dialedStatus === 'success' || bc.dialedStatus === 'failed') operated++;
       }
-      if (operated < 50) return; // 累计操作满50人才检查
       if (operated / total < 0.9) return;
       // 达标：标记已处理，提取手机号，静默转公海
       _transferredBatches[batch] = true;
@@ -5818,12 +5819,16 @@
       // 无分页 — 直接展示全部客户
       var total = sorted.length;
 
+      // 记录每个客户的显示序号（公海检查用）
+      sorted.forEach(function(c, displayIdx) {
+        c._seq = displayIdx + 1;
+      });
+
       if (isMobileDevice) {
         // Mobile View: Render Cards (resembling older versions)
         var cardsHtml = sorted.map(function(c, displayIdx) {
           var i = importedClients.indexOf(c);
           var seq = displayIdx + 1;
-          c._seq = seq; // 记录显示序号，供后续批次检查用
 
           var badgeHtml = '<span class="xls-dial-badge xls-dial-badge-todo">待拨打</span>';
           var cardClass = 'xls-dial-card';
