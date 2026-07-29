@@ -543,9 +543,9 @@
       flex-wrap: wrap;
     }
     .client-card-tag {
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       font-weight: 500;
-      padding: 2px 8px;
+      padding: 2px 10px;
       border-radius: var(--radius-xs);
     }
     .client-card-tag-company {
@@ -1102,7 +1102,7 @@
         padding: 1px 4px;
       }
       .client-card-tag {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
         padding: 2px 6px;
       }
       .client-card-body {
