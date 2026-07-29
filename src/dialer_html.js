@@ -2643,9 +2643,8 @@
 
     // 批次达标自动转公海：≥50人 且 ≥90%已操作 → 整批转入公海
     var _transferredBatches = {};
-    function checkAndTransferBatch(client, seq) {
+    function checkAndTransferBatch(client) {
       if (!client) return;
-      if (!seq || seq < 50) return; // 操作到第50个才检查
       var batch = client.batch_label;
       if (!batch) return;
       if (_transferredBatches[batch]) return;
@@ -2658,6 +2657,7 @@
         var bc = batchClients[i];
         if (bc.copied || bc.dialedStatus === 'success' || bc.dialedStatus === 'failed') operated++;
       }
+      if (operated < 50) return; // 累计操作满50人才检查
       if (operated / total < 0.9) return;
       // 达标：标记已处理，提取手机号，静默转公海
       _transferredBatches[batch] = true;
@@ -5942,7 +5942,7 @@
             if (client) {
               client.copied = true;
               saveState();
-              checkAndTransferBatch(client, client._seq);
+              checkAndTransferBatch(client);
             }
             b.classList.add('copied');
 
@@ -5977,7 +5977,7 @@
             if (client) {
               client.copied = true;
               saveState();
-              checkAndTransferBatch(client, client._seq);
+              checkAndTransferBatch(client);
             }
 
             var card = document.getElementById('xdc_' + idx);
@@ -6021,7 +6021,7 @@
             if (clientComp) {
               clientComp.copied = true;
               saveState();
-              checkAndTransferBatch(clientComp, clientComp._seq);
+              checkAndTransferBatch(clientComp);
             }
 
             setTimeout(function() {
@@ -6313,7 +6313,7 @@
  recordTimeline(c.phone || c.mobile, 'call_' + status, note);
  }
  saveState();
- checkAndTransferBatch(c, c._seq);
+ checkAndTransferBatch(c);
  renderDialCards();
 
  var nextIdx = getNextClientIndex(currentCallIdx);
