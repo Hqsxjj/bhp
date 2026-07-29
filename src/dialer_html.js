@@ -5784,13 +5784,11 @@
                 '<span class="client-card-phone-wrap" style="flex: 0 0 110px; display: inline-flex; align-items: center;">' +
                   '<span class="' + phoneClass + '" data-phone="' + esc(phoneVal) + '" data-idx="' + i + '" title="点击复制号码" style="font-size: 0.82rem;">' + esc(c.copied ? maskPhone(phoneVal) : phoneVal) + '</span>' +
                 '</span>' +
-                '<div style="margin-left: auto; display: inline-flex; align-items: center; justify-content: flex-end; flex-shrink: 0;">' +
+                '<div style="margin-left: auto; display: inline-flex; align-items: center; justify-content: flex-end; gap: 6px; flex-shrink: 0;">' +
                   badgeHtml +
+                  '<a href="tel:' + esc(phoneVal) + '" class="btn-primary xls-card-dial-btn" data-idx="' + i + '" style="font-size:0.7rem;padding:2px 10px;height:24px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">拨打</a>' +
                 '</div>' +
               '</div>' +
-            '</div>' +
-            '<div class="client-card-actions" style="border-top:none;padding-top:2px;justify-content:flex-start;">' +
-              '<a href="tel:' + esc(phoneVal) + '" class="btn-primary xls-card-dial-btn" data-idx="' + i + '" style="font-size:0.75rem;padding:2px 12px;height:28px;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;">拨打</a>' +
             '</div>' +
             '<div class="client-card-tags" style="margin-top: 2px;">' +
               (c.company ? '<span class="client-card-tag client-card-tag-company" data-company="' + esc(c.company) + '" data-idx="' + i + '" title="点击复制单位名称">' + esc(c.company) + '</span>' : '') +
