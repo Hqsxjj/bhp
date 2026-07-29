@@ -14,55 +14,64 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --bg-app: #ededed;
-      --card-bg: #ffffff;
-      --card-border: #e0e0e0;
-      --text-main: #191919;
-      --text-soft: #5e5e5e;
-      --text-light: #8e8e8e;
+      --bg-app: #f2f2f7;
+      --card-bg: rgba(255,255,255,0.72);
+      --card-border: rgba(0,0,0,0.04);
+      --separator: rgba(0,0,0,0.08);
+      --text-main: #1c1c1e;
+      --text-soft: #3a3a3c;
+      --text-light: #5c5c60;
       --accent-wechat: #07c160;
       --accent-intent: #07c160;
       --accent-wechat-bg: #f0fdf5;
       --accent-intent-bg: #f0fdf5;
-      --btn-bg: #f5f5f5;
-      --btn-hover: #e5e5e5;
-      --shadow-card: 0 1px 3px rgba(0,0,0,0.06);
-      --border-light: #e5e5e5;
-      --modal-bg: rgba(0,0,0,0.45);
-      --modal-card: #ffffff;
-      --radius-sm: 8px;
-      --radius-xs: 6px;
+      --btn-bg: rgba(0,0,0,0.04);
+      --btn-hover: rgba(0,0,0,0.08);
+      --shadow-card: 0 2px 12px rgba(0,0,0,0.06);
+      --border-light: #eaeaeb;
+      --modal-bg: rgba(0,0,0,0.3);
+      --modal-card: rgba(255,255,255,0.96);
+      --radius-ios: 16px;
+      --radius-md: 12px;
+      --radius-sm: 10px;
+      --radius-xs: 8px;
+      --radius-capsule: 999px;
       --wechat-gradient: linear-gradient(135deg, #b7f0ce 0%, #6be89d 50%, #1aad5a 100%);
       --intent-gradient: linear-gradient(135deg, #ffe0b2 0%, #ffb74d 50%, #f57c00 100%);
       --revisit-gradient: linear-gradient(135deg, #d1e0ff 0%, #7b9ff5 50%, #4a6cf7 100%);
     }
     body.dark-mode {
-      --bg-app: rgba(17,17,17,0.92);
-      --card-bg: rgba(26,26,26,0.9);
-      --card-border: #2c2c2c;
-      --text-main: #e5e5e5;
-      --text-soft: #a0a0a0;
-      --text-light: #6b6b6b;
-      --accent-wechat: #07c160;
-      --accent-intent: #07c160;
-      --accent-wechat-bg: #17241c;
-      --accent-intent-bg: #17241c;
-      --btn-bg: rgba(38,38,38,0.85);
-      --btn-hover: #2c2c2c;
-      --border-light: #262626;
-      --modal-bg: rgba(0,0,0,0.88);
-      --modal-card: #1a1a1a;
+      --bg-app: #1c1c1e;
+      --card-bg: rgba(28,28,30,0.5);
+      --card-border: rgba(255,255,255,0.06);
+      --separator: rgba(255,255,255,0.1);
+      --text-main: #f2f2f7;
+      --text-soft: #aeaeb2;
+      --text-light: #aeaeb2;
+      --accent-wechat: #30d158;
+      --accent-intent: #30d158;
+      --accent-wechat-bg: #0a2818;
+      --accent-intent-bg: #0a2818;
+      --btn-bg: rgba(255,255,255,0.12);
+      --btn-hover: rgba(255,255,255,0.18);
+      --shadow-card: 0 2px 16px rgba(0,0,0,0.4);
+      --border-light: #2c2c2e;
+      --modal-bg: rgba(0,0,0,0.5);
+      --modal-card: rgba(28,28,30,0.97);
       --wechat-gradient: linear-gradient(135deg, #0d3320 0%, #144d2e 50%, #1a6b3a 100%);
       --intent-gradient: linear-gradient(135deg, #332010 0%, #4d2e14 50%, #6b3a1a 100%);
       --revisit-gradient: linear-gradient(135deg, #1a2233 0%, #2a354d 50%, #3a4d6b 100%);
     }
-    html, body {
+    html { height: 100%; width: 100%; overflow: hidden; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    body {
       height: 100%;
       width: 100%;
       overflow: hidden;
-      background: transparent;
-      font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", sans-serif;
-      font-weight: 700;
+      background: var(--bg-app);
+      font-family: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
+      font-weight: 400;
+      letter-spacing: -0.01em;
+      line-height: 1.45;
       transition: background 0.3s;
     }
     .app-shell {
@@ -95,7 +104,7 @@
     .header-bar {
       height: 36px;
       padding: 0 16px;
-      border-bottom: 1px solid var(--border-light);
+      border-bottom: 0.5px solid var(--separator);
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -105,7 +114,7 @@
     }
     .header-stats-minimal {
       font-size: 0.78rem;
-      font-weight: 900;
+      font-weight: 700;
       color: var(--text-soft);
       display: flex;
       align-items: center;
@@ -116,8 +125,8 @@
       top: 34px;
       right: 4px;
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: 6px;
+      border: 0.5px solid var(--card-border);
+      border-radius: var(--radius-sm);
       box-shadow: 0 8px 24px rgba(0,0,0,0.12);
       z-index: 2500;
       display: flex;
@@ -148,12 +157,12 @@
     }
     .icon-btn {
       background: var(--btn-bg);
-      border: 1px solid var(--card-border);
+      border: 0.5px solid var(--card-border);
       color: var(--text-main);
       font-size: 0.76rem;
-      font-weight: 800;
+      font-weight: 600;
       padding: 4px 10px;
-      border-radius: var(--radius-xs);
+      border-radius: var(--radius-sm);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -188,8 +197,8 @@
     }
     .dashboard-panel .import-zone {
       background: var(--modal-card);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
+      border: 0.5px solid var(--card-border);
+      border-radius: var(--radius-md);
       box-shadow: 0 15px 45px rgba(0,0,0,0.3);
       width: 92vw;
       max-width: 520px;
@@ -233,9 +242,9 @@
       color: white;
       border: none;
       padding: 10px 20px;
-      border-radius: var(--radius-xs);
+      border-radius: var(--radius-sm);
       font-size: 0.82rem;
-      font-weight: 800;
+      font-weight: 600;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(7,193,96,0.2);
       transition: all 0.2s;
@@ -249,9 +258,9 @@
       color: white;
       border: none;
       padding: 10px 20px;
-      border-radius: var(--radius-xs);
+      border-radius: var(--radius-sm);
       font-size: 0.82rem;
-      font-weight: 800;
+      font-weight: 600;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(74,108,247,0.2);
       transition: all 0.2s;
@@ -285,7 +294,7 @@
     }
     .stat-val {
       font-size: 0.95rem;
-      font-weight: 900;
+      font-weight: 700;
       color: var(--text-main);
     }
     .progress-track {
@@ -293,7 +302,7 @@
       min-width: 120px;
       height: 6px;
       background: var(--btn-bg);
-      border-radius: 3px;
+      border-radius: var(--radius-xs);
       overflow: hidden;
       position: relative;
     }
@@ -301,7 +310,7 @@
       height: 100%;
       background: var(--wechat-gradient);
       width: 0%;
-      border-radius: 3px;
+      border-radius: var(--radius-xs);
       transition: width 0.3s ease;
     }
 
@@ -309,7 +318,7 @@
     .control-bar {
       min-height: 40px;
       padding: 6px 16px;
-      border-bottom: 1px solid var(--border-light);
+      border-bottom: 0.5px solid var(--separator);
       display: flex;
       align-items: center;
       gap: 10px;
@@ -322,8 +331,8 @@
       flex-shrink: 0;
       height: 30px;
       background: var(--bg-app);
-      border: 1px solid var(--card-border);
-      border-radius: 4px;
+      border: 0.5px solid var(--card-border);
+      border-radius: var(--radius-xs);
       padding: 0 10px;
       font-size: 0.78rem;
       color: var(--text-main);
@@ -346,8 +355,8 @@
       border: none;
       color: var(--text-soft);
       font-size: 0.76rem;
-      font-weight: 800;
-      border-radius: 6px;
+      font-weight: 600;
+      border-radius: var(--radius-sm);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -381,7 +390,7 @@
       text-align: left;
       font-weight: 700;
       color: #444;
-      border: 1px solid rgba(0,0,0,0.08);
+      border: 0.5px solid var(--card-border);
       border-top: none;
       border-bottom: 2px solid rgba(0,0,0,0.12);
       white-space: nowrap;
@@ -394,7 +403,7 @@
     .crm-table thead th.sorted .sort-arrow { opacity: 1; color: #4a6cf7; }
     .crm-table td {
       padding: 4px 10px;
-      border: 1px solid rgba(0,0,0,0.06);
+      border: 0.5px solid var(--card-border);
       color: #333;
       white-space: nowrap;
       font-size: 13px;
@@ -422,8 +431,8 @@
       background: rgba(255,255,255,0.6);
       backdrop-filter: blur(10px) saturate(140%);
       -webkit-backdrop-filter: blur(10px) saturate(140%);
-      border: 1px solid rgba(0,0,0,0.08);
-      border-radius: 8px;
+      border: 0.5px solid var(--card-border);
+      border-radius: var(--radius-sm);
       padding: 10px 14px;
       display: flex;
       flex-direction: column;
@@ -452,9 +461,9 @@
     }
     .xls-dial-badge {
       font-size: 0.65rem;
-      font-weight: 800;
+      font-weight: 600;
       padding: 2px 6px;
-      border-radius: 4px;
+      border-radius: var(--radius-xs);
       display: inline-flex;
       align-items: center;
     }
@@ -487,14 +496,14 @@
     }
     .client-card-name-btn {
       font-size: 0.92rem;
-      font-weight: 900;
+      font-weight: 700;
       color: var(--text-main);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 4px;
       padding: 1px 4px;
-      border-radius: var(--radius-xs);
+      border-radius: var(--radius-sm);
       transition: all 0.2s;
     }
     .client-card-name-btn:hover {
@@ -508,13 +517,13 @@
     .client-phone-btn {
       font-family: monospace;
       font-size: 0.82rem;
-      font-weight: 800;
+      font-weight: 600;
       color: var(--text-soft);
       cursor: pointer;
       display: inline-flex;
       align-items: center;
       padding: 1px 4px;
-      border-radius: var(--radius-xs);
+      border-radius: var(--radius-sm);
       transition: all 0.2s;
     }
     .client-phone-btn:hover {
@@ -524,7 +533,7 @@
     .client-phone-btn.copied {
       color: var(--text-main) !important;
       text-shadow: 0 0 6px rgba(7, 193, 96, 0.45);
-      font-weight: 900;
+      font-weight: 700;
     }
     body.dark-mode .client-phone-btn.copied {
       text-shadow: 0 0 8px rgba(7, 193, 96, 0.6);
@@ -536,9 +545,9 @@
     }
     .client-card-tag {
       font-size: 0.65rem;
-      font-weight: 800;
+      font-weight: 600;
       padding: 2px 6px;
-      border-radius: 4px;
+      border-radius: var(--radius-xs);
     }
     .client-card-tag-company {
       background: rgba(7,193,96,0.08);
@@ -623,8 +632,8 @@
     }
     .modal-card {
       background: var(--modal-card);
-      border: 1px solid var(--card-border);
-      border-radius: 14px;
+      border: 0.5px solid var(--card-border);
+      border-radius: var(--radius-md);
       box-shadow: 0 15px 45px rgba(0,0,0,0.3);
       width: 90vw;
       max-width: 400px;
@@ -712,7 +721,7 @@
       border: 2px solid rgba(255,180,210,0.5);
       border-radius: 18px;
       color: #5c3d5c;
-      font-weight: 800;
+      font-weight: 600;
       letter-spacing: 1px;
       transition: all 0.3s ease;
     }
@@ -742,7 +751,7 @@
       background: linear-gradient(135deg, #f8a0c8 0%, #d08ae8 50%, #a8a0f0 100%);
       border: none;
       border-radius: 22px;
-      font-weight: 800;
+      font-weight: 600;
       letter-spacing: 4px;
       box-shadow: 0 6px 24px rgba(210,130,200,0.35), 0 0 40px rgba(200,150,220,0.1);
       transition: all 0.3s ease;
@@ -763,7 +772,7 @@
     }
     .auth-card {
       background: var(--card-bg);
-      border: 1px solid var(--card-border);
+      border: 0.5px solid var(--card-border);
       border-radius: 20px;
       box-shadow: 0 8px 32px rgba(0,0,0,0.08), 0 2px 8px rgba(0,0,0,0.04);
       max-width: 360px;
@@ -775,7 +784,7 @@
     }
     .auth-title {
       font-size: 1.05rem;
-      font-weight: 900;
+      font-weight: 700;
       color: var(--text-main);
       text-align: center;
       letter-spacing: 0.5px;
@@ -793,7 +802,7 @@
       font-size: 0.92rem;
       border: 2px solid var(--card-border);
       border-radius: 10px;
-      font-weight: 800;
+      font-weight: 600;
       outline: none;
       background: var(--bg-app);
       color: var(--text-main);
@@ -808,7 +817,7 @@
     .auth-input::placeholder {
       color: var(--text-soft);
       opacity: 0.5;
-      font-weight: 800;
+      font-weight: 600;
     }
     .auth-pin-input {
       font-size: 0.92rem;
@@ -841,7 +850,7 @@
       padding: 12px 0;
       margin-bottom: 14px;
       background: var(--accent-wechat-bg);
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
     }
     .auth-wc-label {
       font-size: 0.72rem;
@@ -851,7 +860,7 @@
     }
     .auth-wc-num {
       font-size: 1.6rem;
-      font-weight: 900;
+      font-weight: 700;
       color: var(--accent-wechat);
       min-width: 40px;
       text-align: center;
@@ -861,9 +870,9 @@
       height: 28px;
       border: none;
       color: #fff;
-      border-radius: var(--radius-xs);
+      border-radius: var(--radius-sm);
       font-size: 1.1rem;
-      font-weight: 800;
+      font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -892,7 +901,7 @@
       border: none;
       border-radius: 10px;
       font-size: 0.92rem;
-      font-weight: 800;
+      font-weight: 600;
       cursor: pointer;
       letter-spacing: 1px;
       box-shadow: 0 4px 16px rgba(7,193,96,0.25);
@@ -933,8 +942,8 @@
     }
     .auth-account-item {
       padding: 10px 12px;
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-xs);
+      border: 0.5px solid var(--card-border);
+      border-radius: var(--radius-sm);
       cursor: pointer;
       font-size: 0.8rem;
       font-weight: 700;
@@ -983,9 +992,9 @@
     .btn-modal {
       height: 42px;
       border: none;
-      border-radius: var(--radius-xs);
+      border-radius: var(--radius-sm);
       font-size: 0.85rem;
-      font-weight: 800;
+      font-weight: 600;
       cursor: pointer;
       display: inline-flex;
       align-items: center;
@@ -1016,8 +1025,8 @@
       width: 100%;
       height: 200px;
       background: var(--btn-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-xs);
+      border: 0.5px solid var(--card-border);
+      border-radius: var(--radius-sm);
       padding: 10px 12px;
       font-size: 0.76rem;
       color: var(--text-main);
@@ -1074,7 +1083,7 @@
       .xls-dial-card {
         padding: 8px 10px;
         gap: 5px;
-        border-radius: 6px;
+        border-radius: var(--radius-sm);
       }
       .card-copy-btn {
         top: 6px;
@@ -1154,7 +1163,7 @@
       background: #e74c3c;
       color: #fff;
       padding: 12px 24px;
-      border-radius: 8px;
+      border-radius: var(--radius-sm);
       font-size: 0.88rem;
       font-weight: 600;
       z-index: 9999;
@@ -1182,7 +1191,7 @@
     }
     .db-overlay.active { display: flex; }
     .db-panel {
-      background: #f8fafc; border-radius: 8px; width: 96vw; max-width: 1400px;
+      background: #f8fafc; border-radius: var(--radius-sm); width: 96vw; max-width: 1400px;
       height: 92vh; max-height: 900px; display: flex; flex-direction: column; overflow: hidden;
       box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04);
       border: 1px solid #e2e8f0;
@@ -1218,7 +1227,7 @@
     .db-header { display: none; }
     .crm-tabs-right { margin-left: auto; display: flex; align-items: center; gap: 12px; }
     .db-close {
-      width: 28px; height: 28px; border: none; background: rgba(0,0,0,0.06); border-radius: 4px;
+      width: 28px; height: 28px; border: none; background: rgba(0,0,0,0.06); border-radius: var(--radius-xs);
       font-size: 0.9rem; cursor: pointer; color: #666; display: flex; align-items: center; justify-content: center;
     }
     .db-close:hover { background: #e81123; color: #fff; }
@@ -1232,7 +1241,7 @@
     }
     body.dark-mode .crm-shortcut-bar { background: #1e293b; }
     .crm-shortcut-btn {
-      padding: 5px 16px; border-radius: 4px; border: 1px solid #e2e8f0; font-size: 0.78rem;
+      padding: 5px 16px; border-radius: var(--radius-xs); border: 1px solid #e2e8f0; font-size: 0.78rem;
       background: #f8fafc; color: #64748b; font-weight: 600; cursor: pointer; transition: all 0.2s;
     }
     .crm-shortcut-btn:hover { border-color: #ff5722; color: #ff5722; }
@@ -1240,11 +1249,11 @@
     body.dark-mode .crm-shortcut-btn { background: #0f172a; border-color: #334155; color: #94a3b8; }
     body.dark-mode .crm-shortcut-btn.active { background: rgba(255,87,34,0.15); color: #ff5722; border-color: #ff5722; }
     .crm-shortcut-add {
-      font-size: 1.1rem; color: #ff5722; font-weight: 800; cursor: pointer; padding: 0 4px;
+      font-size: 1.1rem; color: #ff5722; font-weight: 600; cursor: pointer; padding: 0 4px;
     }
     .crm-shortcut-toggle {
       margin-left: auto; font-size: 0.72rem; font-weight: 700; color: #64748b;
-      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 4px;
+      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-xs);
       padding: 5px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
       transition: all 0.2s; white-space: nowrap;
     }
@@ -1276,7 +1285,7 @@
     .crm-search-label { font-size: 0.78rem; font-weight: 700; color: #475569; white-space: nowrap; width: 64px; }
     body.dark-mode .crm-search-label { color: #94a3b8; }
     .crm-input, .crm-select {
-      flex: 1; height: 32px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: 4px;
+      flex: 1; height: 32px; padding: 0 10px; border: 1px solid #cbd5e1; border-radius: var(--radius-xs);
       font-size: 0.78rem; outline: none; background: #fff; color: #1e293b; transition: border 0.15s;
       width: 100%;
     }
@@ -1285,12 +1294,12 @@
     
     .crm-search-actions { display: flex; gap: 8px; margin-top: 10px; justify-content: flex-start; }
     .crm-btn-search {
-      height: 32px; padding: 0 20px; border-radius: 4px; background: #ff5722; color: #fff;
+      height: 32px; padding: 0 20px; border-radius: var(--radius-xs); background: #ff5722; color: #fff;
       font-size: 0.78rem; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
     }
     .crm-btn-search:hover { background: #f4511e; }
     .crm-btn-reset {
-      height: 32px; padding: 0 16px; border-radius: 4px; background: #fff; color: #475569;
+      height: 32px; padding: 0 16px; border-radius: var(--radius-xs); background: #fff; color: #475569;
       font-size: 0.78rem; font-weight: 700; border: 1px solid #cbd5e1; cursor: pointer;
     }
     .crm-btn-reset:hover { border-color: #ff5722; color: #ff5722; }
@@ -1303,7 +1312,7 @@
     }
     body.dark-mode .crm-toolbar { background: #1e293b; border-color: #334155; }
     .crm-tool-btn {
-      height: 30px; padding: 0 12px; border-radius: 4px; font-size: 0.78rem; font-weight: 700;
+      height: 30px; padding: 0 12px; border-radius: var(--radius-xs); font-size: 0.78rem; font-weight: 700;
       background: #fff; border: 1px solid #e2e8f0; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
       transition: all 0.2s;
     }
@@ -1351,7 +1360,7 @@
     .crm-table { width: 100%; border-collapse: collapse; min-width: 900px; text-align: left; }
     .crm-table thead th {
       position: sticky; top: 0; z-index: 3; background: #f1f5f9; padding: 10px 14px;
-      font-size: 0.76rem; font-weight: 800; color: #475569; border-bottom: 1px solid #cbd5e1;
+      font-size: 0.76rem; font-weight: 600; color: #475569; border-bottom: 1px solid #cbd5e1;
       white-space: nowrap; user-select: none; cursor: pointer;
     }
     body.dark-mode .crm-table thead th { background: #0f172a; color: #94a3b8; border-color: #334155; }
@@ -1379,16 +1388,16 @@
     .crm-avatar {
       width: 28px; height: 28px; border-radius: 50%; background: #4a6cf7; color: #fff;
       display: inline-flex; align-items: center; justify-content: center; font-size: 0.76rem;
-      font-weight: 800; text-transform: uppercase; flex-shrink: 0;
+      font-weight: 600; text-transform: uppercase; flex-shrink: 0;
     }
     /* New / Old Badges */
     .crm-badge-new {
       background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff;
-      font-size: 10px; padding: 1px 4px; border-radius: 3px; font-weight: 700; margin-right: 4px;
+      font-size: 10px; padding: 1px 4px; border-radius: var(--radius-xs); font-weight: 700; margin-right: 4px;
     }
     .crm-badge-old {
       background: #f5f5f5; color: #8c8c8c; border: 1px solid #d9d9d9;
-      font-size: 10px; padding: 1px 4px; border-radius: 3px; font-weight: 700; margin-right: 4px;
+      font-size: 10px; padding: 1px 4px; border-radius: var(--radius-xs); font-weight: 700; margin-right: 4px;
     }
     body.dark-mode .crm-badge-new { background: rgba(24,144,255,0.15); border-color: rgba(24,144,255,0.3); }
     body.dark-mode .crm-badge-old { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.15); }
@@ -1419,7 +1428,7 @@
     .crm-pager-center { display: flex; align-items: center; gap: 8px; }
     .crm-pager-btn {
       height: 28px; padding: 0 12px; border: 1px solid #cbd5e1; background: #fff; color: #475569;
-      border-radius: 4px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+      border-radius: var(--radius-xs); font-size: 0.78rem; font-weight: 600; cursor: pointer;
     }
     .crm-pager-btn:hover:not(:disabled) { border-color: #ff5722; color: #ff5722; }
     .crm-pager-btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -1427,7 +1436,7 @@
     
     .crm-pager-right { display: flex; align-items: center; gap: 8px; }
     .crm-select-page {
-      height: 28px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 0.78rem;
+      height: 28px; border: 1px solid #cbd5e1; border-radius: var(--radius-xs); font-size: 0.78rem;
       padding: 0 4px; background: #fff; color: #475569; cursor: pointer;
     }
     body.dark-mode .crm-select-page { background: #0f172a; border-color: #334155; color: #cbd5e1; }
@@ -1450,9 +1459,9 @@
     .cust-cat-tag.cat-同行 { background:#fff8e1;color:#f57f17;border-color:#fff176; }
     .cust-cat-tag.cat-其他 { background:#eceff1;color:#455a64;border-color:#b0bec5; }
     .cust-cat-edit-wrap { display: inline-flex; gap: 2px; align-items: center; }
-    .cust-cat-select, .cust-cat-input { font-size: 11px; padding: 1px 4px; border-radius: 3px; border: 1px solid #ff5722; outline: none; }
+    .cust-cat-select, .cust-cat-input { font-size: 11px; padding: 1px 4px; border-radius: var(--radius-xs); border: 1px solid #ff5722; outline: none; }
     .cust-cat-input { width: 60px; }
-    .cust-cat-save, .cust-cat-cancel { font-size: 10px; padding: 1px 6px; border-radius: 3px; cursor: pointer; border: none; font-weight: 700; }
+    .cust-cat-save, .cust-cat-cancel { font-size: 10px; padding: 1px 6px; border-radius: var(--radius-xs); cursor: pointer; border: none; font-weight: 700; }
     .cust-cat-save { background: #07c160; color: #fff; }
     .cust-cat-cancel { background: #eee; color: #666; }
     /* Mobile responsive */
@@ -1538,12 +1547,12 @@
         </div>
         
         <!-- Auto Dial Toggle -->
-        <button id="autoDialBtn" title="自动拨打" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: var(--accent-wechat); cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-xs); white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
-        <button id="refreshBatchBtn" title="换一批 — 按最新导入顺序拉取，拉过的自动沉底" onclick="if(window.refreshBatch)window.refreshBatch()" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: #e67e22; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-xs); margin-right: 8px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+        <button id="autoDialBtn" title="自动拨打" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: var(--accent-wechat); cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-sm); white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+        <button id="refreshBatchBtn" title="换一批 — 按最新导入顺序拉取，拉过的自动沉底" onclick="if(window.refreshBatch)window.refreshBatch()" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: #e67e22; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-sm); margin-right: 8px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
         <button id="lockScreenBtn" title="锁定屏幕" style="font-size:0.68rem;padding:3px 6px;border:none;background:transparent;color:var(--text-soft);cursor:pointer;outline:none;font-weight:700;border-radius:3px;margin-right:6px;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
         <!-- Dropdown Menu Trigger on the Right -->
         <div style="position: relative; display: inline-block;">
-          <button id="headerMenuBtn" title="更多设置" style="font-size: 0.8rem; padding: 6px 8px; border: none; background: transparent; cursor: pointer; outline: none; font-weight: 800; color: var(--text-soft); min-width: 44px; min-height: 34px; display:inline-flex;align-items:center;justify-content:center; -webkit-tap-highlight-color: transparent; touch-action: manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+          <button id="headerMenuBtn" title="更多设置" style="font-size: 0.8rem; padding: 6px 8px; border: none; background: transparent; cursor: pointer; outline: none; font-weight: 600; color: var(--text-soft); min-width: 44px; min-height: 34px; display:inline-flex;align-items:center;justify-content:center; -webkit-tap-highlight-color: transparent; touch-action: manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
           <div class="header-dropdown" id="headerDropdown" style="display: none;">
             <button class="dropdown-item" id="toggleImportBtn">导入文件</button>
             <button class="dropdown-item" id="toggleDualSimBtn">双卡轮换: 开</button>
@@ -1583,9 +1592,9 @@
               <div style="position: absolute; width: 44px; height: 44px; border-radius: 50%; border: 2px solid rgba(7, 193, 96, 0.4); animation: pulse-ring 2s infinite ease-in-out;"></div>
               <div style="position: absolute; width: 30px; height: 30px; border-radius: 50%; background: var(--wechat-gradient); display: flex; align-items: center; justify-content: center; color: white; font-size: 1.1rem; box-shadow: 0 0 10px rgba(7, 193, 96, 0.4);"></div>
             </div>
-            <span style="font-size: 0.88rem; color: var(--text-main); font-weight: 900; letter-spacing: 0.5px;">BH-AI 智能双引擎导入助手</span>
+            <span style="font-size: 0.88rem; color: var(--text-main); font-weight: 700; letter-spacing: 0.5px;">BH-AI 智能双引擎导入助手</span>
             <span style="font-size: 0.7rem; color: var(--text-light); max-width: 320px; line-height: 1.4; margin-top: -4px;">搭载启发式文字密度与特征识别算法，自动检测表头、过滤噪音，100% 本地隐私安全。</span>
-            <button id="ocrTrainingDataBtn" style="background:transparent; border:1px solid var(--card-border); font-size:0.62rem; color:var(--text-soft); cursor:pointer; display:inline-flex; align-items:center; gap:3px; padding:2px 8px; border-radius:10px; margin-top:-2px;">训练数据 (<span id="trainingCountBadge" style="color:var(--accent-wechat);font-weight:800;">0</span>)</button>
+            <button id="ocrTrainingDataBtn" style="background:transparent; border:0.5px solid var(--card-border); font-size:0.62rem; color:var(--text-soft); cursor:pointer; display:inline-flex; align-items:center; gap:3px; padding:2px 8px; border-radius:10px; margin-top:-2px;">训练数据 (<span id="trainingCountBadge" style="color:var(--accent-wechat);font-weight:800;">0</span>)</button>
             <a id="dialerTemplateBtn" style="font-size:0.62rem; color:var(--accent-wechat); cursor:pointer; font-weight:700; text-decoration:underline; margin-top:-2px; white-space:nowrap;" title="下载客户导入Excel模板文件">📥 下载导入模板</a>
 
             
@@ -1597,22 +1606,22 @@
               <button class="btn-secondary" id="textImportBtn" style="cursor:pointer; display:inline-flex; align-items:center; justify-content:center; padding: 8px 16px; font-size: 0.76rem; flex: 1; min-width: 130px; text-align: center; background: linear-gradient(135deg,#667eea,#764ba2); color:white; border:none; font-weight:700;" onclick="document.getElementById('textImportPanel').style.display='flex';document.getElementById('textImportArea').value='';document.getElementById('textImportArea').focus();">粘贴文本识别</button>
             </div>
             <div id="textImportPanel" style="display:none; flex-direction:column; gap:6px; width:100%; margin-top:6px;">
-              <textarea id="textImportArea" placeholder="在此粘贴文本，如：张三 13800138000 腾讯科技 备注" style="width:100%; height:120px; padding:8px; font-size:0.72rem; border:1px solid var(--card-border); border-radius:var(--radius-xs); background:var(--card-bg); color:var(--text-main); resize:vertical; outline:none; font-family:monospace;"></textarea>
+              <textarea id="textImportArea" placeholder="在此粘贴文本，如：张三 13800138000 腾讯科技 备注" style="width:100%; height:120px; padding:8px; font-size:0.72rem; border:0.5px solid var(--card-border); border-radius:var(--radius-xs); background:var(--card-bg); color:var(--text-main); resize:vertical; outline:none; font-family:monospace;"></textarea>
               <div style="display:flex; gap:6px;">
                 <button class="btn-primary" id="textImportExtractBtn" style="flex:1; padding:6px; font-size:0.72rem; background:var(--wechat-gradient); color:white; border:none; border-radius:var(--radius-xs); font-weight:700;">智能识别提取</button>
-                <button class="btn-secondary" style="padding:6px 12px; font-size:0.72rem; background:var(--btn-bg); color:var(--text-soft); border:1px solid var(--card-border); border-radius:var(--radius-xs);" onclick="document.getElementById('textImportPanel').style.display='none';">取消</button>
+                <button class="btn-secondary" style="padding:6px 12px; font-size:0.72rem; background:var(--btn-bg); color:var(--text-soft); border:0.5px solid var(--card-border); border-radius:var(--radius-xs);" onclick="document.getElementById('textImportPanel').style.display='none';">取消</button>
               </div>
             </div>
             <input type="file" id="xlsFileInput" accept=".xls,.xlsx,.xlsm,.csv,.docx,.pdf,.txt" style="display:none;">
             <input type="file" id="imgFileInput" accept="image/*" multiple style="display:none;">
             <input type="file" id="vcfFileInput" accept=".vcf,.vcard" style="display:none;">
             <div style="display: flex; gap: 6px; align-items: center; margin-top: 6px; width: 100%;">
-              <span style="font-size: 0.68rem; color: var(--text-soft); font-weight: 800; white-space: nowrap;">批次标签</span>
-              <input type="text" id="batchLabelInput" placeholder="如: 6月展会名单" value="" style="flex:1; height:28px; padding:0 8px; font-size:0.72rem; border:1px solid var(--card-border); border-radius:var(--radius-xs); background:var(--card-bg); color:var(--text-main); outline:none;">
+              <span style="font-size: 0.68rem; color: var(--text-soft); font-weight: 600; white-space: nowrap;">批次标签</span>
+              <input type="text" id="batchLabelInput" placeholder="如: 6月展会名单" value="" style="flex:1; height:28px; padding:0 8px; font-size:0.72rem; border:0.5px solid var(--card-border); border-radius:var(--radius-xs); background:var(--card-bg); color:var(--text-main); outline:none;">
             </div>
             <div style="display: flex; gap: 6px; align-items: center; margin-top: 6px; width: 100%;">
-              <span style="font-size: 0.68rem; color: var(--text-soft); font-weight: 800; white-space: nowrap;">默认分类</span>
-              <select id="importCategorySelect" style="flex:1; height:28px; padding:0 8px; font-size:0.72rem; border:1px solid var(--card-border); border-radius:var(--radius-xs); background:var(--card-bg); color:var(--text-main); outline:none; cursor:pointer;">
+              <span style="font-size: 0.68rem; color: var(--text-soft); font-weight: 600; white-space: nowrap;">默认分类</span>
+              <select id="importCategorySelect" style="flex:1; height:28px; padding:0 8px; font-size:0.72rem; border:0.5px solid var(--card-border); border-radius:var(--radius-xs); background:var(--card-bg); color:var(--text-main); outline:none; cursor:pointer;">
                 <option value="待跟进">待跟进</option>
                 <option value="潜在客户">潜在客户</option>
                 <option value="意向客户">意向客户</option>
@@ -1630,8 +1639,8 @@
           <!-- 2. SCANNING STATE -->
           <div id="aiImportScanning" style="display: none; flex-direction: column; align-items: center; gap: 12px; width: 100%; padding: 10px 0;">
             <div style="font-size: 1.6rem; animation: pulse-ring 1s infinite alternate; margin-bottom: 2px;"></div>
-            <span style="font-size: 0.8rem; color: var(--text-main); font-weight: 800;" id="aiScanStatus">BH-AI 深度模型解析中...</span>
-            <div style="display: flex; flex-direction: column; gap: 4px; text-align: left; font-size: 0.65rem; color: var(--text-soft); font-family: monospace; width: 100%; max-width: 260px; background: rgba(0,0,0,0.02); padding: 8px; border-radius: var(--radius-xs); border: 0.5px solid var(--card-border);">
+            <span style="font-size: 0.8rem; color: var(--text-main); font-weight: 600;" id="aiScanStatus">BH-AI 深度模型解析中...</span>
+            <div style="display: flex; flex-direction: column; gap: 4px; text-align: left; font-size: 0.65rem; color: var(--text-soft); font-family: monospace; width: 100%; max-width: 260px; background: rgba(0,0,0,0.02); padding: 8px; border-radius: var(--radius-sm); border: 0.5px solid var(--card-border);">
               <div id="aiLog1" style="opacity: 0.4;">[ ] 正在读取数据流...</div>
               <div id="aiLog2" style="opacity: 0.4;">[ ] 正在评估特征维度...</div>
               <div id="aiLog3" style="opacity: 0.4;">[ ] 正在过滤杂质与噪音...</div>
@@ -1641,16 +1650,16 @@
 
           <!-- 4. LOCAL OCR SLICING CONFIG STATE -->
           <div id="localOcrConfigPanel" style="display: none; flex-direction: column; align-items: center; gap: 10px; width: 100%; padding: 10px 0;">
-            <span style="font-size: 0.8rem; font-weight: 900; color: var(--text-main);">本地离线识别 - 栏目切分微调</span>
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--text-main);">本地离线识别 - 栏目切分微调</span>
             <span style="font-size: 0.65rem; color: var(--text-light); text-align: center; max-width: 300px; margin-top: -6px;">请调整边界线，确保手机号列、姓名列被虚线分离开，以达到 100% 识别精准度。</span>
             
-            <div style="position: relative; border: 1px solid var(--card-border); border-radius: var(--radius-xs); background: #eee; overflow: hidden; display: flex; justify-content: center; align-items: center; max-height: 180px; width: 100%; max-width: 360px;">
+            <div style="position: relative; border: 0.5px solid var(--card-border); border-radius: var(--radius-sm); background: #eee; overflow: hidden; display: flex; justify-content: center; align-items: center; max-height: 180px; width: 100%; max-width: 360px;">
               <canvas id="ocrPreviewCanvas" style="max-height: 180px; max-width: 100%; object-fit: contain;"></canvas>
             </div>
             
             <!-- Sliders -->
             <div style="display: flex; flex-direction: column; gap: 4px; width: 100%; max-width: 320px;">
-              <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-soft); font-weight: 800;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.65rem; color: var(--text-soft); font-weight: 600;">
                 <span>左侧边界线: <strong id="valSplit1">25%</strong></span>
                 <span>右侧边界线: <strong id="valSplit2">60%</strong></span>
               </div>
@@ -1663,8 +1672,8 @@
 
             <!-- Column Order Preset -->
             <div style="display: flex; gap: 8px; align-items: center; width: 100%; max-width: 320px;">
-              <span style="font-size: 0.65rem; color: var(--text-soft); font-weight: 800; white-space: nowrap;">栏目顺序:</span>
-              <select id="ocrColumnOrder" style="flex: 1; height: 26px; font-size: 0.68rem; border-radius: var(--radius-xs); border: 1px solid var(--card-border); background: var(--btn-bg); color: var(--text-main); font-weight: 700; outline: none;">
+              <span style="font-size: 0.65rem; color: var(--text-soft); font-weight: 600; white-space: nowrap;">栏目顺序:</span>
+              <select id="ocrColumnOrder" style="flex: 1; height: 26px; font-size: 0.68rem; border-radius: var(--radius-sm); border: 0.5px solid var(--card-border); background: var(--btn-bg); color: var(--text-main); font-weight: 700; outline: none;">
                 <option value="name_phone_other">左:姓名 | 中:电话 | 右:单位或备注</option>
                 <option value="phone_name_other">左:电话 | 中:姓名 | 右:单位或备注</option>
                 <option value="name_other_phone">左:姓名 | 中:单位或备注 | 右:电话</option>
@@ -1680,13 +1689,13 @@
           <!-- 3. REPORT STATE -->
           <div id="aiImportReport" style="display: none; flex-direction: column; width: 100%; text-align: left; gap: 8px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-light); padding-bottom: 6px;">
-              <span id="aiReportTitle" style="font-size: 0.8rem; font-weight: 900; color: var(--text-main);">AI 识别报告</span>
-              <span id="aiConfidenceBadge" style="font-size: 0.62rem; font-weight: 800; padding: 2px 6px; border-radius: 4px; background: rgba(7, 193, 96, 0.1); color: var(--accent-wechat); border: 0.5px solid rgba(7, 193, 96, 0.2);">● 置信度: 98%</span>
+              <span id="aiReportTitle" style="font-size: 0.8rem; font-weight: 700; color: var(--text-main);">AI 识别报告</span>
+              <span id="aiConfidenceBadge" style="font-size: 0.62rem; font-weight: 600; padding: 2px 6px; border-radius: var(--radius-xs); background: rgba(7, 193, 96, 0.1); color: var(--accent-wechat); border: 0.5px solid rgba(7, 193, 96, 0.2);">● 置信度: 98%</span>
             </div>
 
             <!-- Mapped Pillars -->
-            <div id="aiExcelMappingPills" style="display: flex; flex-wrap: wrap; gap: 4px; background: var(--btn-bg); padding: 6px; border-radius: var(--radius-xs);">
-              <div style="font-size: 0.65rem; font-weight: 800; color: var(--text-soft); width: 100%; margin-bottom: 2px;">AI 智能列映射映射关系：</div>
+            <div id="aiExcelMappingPills" style="display: flex; flex-wrap: wrap; gap: 4px; background: var(--btn-bg); padding: 6px; border-radius: var(--radius-sm);">
+              <div style="font-size: 0.65rem; font-weight: 600; color: var(--text-soft); width: 100%; margin-bottom: 2px;">AI 智能列映射映射关系：</div>
               <div class="client-card-tag" id="pillName" style="background: rgba(7,193,96,0.08); color: var(--accent-wechat);">姓名 → 未识别</div>
               <div class="client-card-tag" id="pillPhone" style="background: rgba(7,193,96,0.08); color: var(--accent-wechat);">电话 → 未识别</div>
               <div class="client-card-tag" id="pillCompany" style="background: rgba(74,108,247,0.08); color: #4a6cf7;">公司 → 无</div>
@@ -1695,34 +1704,34 @@
 
             <!-- Manual Override Button & Selectors (Collapsed by default) -->
             <div id="aiExcelMappingControls" style="width: 100%;">
-              <button id="aiToggleAdjustBtn" style="background: transparent; border: none; font-size: 0.65rem; font-weight: 800; color: var(--text-soft); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 2px 0; outline: none;">手动修正 AI 映射结果 ▾</button>
-              <div id="aiAdjustControls" style="display: none; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 4px; border: 1px dashed var(--card-border); padding: 8px; border-radius: var(--radius-xs); background: var(--card-bg);">
+              <button id="aiToggleAdjustBtn" style="background: transparent; border: none; font-size: 0.65rem; font-weight: 600; color: var(--text-soft); cursor: pointer; display: inline-flex; align-items: center; gap: 4px; padding: 2px 0; outline: none;">手动修正 AI 映射结果 ▾</button>
+              <div id="aiAdjustControls" style="display: none; grid-template-columns: repeat(2, 1fr); gap: 6px; margin-top: 4px; border: 1px dashed var(--card-border); padding: 8px; border-radius: var(--radius-sm); background: var(--card-bg);">
                 <div style="display: flex; flex-direction: column; gap: 2px;">
-                  <label style="font-size: 0.6rem; color: var(--text-light); font-weight: 800;">姓名数据列</label>
-                  <select id="aiSelName" style="height: 24px; font-size: 0.65rem; outline: none; border: 1px solid var(--card-border); border-radius: 4px; font-weight: 800; color: var(--text-soft); background: var(--btn-bg);"></select>
+                  <label style="font-size: 0.6rem; color: var(--text-light); font-weight: 600;">姓名数据列</label>
+                  <select id="aiSelName" style="height: 24px; font-size: 0.65rem; outline: none; border: 0.5px solid var(--card-border); border-radius: var(--radius-xs); font-weight: 600; color: var(--text-soft); background: var(--btn-bg);"></select>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 2px;">
-                  <label style="font-size: 0.6rem; color: var(--text-light); font-weight: 800;">电话数据列</label>
-                  <select id="aiSelPhone" style="height: 24px; font-size: 0.65rem; outline: none; border: 1px solid var(--card-border); border-radius: 4px; font-weight: 800; color: var(--text-soft); background: var(--btn-bg);"></select>
+                  <label style="font-size: 0.6rem; color: var(--text-light); font-weight: 600;">电话数据列</label>
+                  <select id="aiSelPhone" style="height: 24px; font-size: 0.65rem; outline: none; border: 0.5px solid var(--card-border); border-radius: var(--radius-xs); font-weight: 600; color: var(--text-soft); background: var(--btn-bg);"></select>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 2px;">
-                  <label style="font-size: 0.6rem; color: var(--text-light); font-weight: 800;">公司数据列 (可选)</label>
-                  <select id="aiSelCompany" style="height: 24px; font-size: 0.65rem; outline: none; border: 1px solid var(--card-border); border-radius: 4px; font-weight: 800; color: var(--text-soft); background: var(--btn-bg);"></select>
+                  <label style="font-size: 0.6rem; color: var(--text-light); font-weight: 600;">公司数据列 (可选)</label>
+                  <select id="aiSelCompany" style="height: 24px; font-size: 0.65rem; outline: none; border: 0.5px solid var(--card-border); border-radius: var(--radius-xs); font-weight: 600; color: var(--text-soft); background: var(--btn-bg);"></select>
                 </div>
                 <div style="display: flex; flex-direction: column; gap: 2px;">
-                  <label style="font-size: 0.6rem; color: var(--text-light); font-weight: 800;">备注数据列 (可选)</label>
-                  <select id="aiSelNote" style="height: 24px; font-size: 0.65rem; outline: none; border: 1px solid var(--card-border); border-radius: 4px; font-weight: 800; color: var(--text-soft); background: var(--btn-bg);"></select>
+                  <label style="font-size: 0.6rem; color: var(--text-light); font-weight: 600;">备注数据列 (可选)</label>
+                  <select id="aiSelNote" style="height: 24px; font-size: 0.65rem; outline: none; border: 0.5px solid var(--card-border); border-radius: var(--radius-xs); font-weight: 600; color: var(--text-soft); background: var(--btn-bg);"></select>
                 </div>
               </div>
             </div>
 
             <!-- Live Preview Table -->
-            <div id="aiExcelPreviewContainer" style="width: 100%; border: 1px solid var(--card-border); border-radius: var(--radius-xs); overflow: hidden; background: var(--card-bg);">
-              <div style="font-size: 0.6rem; font-weight: 800; color: var(--text-light); background: var(--btn-bg); padding: 4px 8px; border-bottom: 1px solid var(--card-border);">AI 导入数据效果实时预览 (前3行)：</div>
+            <div id="aiExcelPreviewContainer" style="width: 100%; border: 0.5px solid var(--card-border); border-radius: var(--radius-sm); overflow: hidden; background: var(--card-bg);">
+              <div style="font-size: 0.6rem; font-weight: 600; color: var(--text-light); background: var(--btn-bg); padding: 4px 8px; border-bottom: 0.5px solid var(--card-border);">AI 导入数据效果实时预览 (前3行)：</div>
               <div style="overflow-x: auto; width: 100%;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.65rem; text-align: left;" id="aiPreviewTable">
                   <thead>
-                    <tr style="border-bottom: 1px solid var(--card-border); font-weight: 800; color: var(--text-soft); background: rgba(0,0,0,0.01);">
+                    <tr style="border-bottom: 0.5px solid var(--card-border); font-weight: 600; color: var(--text-soft); background: rgba(0,0,0,0.01);">
                       <th style="padding: 4px 8px;">姓名</th>
                       <th style="padding: 4px 8px;">电话</th>
                       <th style="padding: 4px 8px;">公司</th>
@@ -1736,12 +1745,12 @@
             </div>
 
             <!-- Unstructured Preview Table Container (Only visible for TXT/DOCX/PDF/OCR) -->
-            <div id="aiUnstructuredContainer" style="display: none; width: 100%; border: 1px solid var(--card-border); border-radius: var(--radius-xs); overflow: hidden; background: var(--card-bg);">
-              <div style="font-size: 0.6rem; font-weight: 800; color: var(--text-light); background: var(--btn-bg); padding: 4px 8px; border-bottom: 1px solid var(--card-border);">AI 智能提取结果校验与编辑面板：</div>
+            <div id="aiUnstructuredContainer" style="display: none; width: 100%; border: 0.5px solid var(--card-border); border-radius: var(--radius-sm); overflow: hidden; background: var(--card-bg);">
+              <div style="font-size: 0.6rem; font-weight: 600; color: var(--text-light); background: var(--btn-bg); padding: 4px 8px; border-bottom: 0.5px solid var(--card-border);">AI 智能提取结果校验与编辑面板：</div>
               <div style="max-height: 250px; overflow-y: auto; overflow-x: auto; width: 100%;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.65rem; text-align: left;" id="aiUnstructuredTable">
                   <thead>
-                    <tr style="border-bottom: 1px solid var(--card-border); font-weight: 800; color: var(--text-soft); background: rgba(0,0,0,0.01); position: sticky; top: 0; background: var(--btn-bg); z-index: 10;">
+                    <tr style="border-bottom: 0.5px solid var(--card-border); font-weight: 600; color: var(--text-soft); background: rgba(0,0,0,0.01); position: sticky; top: 0; background: var(--btn-bg); z-index: 10;">
                       <th style="padding: 6px 8px; width: 40px; text-align: center;">操作</th>
                       <th style="padding: 6px 8px; width: 70px;">姓名</th>
                       <th style="padding: 6px 8px; width: 100px;">电话</th>
@@ -1759,8 +1768,8 @@
 
             <!-- Confirm Buttons -->
             <div style="display: flex; gap: 8px; width: 100%; margin-top: 4px;">
-              <button id="aiConfirmImportBtn" class="btn-primary" style="flex: 1; padding: 8px; font-size: 0.78rem; font-weight: 800; border-radius: var(--radius-xs); box-shadow: var(--wechat-gradient); text-align: center;">AI 确认导入</button>
-              <button id="aiResetImportBtn" class="btn-modal btn-neutral" style="padding: 8px 14px; font-size: 0.78rem; font-weight: 800; border-radius: var(--radius-xs); height: auto; box-shadow: none;">取消</button>
+              <button id="aiConfirmImportBtn" class="btn-primary" style="flex: 1; padding: 8px; font-size: 0.78rem; font-weight: 600; border-radius: var(--radius-sm); box-shadow: var(--wechat-gradient); text-align: center;">AI 确认导入</button>
+              <button id="aiResetImportBtn" class="btn-modal btn-neutral" style="padding: 8px 14px; font-size: 0.78rem; font-weight: 600; border-radius: var(--radius-sm); height: auto; box-shadow: none;">取消</button>
             </div>
           </div>
         </div>
@@ -1769,7 +1778,7 @@
       <!-- Controls -->
       <div class="control-bar" id="controlBar" style="display:none; flex-wrap: wrap; gap: 6px;">
         <input type="text" class="search-input" id="searchInput" placeholder="搜索" style="flex: 1; min-width: 60px;">
-        <select id="sortSelect" style="height: 28px; font-size: 0.68rem; border: 1px solid var(--card-border); border-radius: var(--radius-xs); background: var(--btn-bg); color: var(--text-soft); font-weight: 800; outline: none; padding: 0 4px; cursor: pointer; flex-shrink: 0; width: 95px;">
+        <select id="sortSelect" style="height: 28px; font-size: 0.68rem; border: 0.5px solid var(--card-border); border-radius: var(--radius-sm); background: var(--btn-bg); color: var(--text-soft); font-weight: 600; outline: none; padding: 0 4px; cursor: pointer; flex-shrink: 0; width: 95px;">
           <option value="default" selected>导入顺序</option>
           <option value="name">姓名 A-Z</option>
           <option value="company">公司 A-Z</option>
@@ -1822,10 +1831,10 @@
       <div style="text-align:left;display:flex;flex-direction:column;gap:4px;width:100%;">
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="client-card-label" style="font-size:0.65rem;color:var(--text-light);font-weight:800;">通话小记 / 沟通记录</span>
-          <button type="button" id="bhpBoldBtn" title="加粗 (Alt+B)" style="height:22px;width:22px;font-weight:900;font-size:0.6rem;border:1px solid var(--card-border);background:var(--btn-bg);color:var(--text-main);cursor:pointer;border-radius:3px;padding:0;line-height:1;flex-shrink:0;">B</button>
-          <button type="button" id="bhpDelBtn" title="删除线 (Alt+D)" style="height:22px;width:22px;font-weight:700;font-size:0.5rem;border:1px solid var(--card-border);background:var(--btn-bg);color:var(--text-main);cursor:pointer;border-radius:3px;padding:0;line-height:1;text-decoration:line-through;flex-shrink:0;">D</button>
+          <button type="button" id="bhpBoldBtn" title="加粗 (Alt+B)" style="height:22px;width:22px;font-weight:900;font-size:0.6rem;border:0.5px solid var(--card-border);background:var(--btn-bg);color:var(--text-main);cursor:pointer;border-radius:3px;padding:0;line-height:1;flex-shrink:0;">B</button>
+          <button type="button" id="bhpDelBtn" title="删除线 (Alt+D)" style="height:22px;width:22px;font-weight:700;font-size:0.5rem;border:0.5px solid var(--card-border);background:var(--btn-bg);color:var(--text-main);cursor:pointer;border-radius:3px;padding:0;line-height:1;text-decoration:line-through;flex-shrink:0;">D</button>
         </div>
-        <textarea id="callLogNote" placeholder="在这里输入通话记录、客户意向等备注信息..." style="width:100%;height:100px;font-size:0.8rem;padding:8px 10px;background:var(--btn-bg);border:1px solid var(--card-border);border-radius:var(--radius-xs);color:var(--text-main);outline:none;font-weight:700;resize:none;"></textarea>
+        <textarea id="callLogNote" placeholder="在这里输入通话记录、客户意向等备注信息..." style="width:100%;height:100px;font-size:0.8rem;padding:8px 10px;background:var(--btn-bg);border:0.5px solid var(--card-border);border-radius:var(--radius-xs);color:var(--text-main);outline:none;font-weight:700;resize:none;"></textarea>
       </div>
 
       <!-- Direct Outcome Action Buttons -->
@@ -1873,9 +1882,9 @@
       <div style="font-size:0.7rem; color:var(--text-light); font-weight:700; margin-bottom: 4px;">
         您可以添加或删除 CRM 数据库的自定义数据列。自定义列的值可在 Excel 导入时手动映射关联，或在跟进备注时作为关联字段保存。
       </div>
-      <div style="display:flex; flex-direction:column; gap:6px; max-height:200px; overflow-y:auto; border: 1px solid var(--card-border); padding: 8px; border-radius: var(--radius-xs); background: var(--btn-bg);" id="customColumnsList"></div>
+      <div style="display:flex; flex-direction:column; gap:6px; max-height:200px; overflow-y:auto; border: 0.5px solid var(--card-border); padding: 8px; border-radius: var(--radius-sm); background: var(--btn-bg);" id="customColumnsList"></div>
       <div style="display:flex; gap:6px; margin-top:8px;">
-        <input type="text" id="newCustomColInput" placeholder="输入新列名，如：微信号" style="flex:1; height:32px; padding:0 8px; font-size:0.75rem; border:1px solid var(--card-border); border-radius:4px; font-weight:bold; outline:none; background:var(--card-bg); color:var(--text-main);">
+        <input type="text" id="newCustomColInput" placeholder="输入新列名，如：微信号" style="flex:1; height:32px; padding:0 8px; font-size:0.75rem; border:0.5px solid var(--card-border); border-radius:4px; font-weight:bold; outline:none; background:var(--card-bg); color:var(--text-main);">
         <button id="addCustomColBtn" class="btn-primary" style="padding:0 14px; height:32px; font-size:0.75rem;">添加列</button>
       </div>
     </div>
@@ -1888,7 +1897,7 @@
 <!-- OCR Training Data Modal -->
 <div class="modal-overlay" id="ocrCorrectionModal" style="z-index: 5000;">
   <div class="modal-card" style="max-width: 640px; gap: 10px; max-height: 80vh; overflow-y: auto; width: 94vw;">
-    <div style="display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:var(--modal-card); padding-bottom: 6px; border-bottom:1px solid var(--card-border);">
+    <div style="display:flex; justify-content:space-between; align-items:center; position:sticky; top:0; background:var(--modal-card); padding-bottom: 6px; border-bottom:0.5px solid var(--card-border);">
       <span style="font-size:0.9rem; font-weight:900; color:var(--text-main);">OCR 训练数据收集</span>
       <button id="closeOcrCorrectionBtn" style="background:none; border:none; font-size:1.2rem; cursor:pointer; color:var(--text-soft); line-height:1;">关闭</button>
     </div>
@@ -1904,7 +1913,7 @@
         仅显示有修改
       </label>
     </div>
-    <div id="ocrCorrectionList" style="max-height:55vh; overflow-y:auto; border:1px solid var(--card-border); border-radius:var(--radius-xs); background:var(--bg-app);">
+    <div id="ocrCorrectionList" style="max-height:55vh; overflow-y:auto; border:0.5px solid var(--card-border); border-radius:var(--radius-xs); background:var(--bg-app);">
       <div style="text-align:center; padding:28px; font-size:0.72rem; color:var(--text-light);">点击"刷新"加载记录</div>
     </div>
     <div style="font-size:0.55rem; color:var(--text-light); text-align:center; padding:4px;">
@@ -1942,13 +1951,13 @@
     </div>
 
     <!-- Account Stats Bar (master only) -->
-    <div id="dbAccountStats" style="display:none; padding:6px 16px; border-bottom:1px solid var(--card-border); background:var(--btn-bg); align-items:center; gap:10px; flex-wrap:wrap; font-size:0.7rem; font-weight:700; color:var(--text-soft);">
+    <div id="dbAccountStats" style="display:none; padding:6px 16px; border-bottom:0.5px solid var(--card-border); background:var(--btn-bg); align-items:center; gap:10px; flex-wrap:wrap; font-size:0.7rem; font-weight:700; color:var(--text-soft);">
       <span style="color:var(--text-main);">各账户上传统计：</span>
       <span id="dbAccountStatsList"></span>
       <span style="margin-left:auto; display:flex; align-items:center; gap:6px;">
         <button id="dbMigrateBtn" style="display:none; height:26px; padding:0 10px; font-size:0.65rem; border:1px solid #e67e22; background:rgba(230,126,34,0.08); color:#e67e22; border-radius:3px; font-weight:700; cursor:pointer;">归属主账户</button>
         <span>查看：</span>
-        <select id="dbViewAccountSel" style="height:26px; padding:0 6px; font-size:0.68rem; border:1px solid var(--card-border); border-radius:3px; font-weight:700; background:var(--card-bg); color:var(--text-main); cursor:pointer;">
+        <select id="dbViewAccountSel" style="height:26px; padding:0 6px; font-size:0.68rem; border:0.5px solid var(--card-border); border-radius:3px; font-weight:700; background:var(--card-bg); color:var(--text-main); cursor:pointer;">
           <option value="">我的数据</option>
         </select>
       </span>
@@ -2015,7 +2024,7 @@
       <button class="crm-tool-btn blue" id="crmManageColsBtn" title="管理自定义列">自定义列</button>
       <span id="crmReassignGroup" style="display:none; align-items:center; gap:4px;">
         <span style="font-size:0.7rem; font-weight:700; color:var(--text-soft);">分配给</span>
-        <select id="crmReassignSel" style="height:28px; padding:0 6px; font-size:0.68rem; border:1px solid var(--card-border); border-radius:3px; font-weight:700; background:var(--card-bg); color:var(--text-main); cursor:pointer;"></select>
+        <select id="crmReassignSel" style="height:28px; padding:0 6px; font-size:0.68rem; border:0.5px solid var(--card-border); border-radius:3px; font-weight:700; background:var(--card-bg); color:var(--text-main); cursor:pointer;"></select>
         <button class="crm-tool-btn" id="crmReassignBtn" style="background:#e67e22; color:#fff; border-color:#e67e22;">分配</button>
       </span>
     </div>
@@ -2026,20 +2035,20 @@
         <div style="font-size:0.85rem; font-weight:900; color:var(--text-main); margin-bottom:8px;">子账户管理</div>
         <div id="dbSubAccountList" style="display:flex; flex-direction:column; gap:4px; max-height:180px; overflow-y:auto; margin-bottom:8px;"></div>
         <div style="display:flex; gap:6px;">
-          <input type="text" id="dbSubAccountNameInput" maxlength="20" placeholder="账户名" style="flex:1; height:32px; padding:0 8px; font-size:0.75rem; border:1px solid var(--card-border); border-radius:4px; font-weight:700; outline:none; background:var(--card-bg); color:var(--text-main);">
-          <input type="password" id="dbSubAccountPinInput" maxlength="6" placeholder="PIN码" style="width:80px; height:32px; padding:0 6px; font-size:0.75rem; border:1px solid var(--card-border); border-radius:4px; font-weight:700; outline:none; background:var(--card-bg); color:var(--text-main); text-align:center; font-family:monospace;">
+          <input type="text" id="dbSubAccountNameInput" maxlength="20" placeholder="账户名" style="flex:1; height:32px; padding:0 8px; font-size:0.75rem; border:0.5px solid var(--card-border); border-radius:4px; font-weight:700; outline:none; background:var(--card-bg); color:var(--text-main);">
+          <input type="password" id="dbSubAccountPinInput" maxlength="6" placeholder="PIN码" style="width:80px; height:32px; padding:0 6px; font-size:0.75rem; border:0.5px solid var(--card-border); border-radius:4px; font-weight:700; outline:none; background:var(--card-bg); color:var(--text-main); text-align:center; font-family:monospace;">
           <button id="dbCreateSubAccountBtn" class="btn-primary" style="padding:0 12px; height:32px; font-size:0.72rem;">创建</button>
         </div>
         <div id="dbSubAccountError" style="font-size:0.62rem; color:#e74c3c; min-height:16px; margin-top:4px;"></div>
       </div>
       <div style="font-size:0.85rem; font-weight:900; color:var(--text-main);">修改 PIN 码</div>
       <div style="display:flex; gap:6px;">
-        <input type="password" id="dbChangePinOld" maxlength="6" placeholder="当前PIN" style="flex:1; height:32px; padding:0 8px; font-size:0.75rem; border:1px solid var(--card-border); border-radius:4px; font-weight:700; outline:none; background:var(--card-bg); color:var(--text-main); text-align:center; font-family:monospace;">
-        <input type="password" id="dbChangePinNew" maxlength="6" placeholder="新PIN" style="flex:1; height:32px; padding:0 8px; font-size:0.75rem; border:1px solid var(--card-border); border-radius:4px; font-weight:700; outline:none; background:var(--card-bg); color:var(--text-main); text-align:center; font-family:monospace;">
+        <input type="password" id="dbChangePinOld" maxlength="6" placeholder="当前PIN" style="flex:1; height:32px; padding:0 8px; font-size:0.75rem; border:0.5px solid var(--card-border); border-radius:4px; font-weight:700; outline:none; background:var(--card-bg); color:var(--text-main); text-align:center; font-family:monospace;">
+        <input type="password" id="dbChangePinNew" maxlength="6" placeholder="新PIN" style="flex:1; height:32px; padding:0 8px; font-size:0.75rem; border:0.5px solid var(--card-border); border-radius:4px; font-weight:700; outline:none; background:var(--card-bg); color:var(--text-main); text-align:center; font-family:monospace;">
         <button id="dbChangePinBtn" class="btn-secondary" style="padding:0 12px; height:32px; font-size:0.72rem;">修改</button>
       </div>
       <div id="dbChangePinError" style="font-size:0.62rem; min-height:16px;"></div>
-      <div style="display:flex; gap:8px; border-top:1px solid var(--card-border); padding-top:12px;">
+      <div style="display:flex; gap:8px; border-top:0.5px solid var(--card-border); padding-top:12px;">
         <button id="dbLogoutBtn" class="btn-secondary" style="flex:1; height:34px; font-size:0.75rem;">退出登录</button>
         <button id="dbResetAccountsBtn" style="flex:1; height:34px; background:transparent; border:1px solid #e74c3c; color:#e74c3c; border-radius:var(--radius-xs); font-size:0.72rem; font-weight:700; cursor:pointer;">重置所有账户</button>
       </div>
@@ -2098,7 +2107,7 @@
       <div class="crm-pager-center">
         <button class="crm-pager-btn" id="dbPrev">‹ 上一页</button>
         <span id="dbPageInfo" style="font-size: 0.78rem; font-weight: 700; color: #475569; display: inline-flex; align-items: center; gap: 4px;">
-          第 <input type="number" id="dbPageInput" min="1" style="width: 48px; text-align: center; height: 24px; border: 1px solid var(--card-border); border-radius: 4px; font-weight: bold; background: var(--card-bg); color: var(--text-main); outline: none; margin: 0 2px;" value="1"> / <span id="dbPageTotal">1</span> 页
+          第 <input type="number" id="dbPageInput" min="1" style="width: 48px; text-align: center; height: 24px; border: 0.5px solid var(--card-border); border-radius: var(--radius-xs); font-weight: bold; background: var(--card-bg); color: var(--text-main); outline: none; margin: 0 2px;" value="1"> / <span id="dbPageTotal">1</span> 页
         </span>
         <button class="crm-pager-btn" id="dbNext">下一页 ›</button>
       </div>
@@ -3064,7 +3073,7 @@
 
       var tableHead = document.querySelector('#aiPreviewTable thead');
       if (tableHead) {
-        var headHtml = '<tr style="border-bottom: 1px solid var(--card-border); font-weight: 800; color: var(--text-soft); background: rgba(0,0,0,0.01);">' +
+        var headHtml = '<tr style="border-bottom: 0.5px solid var(--card-border); font-weight: 600; color: var(--text-soft); background: rgba(0,0,0,0.01);">' +
           '<th style="padding: 4px 8px;">姓名</th>' +
           '<th style="padding: 4px 8px;">电话</th>' +
           '<th style="padding: 4px 8px;">公司</th>';
@@ -3106,8 +3115,8 @@
 
         var tr = document.createElement('tr');
         tr.style.borderBottom = '0.5px solid var(--card-border)';
-        tr.innerHTML = '<td style="padding: 6px 8px; font-weight: 800; color: var(--text-main);">' + esc(nameVal || '未知姓名') + '</td>' +
-                       '<td style="padding: 6px 8px; font-family: monospace; color: var(--accent-wechat); font-weight: 800;">' + esc(phoneVal) + '</td>' +
+        tr.innerHTML = '<td style="padding: 6px 8px; font-weight: 600; color: var(--text-main);">' + esc(nameVal || '未知姓名') + '</td>' +
+                       '<td style="padding: 6px 8px; font-family: monospace; color: var(--accent-wechat); font-weight: 600;">' + esc(phoneVal) + '</td>' +
                        '<td style="padding: 6px 8px; color: var(--text-soft);">' + esc(compVal || '(空)') + '</td>' +
                        customTds;
         tableBody.appendChild(tr);
@@ -3308,8 +3317,8 @@
           var c = contactsList[i];
           var tr = document.createElement('tr');
           tr.style.borderBottom = '0.5px solid var(--card-border)';
-          tr.innerHTML = '<td style="padding: 6px 8px; font-weight: 800; color: var(--text-main);">' + esc(c.name || '未知姓名') + '</td>' +
-                         '<td style="padding: 6px 8px; font-family: monospace; color: var(--accent-wechat); font-weight: 800;">' + esc(c.phone) + '</td>' +
+          tr.innerHTML = '<td style="padding: 6px 8px; font-weight: 600; color: var(--text-main);">' + esc(c.name || '未知姓名') + '</td>' +
+                         '<td style="padding: 6px 8px; font-family: monospace; color: var(--accent-wechat); font-weight: 600;">' + esc(c.phone) + '</td>' +
                          '<td style="padding: 6px 8px; color: var(--text-soft);">' + esc(c.company || '(空)') + '</td>';
           tableBody.appendChild(tr);
         }
@@ -6924,7 +6933,7 @@ function updateAutoDialBtn() {
       }
       var html = '';
       cols.forEach(function(col, idx) {
-        html += '<div style="display:flex; justify-content:space-between; align-items:center; background:var(--card-bg); padding:6px 8px; border-radius:4px; border:1px solid var(--card-border); font-size:0.75rem; font-weight:bold;">' +
+        html += '<div style="display:flex; justify-content:space-between; align-items:center; background:var(--card-bg); padding:6px 8px; border-radius:4px; border:0.5px solid var(--card-border); font-size:0.75rem; font-weight:bold;">' +
           '<span>' + esc(col) + '</span>' +
           '<button class="delete-custom-col-btn" data-idx="' + idx + '" style="background:none; border:none; color:#e74c3c; cursor:pointer; font-weight:bold; font-size:0.9rem; padding:0 4px;"></button>' +
           '</div>';
@@ -6992,26 +7001,26 @@ function updateAutoDialBtn() {
       var container = document.getElementById('aiAdjustControls');
       if (!container) return;
       var html = '<div style="display: flex; flex-direction: column; gap: 2px;">' +
-        '<label style="font-size: 0.6rem; color: var(--text-light); font-weight: 800;">姓名数据列</label>' +
-        '<select id="aiSelName" style="height: 24px; font-size: 0.65rem; outline: none; border: 1px solid var(--card-border); border-radius: 4px; font-weight: 800; color: var(--text-soft); background: var(--btn-bg);"></select>' +
+        '<label style="font-size: 0.6rem; color: var(--text-light); font-weight: 600;">姓名数据列</label>' +
+        '<select id="aiSelName" style="height: 24px; font-size: 0.65rem; outline: none; border: 0.5px solid var(--card-border); border-radius: var(--radius-xs); font-weight: 600; color: var(--text-soft); background: var(--btn-bg);"></select>' +
         '</div>' +
         '<div style="display: flex; flex-direction: column; gap: 2px;">' +
-        '<label style="font-size: 0.6rem; color: var(--text-light); font-weight: 800;">电话数据列</label>' +
-        '<select id="aiSelPhone" style="height: 24px; font-size: 0.65rem; outline: none; border: 1px solid var(--card-border); border-radius: 4px; font-weight: 800; color: var(--text-soft); background: var(--btn-bg);"></select>' +
+        '<label style="font-size: 0.6rem; color: var(--text-light); font-weight: 600;">电话数据列</label>' +
+        '<select id="aiSelPhone" style="height: 24px; font-size: 0.65rem; outline: none; border: 0.5px solid var(--card-border); border-radius: var(--radius-xs); font-weight: 600; color: var(--text-soft); background: var(--btn-bg);"></select>' +
         '</div>' +
         '<div style="display: flex; flex-direction: column; gap: 2px;">' +
-        '<label style="font-size: 0.6rem; color: var(--text-light); font-weight: 800;">公司数据列 (可选)</label>' +
-        '<select id="aiSelCompany" style="height: 24px; font-size: 0.65rem; outline: none; border: 1px solid var(--card-border); border-radius: 4px; font-weight: 800; color: var(--text-soft); background: var(--btn-bg);"></select>' +
+        '<label style="font-size: 0.6rem; color: var(--text-light); font-weight: 600;">公司数据列 (可选)</label>' +
+        '<select id="aiSelCompany" style="height: 24px; font-size: 0.65rem; outline: none; border: 0.5px solid var(--card-border); border-radius: var(--radius-xs); font-weight: 600; color: var(--text-soft); background: var(--btn-bg);"></select>' +
         '</div>' +
         '<div style="display: flex; flex-direction: column; gap: 2px;">' +
-        '<label style="font-size: 0.6rem; color: var(--text-light); font-weight: 800;">备注数据列 (可选)</label>' +
-        '<select id="aiSelNote" style="height: 24px; font-size: 0.65rem; outline: none; border: 1px solid var(--card-border); border-radius: 4px; font-weight: 800; color: var(--text-soft); background: var(--btn-bg);"></select>' +
+        '<label style="font-size: 0.6rem; color: var(--text-light); font-weight: 600;">备注数据列 (可选)</label>' +
+        '<select id="aiSelNote" style="height: 24px; font-size: 0.65rem; outline: none; border: 0.5px solid var(--card-border); border-radius: var(--radius-xs); font-weight: 600; color: var(--text-soft); background: var(--btn-bg);"></select>' +
         '</div>';
       var customCols = DB.customColumns || [];
       customCols.forEach(function(col) {
         html += '<div style="display: flex; flex-direction: column; gap: 2px;">' +
-          '<label style="font-size: 0.6rem; color: var(--text-light); font-weight: 800;">' + esc(col) + ' 数据列 (可选)</label>' +
-          '<select class="aiSelCustom" data-col="' + esc(col) + '" style="height: 24px; font-size: 0.65rem; outline: none; border: 1px solid var(--card-border); border-radius: 4px; font-weight: 800; color: var(--text-soft); background: var(--btn-bg);"></select>' +
+          '<label style="font-size: 0.6rem; color: var(--text-light); font-weight: 600;">' + esc(col) + ' 数据列 (可选)</label>' +
+          '<select class="aiSelCustom" data-col="' + esc(col) + '" style="height: 24px; font-size: 0.65rem; outline: none; border: 0.5px solid var(--card-border); border-radius: var(--radius-xs); font-weight: 600; color: var(--text-soft); background: var(--btn-bg);"></select>' +
           '</div>';
       });
       container.innerHTML = html;
@@ -8892,8 +8901,8 @@ function updateAutoDialBtn() {
             return '<div style=\"display:flex; justify-content:space-between; align-items:center; padding:6px 8px; background:var(--btn-bg); border-radius:4px;' + (s.active ? '' : 'opacity:0.5;') + '\">'
               + '<span style=\"font-size:0.72rem; font-weight:700; color:var(--text-main);\">' + (s.account_name || s.label || s.account_id.slice(0,12)) + activeTag + '</span>'
               + '<div style=\"display:flex; gap:3px;\">'
-              + '<button class=\"sub-toggle-btn\" data-id=\"' + s.account_id + '\" data-active=\"' + (s.active ? '1' : '0') + '\" style=\"font-size:0.58rem; padding:2px 6px; border:1px solid var(--card-border); border-radius:3px; background:var(--card-bg); color:' + (s.active ? '#e74c3c' : '#07c160') + '; cursor:pointer; font-weight:700;\">' + (s.active ? '禁用' : '启用') + '</button>'
-              + '<button class=\"sub-delete-btn\" data-id=\"' + s.account_id + '\" style=\"font-size:0.58rem; padding:2px 6px; border:1px solid var(--card-border); border-radius:3px; background:var(--card-bg); color:#e74c3c; cursor:pointer; font-weight:700;\">删除</button>'
+              + '<button class=\"sub-toggle-btn\" data-id=\"' + s.account_id + '\" data-active=\"' + (s.active ? '1' : '0') + '\" style=\"font-size:0.58rem; padding:2px 6px; border:0.5px solid var(--card-border); border-radius:3px; background:var(--card-bg); color:' + (s.active ? '#e74c3c' : '#07c160') + '; cursor:pointer; font-weight:700;\">' + (s.active ? '禁用' : '启用') + '</button>'
+              + '<button class=\"sub-delete-btn\" data-id=\"' + s.account_id + '\" style=\"font-size:0.58rem; padding:2px 6px; border:0.5px solid var(--card-border); border-radius:3px; background:var(--card-bg); color:#e74c3c; cursor:pointer; font-weight:700;\">删除</button>'
               + '</div></div>';
           }).join('');
           list.querySelectorAll('.sub-toggle-btn').forEach(function(btn) {

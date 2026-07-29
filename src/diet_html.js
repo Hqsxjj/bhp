@@ -30,7 +30,8 @@ export const DIET_HTML = `<!DOCTYPE html>
       --text2: #b0a0b0;
       --text3: #807080;
     }
-    html, body { height: 100%; width: 100%; font-family: system-ui, -apple-system, "PingFang SC", "Microsoft YaHei UI", sans-serif; font-weight: 600; color: var(--text); }
+    html { height: 100%; width: 100%; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+    body { height: 100%; width: 100%; font-family: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif; font-weight: 400; letter-spacing: -0.01em; line-height: 1.45; color: var(--text); }
 
     /* Wallpaper */
     .wallpaper-bg {
@@ -50,11 +51,11 @@ export const DIET_HTML = `<!DOCTYPE html>
 
     /* Header */
     .header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
-    .header h1 { font-size: 1.3rem; font-weight: 900; flex: 1; color: var(--text); }
-    .header .date { font-size: 0.78rem; color: var(--text2); font-weight: 700; }
+    .header h1 { font-size: 1.3rem; font-weight: 600; flex: 1; color: var(--text); }
+    .header .date { font-size: 0.78rem; color: var(--text2); font-weight: 600; }
     .header .day-badge {
       background: rgba(255,255,255,0.5); backdrop-filter: blur(8px);
-      color: #d08ae8; font-size: 0.75rem; font-weight: 800;
+      color: #d08ae8; font-size: 0.75rem; font-weight: 600;
       padding: 4px 10px; border-radius: 20px;
       border: 1px solid rgba(255,255,255,0.3);
     }
@@ -63,7 +64,7 @@ export const DIET_HTML = `<!DOCTYPE html>
       height: 30px; border: none; padding: 0 12px;
       background: var(--card); backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
-      border-radius: 15px; font-size: 0.72rem; cursor: pointer; font-weight: 700;
+      border-radius: 15px; font-size: 0.72rem; cursor: pointer; font-weight: 600;
       color: var(--text2); box-shadow: 0 1px 3px rgba(0,0,0,0.06);
       border: 1px solid var(--card-border);
       text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
@@ -78,10 +79,10 @@ export const DIET_HTML = `<!DOCTYPE html>
       box-shadow: 0 2px 12px rgba(0,0,0,0.05);
       margin-bottom: 14px;
     }
-    .card-label { font-size: 0.72rem; color: var(--text2); font-weight: 700; margin-bottom: 6px; letter-spacing: 0.5px; }
-    .card-value { font-size: 1.6rem; font-weight: 900; }
+    .card-label { font-size: 0.72rem; color: var(--text2); font-weight: 600; margin-bottom: 6px; letter-spacing: 0.5px; }
+    .card-value { font-size: 1.6rem; font-weight: 700; letter-spacing: -0.02em; }
     .card-sub { font-size: 0.72rem; color: var(--text2); margin-top: 4px; }
-    .card-change { font-size: 0.8rem; font-weight: 800; }
+    .card-change { font-size: 0.8rem; font-weight: 600; }
     .card-change.down { color: #d08ae8; }
     .card-change.up { color: var(--red); }
 
@@ -92,7 +93,7 @@ export const DIET_HTML = `<!DOCTYPE html>
     /* Weight input */
     .weight-input-row { display: flex; gap: 8px; margin-top: 10px; }
     .weight-input-row input {
-      flex: 1; height: 38px; padding: 0 12px; font-size: 0.9rem; font-weight: 700;
+      flex: 1; height: 38px; padding: 0 12px; font-size: 0.9rem; font-weight: 600;
       border: 2px solid rgba(255,180,210,0.5); border-radius: 18px;
       background: rgba(255,255,255,0.55); backdrop-filter: blur(8px);
       color: #5c3d5c; outline: none;
@@ -101,7 +102,7 @@ export const DIET_HTML = `<!DOCTYPE html>
     body.dark .weight-input-row input { background: rgba(40,25,40,0.5); border-color: rgba(180,100,160,0.4); color: #e0d0e0; }
     .weight-input-row button {
       padding: 0 16px; height: 38px; background: var(--accent-gradient); color: #fff;
-      border: none; border-radius: 22px; font-weight: 800; font-size: 0.82rem; cursor: pointer;
+      border: none; border-radius: 22px; font-weight: 600; font-size: 0.82rem; cursor: pointer;
       box-shadow: 0 4px 16px rgba(210,130,200,0.3);
     }
 
@@ -109,7 +110,7 @@ export const DIET_HTML = `<!DOCTYPE html>
     .progress-bar { height: 8px; background: rgba(0,0,0,0.06); border-radius: 4px; overflow: hidden; margin-top: 6px; }
     body.dark .progress-bar { background: rgba(255,255,255,0.08); }
     .progress-fill { height: 100%; background: var(--accent-gradient); border-radius: 4px; transition: width 0.5s; }
-    .progress-text { font-size: 0.75rem; color: var(--text2); font-weight: 700; }
+    .progress-text { font-size: 0.75rem; color: var(--text2); font-weight: 600; }
 
     /* Metric cards */
     .metric-card {
@@ -121,8 +122,8 @@ export const DIET_HTML = `<!DOCTYPE html>
       box-shadow: 0 1px 6px rgba(0,0,0,0.03);
     }
     .metric-card:hover { border-color: rgba(0,0,0,0.15); transform: translateY(-1px); }
-    .metric-title { font-size: 0.7rem; color: var(--text2); font-weight: 700; margin-bottom: 8px; }
-    .metric-val { font-size: 0.85rem; font-weight: 900; color: var(--text); }
+    .metric-title { font-size: 0.7rem; color: var(--text2); font-weight: 600; margin-bottom: 8px; }
+    .metric-val { font-size: 0.85rem; font-weight: 600; color: var(--text); }
     .metric-sub { font-size: 0.65rem; color: var(--text3); margin-top: 2px; font-weight: 600; }
 
     /* Tasks */
@@ -144,7 +145,7 @@ export const DIET_HTML = `<!DOCTYPE html>
     .notes-area:focus { border-color: rgba(255,130,180,0.8); box-shadow: 0 0 20px rgba(255,150,200,0.15); }
 
     /* Check-in button */
-    .checkin-btn { width: 100%; height: 48px; background: var(--accent-gradient); color: #fff; border: none; border-radius: 22px; font-size: 1rem; font-weight: 800; cursor: pointer; transition: all 0.3s; letter-spacing: 4px; margin-top: 8px; box-shadow: 0 6px 24px rgba(210,130,200,0.35), 0 0 40px rgba(200,150,220,0.1); }
+    .checkin-btn { width: 100%; height: 48px; background: var(--accent-gradient); color: #fff; border: none; border-radius: 22px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; letter-spacing: 4px; margin-top: 8px; box-shadow: 0 6px 24px rgba(210,130,200,0.35), 0 0 40px rgba(200,150,220,0.1); }
     .checkin-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(210,130,200,0.45), 0 0 50px rgba(200,150,220,0.18); }
     .checkin-btn:active { transform: scale(0.97); box-shadow: 0 4px 16px rgba(210,130,200,0.3); }
     .checkin-btn.done { background: #c0c0c0; cursor: default; box-shadow: none; }
@@ -156,29 +157,29 @@ export const DIET_HTML = `<!DOCTYPE html>
     .modal-card { background: rgba(255,255,255,0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: var(--radius); padding: 24px; width: 90%; max-width: 400px; box-shadow: 0 16px 48px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); }
     body.dark .modal-card { background: rgba(30,30,30,0.9); border-color: rgba(255,255,255,0.08); }
     .modal-card h2 { font-size: 1.1rem; margin-bottom: 16px; }
-    .modal-card label { display: block; font-size: 0.78rem; color: var(--text2); font-weight: 700; margin-bottom: 4px; margin-top: 10px; }
-    .modal-card input { width: 100%; height: 40px; padding: 0 12px; font-size: 0.9rem; font-weight: 700; border: 2px solid rgba(255,180,210,0.5); border-radius: 18px; background: rgba(255,255,255,0.6); color: #5c3d5c; outline: none; margin-bottom: 6px; }
+    .modal-card label { display: block; font-size: 0.78rem; color: var(--text2); font-weight: 600; margin-bottom: 4px; margin-top: 10px; }
+    .modal-card input { width: 100%; height: 40px; padding: 0 12px; font-size: 0.9rem; font-weight: 600; border: 2px solid rgba(255,180,210,0.5); border-radius: 18px; background: rgba(255,255,255,0.6); color: #5c3d5c; outline: none; margin-bottom: 6px; }
     body.dark .modal-card input { background: rgba(40,25,40,0.5); border-color: rgba(180,100,160,0.4); color: #e0d0e0; }
     .modal-card input:focus { border-color: rgba(255,130,180,0.8); box-shadow: 0 0 20px rgba(255,150,200,0.15); }
-    .modal-card button { width: 100%; height: 42px; background: var(--accent-gradient); color: #fff; border: none; border-radius: 22px; font-size: 0.9rem; font-weight: 800; cursor: pointer; margin-top: 8px; letter-spacing: 2px; box-shadow: 0 4px 16px rgba(210,130,200,0.3); }
+    .modal-card button { width: 100%; height: 42px; background: var(--accent-gradient); color: #fff; border: none; border-radius: 22px; font-size: 0.9rem; font-weight: 600; cursor: pointer; margin-top: 8px; letter-spacing: 2px; box-shadow: 0 4px 16px rgba(210,130,200,0.3); }
 
     /* Calendar */
     .cal-card { margin-bottom: 14px; }
     .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .cal-head button { width: 28px; height: 28px; border: none; background: rgba(255,255,255,0.5); backdrop-filter: blur(8px); border-radius: 50%; font-size: 0.9rem; cursor: pointer; color: var(--text2); font-weight: 700; border: 1px solid var(--card-border); }
-    .cal-head .cal-title { font-size: 0.9rem; font-weight: 900; color: var(--text); }
-    .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.65rem; font-weight: 800; color: var(--text3); margin-bottom: 4px; }
+    .cal-head button { width: 28px; height: 28px; border: none; background: rgba(255,255,255,0.5); backdrop-filter: blur(8px); border-radius: 50%; font-size: 0.9rem; cursor: pointer; color: var(--text2); font-weight: 600; border: 1px solid var(--card-border); }
+    .cal-head .cal-title { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+    .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.65rem; font-weight: 600; color: var(--text3); margin-bottom: 4px; }
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
-    .cal-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700; border-radius: 8px; cursor: pointer; color: var(--text); transition: 0.15s; position: relative; }
+    .cal-day { aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; border-radius: 8px; cursor: pointer; color: var(--text); transition: 0.15s; position: relative; }
     .cal-day:hover { background: rgba(255,255,255,0.3); }
     .cal-day.other-month { color: var(--text3); opacity: 0.4; }
-    .cal-day.today { background: var(--accent-gradient); color: #fff; font-weight: 900; }
+    .cal-day.today { background: var(--accent-gradient); color: #fff; font-weight: 600; }
     .cal-day.checked { background: rgba(200,130,220,0.2); }
     .cal-day.today.checked { background: var(--accent-gradient); }
     .cal-dot { width: 5px; height: 5px; border-radius: 50%; background: #d08ae8; margin-top: 1px; }
     .cal-day.today .cal-dot { background: rgba(255,255,255,0.7); }
 
-    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(30,30,30,0.85); backdrop-filter: blur(10px); color: #fff; padding: 10px 24px; border-radius: 20px; font-size: 0.82rem; font-weight: 700; z-index: 200; opacity: 0; transition: 0.3s; pointer-events: none; border: 1px solid rgba(255,255,255,0.1); }
+    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(30,30,30,0.85); backdrop-filter: blur(10px); color: #fff; padding: 10px 24px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; z-index: 200; opacity: 0; transition: 0.3s; pointer-events: none; border: 1px solid rgba(255,255,255,0.1); }
     body.dark .toast { background: rgba(255,255,255,0.85); color: #111; }
     .toast.show { opacity: 1; }
 
@@ -212,7 +213,7 @@ export const DIET_HTML = `<!DOCTYPE html>
       #mainContent::-webkit-scrollbar { width: 4px; }
       #mainContent::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); border-radius: 2px; }
       body.dark #mainContent::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); }
-      .card-value { font-size: 1.8rem; }
+      .card-value { font-size: 1.8rem; font-weight: 700; }
       .row2 { gap: 18px; }
       .row4 { gap: 14px; }
       /* Prevent the last element's margin from creating extra scroll */
