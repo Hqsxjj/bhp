@@ -15,7 +15,7 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
       --bg-app: #f2f2f7;
-      --card-bg: rgba(255,255,255,0.88);
+      --card-bg: rgba(255,255,255,0.95);
       --card-border: rgba(0,0,0,0.04);
       --separator: rgba(0,0,0,0.08);
       --text-main: #1c1c1e;
@@ -42,7 +42,7 @@
     }
     body.dark-mode {
       --bg-app: #1c1c1e;
-      --card-bg: rgba(28,28,30,0.65);
+      --card-bg: rgba(28,28,30,0.82);
       --card-border: rgba(255,255,255,0.06);
       --separator: rgba(255,255,255,0.1);
       --text-main: #f2f2f7;
@@ -428,7 +428,7 @@
     body.dark-mode .crm-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.04); }
     body.dark-mode .crm-table tbody tr:hover td { background: rgba(74,108,247,0.12) !important; }
     .xls-dial-card {
-      background: rgba(255,255,255,0.6);
+      background: var(--card-bg);
       backdrop-filter: blur(10px) saturate(140%);
       -webkit-backdrop-filter: blur(10px) saturate(140%);
       border: 0.5px solid var(--card-border);
@@ -442,7 +442,7 @@
       transition: all 0.15s ease;
     }
     body.dark-mode .xls-dial-card {
-      background: rgba(255,255,255,0.05);
+      background: var(--card-bg);
       backdrop-filter: blur(10px) saturate(110%);
       -webkit-backdrop-filter: blur(10px) saturate(110%);
       border-color: rgba(255,255,255,0.08);
@@ -467,12 +467,12 @@
       line-height: 1;
     }
     .xls-dial-card.dialed {
-      opacity: 0.65;
+      opacity: 0.8;
       border-color: var(--border-light);
-      background: rgba(0, 0, 0, 0.01);
+      background: rgba(0, 0, 0, 0.02);
     }
     body.dark-mode .xls-dial-card.dialed {
-      background: rgba(255, 255, 255, 0.01);
+      background: rgba(255, 255, 255, 0.03);
     }
     .xls-dial-badge {
       font-size: 0.65rem;
