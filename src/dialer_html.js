@@ -1196,6 +1196,64 @@
       background: #f39c12;
       box-shadow: 0 4px 16px rgba(243, 156, 18, 0.35);
     }
+    /* ====== Reminder Overlay ====== */
+    .reminder-overlay {
+      position: fixed; inset: 0; background: var(--modal-bg);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      z-index: 3000; opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px;
+    }
+    .reminder-overlay.active { opacity: 1; pointer-events: auto; }
+    .reminder-card {
+      background: var(--modal-card);
+      border: 0.5px solid var(--card-border);
+      border-radius: var(--radius-ios);
+      box-shadow: var(--shadow-card);
+      width: 100%; max-width: 380px;
+      padding: 24px 20px 20px;
+      display: flex; flex-direction: column; gap: 14px;
+      transform: translateY(16px);
+      transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+    }
+    .reminder-overlay.active .reminder-card { transform: translateY(0); }
+    .reminder-header {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px;
+    }
+    .reminder-title {
+      font-size: 0.95rem; font-weight: 600; color: var(--text-main);
+      line-height: 1.3;
+    }
+    .reminder-countdown {
+      font-size: 0.75rem; font-weight: 500; color: var(--text-light);
+      background: var(--btn-bg); border-radius: var(--radius-capsule);
+      padding: 3px 10px; white-space: nowrap; flex-shrink: 0;
+    }
+    .reminder-countdown.urgent { color: #e05060; background: rgba(224,80,96,0.1); }
+    .reminder-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+    .reminder-item {
+      display: flex; align-items: flex-start; gap: 10px;
+      font-size: 0.82rem; color: var(--text-soft); line-height: 1.4;
+    }
+    .reminder-num {
+      flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
+      background: #4a6cf7; color: #fff; font-size: 0.7rem; font-weight: 600;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 1px;
+    }
+    .reminder-dismiss {
+      align-self: stretch; padding: 10px 0; border: none;
+      background: var(--btn-bg); color: var(--text-main);
+      font-size: 0.85rem; font-weight: 500; font-family: inherit;
+      border-radius: var(--radius-sm); cursor: pointer;
+      transition: background 0.15s; letter-spacing: -0.01em;
+      -webkit-tap-highlight-color: transparent;
+      margin-top: 2px;
+    }
+    .reminder-dismiss:active { background: var(--btn-hover); }
+
     /* ====== Professional CRM Dashboard ====== */
     .db-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 99999;
@@ -1497,6 +1555,24 @@
 <body>
   <div class="copy-limit-toast" id="copyLimitToast"></div>
   <div class="check-toast" id="checkToast"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+
+  <!-- Reminder Overlay -->
+  <div class="reminder-overlay" id="reminderOverlay">
+    <div class="reminder-card">
+      <div class="reminder-header">
+        <span class="reminder-title">微信运营提醒</span>
+        <span class="reminder-countdown" id="reminderCountdown">03:00</span>
+      </div>
+      <ol class="reminder-list">
+        <li class="reminder-item"><span class="reminder-num">1</span>休息30-50分钟，防止微信频繁</li>
+        <li class="reminder-item"><span class="reminder-num">2</span>给加上的微信打招呼设置标签</li>
+        <li class="reminder-item"><span class="reminder-num">3</span>打招呼记得多聊两句哦，增加权重</li>
+        <li class="reminder-item"><span class="reminder-num">4</span>早晚想一下非硬广告的文案，朋友圈每天发一条</li>
+        <li class="reminder-item"><span class="reminder-num">5</span>有些纠结的客户主动删除他防止权重降低</li>
+      </ol>
+      <button class="reminder-dismiss" id="reminderDismiss" onclick="document.getElementById('reminderOverlay').classList.remove('active');if(window._reminderTimer)clearInterval(window._reminderTimer);">知道了</button>
+    </div>
+  </div>
 
   <!-- Auth: Login Overlay -->
   <div id="authLoginOverlay" class="auth-overlay auth-hidden">
@@ -2374,6 +2450,60 @@
         el.classList.remove('show');
       }, 1200);
     }
+
+    // Reminder: 3-minute popup with WeChat operation tips
+    var _reminderShown = false;
+    window._reminderTimer = null;
+    var _reminderOpCount = 0;
+
+    function showReminderOverlay() {
+      var overlay = document.getElementById('reminderOverlay');
+      var countdownEl = document.getElementById('reminderCountdown');
+      if (!overlay || !countdownEl) return;
+      overlay.classList.add('active');
+      var total = 180;
+      var remaining = total;
+      function updateCountdown() {
+        var min = Math.floor(remaining / 60);
+        var sec = remaining % 60;
+        countdownEl.textContent = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+        if (remaining <= 30) countdownEl.classList.add('urgent');
+        if (remaining <= 0) {
+          clearInterval(window._reminderTimer);
+          window._reminderTimer = null;
+          overlay.classList.remove('active');
+        }
+        remaining--;
+      }
+      updateCountdown();
+      window._reminderTimer = setInterval(updateCountdown, 1000);
+    }
+
+    function triggerReminder() {
+      if (_reminderShown) return;
+      _reminderOpCount++;
+      if (_reminderOpCount < 5) return;
+      _reminderShown = true;
+      showReminderOverlay();
+    }
+
+    // Fallback: auto-show after 2 minutes even if op count < 5
+    setTimeout(function() {
+      if (!_reminderShown) {
+        _reminderShown = true;
+        showReminderOverlay();
+      }
+    }, 120000);
+
+    // Wire dismiss button to clear countdown
+    (function() {
+      var dismissBtn = document.getElementById('reminderDismiss');
+      if (dismissBtn) {
+        dismissBtn.addEventListener('click', function() {
+          if (window._reminderTimer) { clearInterval(window._reminderTimer); window._reminderTimer = null; }
+        });
+      }
+    })();
 
     // Dark Mode Control (3-state: light / dark / auto)
     function initDark() {
@@ -5948,6 +6078,7 @@
               client.copied = true;
               saveState();
               checkAndTransferBatch(client);
+              triggerReminder();
             }
             b.classList.add('copied');
 
@@ -5983,6 +6114,7 @@
               client.copied = true;
               saveState();
               checkAndTransferBatch(client);
+              triggerReminder();
             }
 
             var card = document.getElementById('xdc_' + idx);
@@ -6027,6 +6159,7 @@
               clientComp.copied = true;
               saveState();
               checkAndTransferBatch(clientComp);
+              triggerReminder();
             }
 
             setTimeout(function() {
@@ -6319,6 +6452,7 @@
  }
  saveState();
  checkAndTransferBatch(c);
+ triggerReminder();
  renderDialCards();
 
  var nextIdx = getNextClientIndex(currentCallIdx);
