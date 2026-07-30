@@ -1346,17 +1346,35 @@ export default {
                   var cleanedName = rawName.replace(/^[新旧]\s*/, '').trim();
                   name = cleanedName.length === 0 ? rawName : cleanedName;
                 }
+                // 处理手机号后面的所有列，不再提前 break
+                var _companyParts = [];
+                var _noteParts = [];
                 for (var ci2 = phoneCol + 1; ci2 < cols.length; ci2++) {
                   var val = cols[ci2].trim();
                   if (!val) continue;
-                  // 公积金/金额：纯数字（支持小数点和千分位逗号，如 18662.00 / 27,501）
+                  // 公积金/金额：纯数字（含小数点和千分位逗号，如 11872.00 / 27,501）
                   if (/^[\d,]+\.?\d*$/.test(val)) {
                     if (!fund) fund = val.replace(/,/g, '');
                     continue;
                   }
-                  if (val !== '新增跟进' && val !== '已拨') {
-                    company = val; break;
+                  // 状态关键词：跳过（既不是公司也不是备注）
+                  if (/^(新增跟进|已拨|正常号|空号|停机|无法接通|挂断|意向|备注|新增|待跟进|已跟进|无效|未接|已接通|关机|占线|无人接听|通话中)$/.test(val)) {
+                    continue;
                   }
+                  // 判断是公司/机构名还是备注：包含机构后缀 → 公司；其余 → 备注
+                  if (/幼儿园|小学|中学|大学|学院|学校|公司|企业|集团|工厂|医院|银行|保险|证券|基金|局$|院$|所$|部$|中心$|厂$|处$|会$|队$|站$|海关|政府|研究院|实验室/.test(val)) {
+                    _companyParts.push(val);
+                  } else {
+                    _noteParts.push(val);
+                  }
+                }
+                company = _companyParts.join(' ');
+                if (!company && _noteParts.length > 0) {
+                  // 兜底：没有识别到机构时，取第一个非数字列作为公司
+                  company = _noteParts.shift();
+                }
+                if (!note && _noteParts.length > 0) {
+                  note = _noteParts.join('; ');
                 }
               }
             } else {
@@ -1406,20 +1424,36 @@ export default {
                   company = after.replace(/[\d.]+[\d\s]*$/g, '').replace(/\s*(新增跟进|已拨|正常号|空号|停机|无法接通).*$/, '').trim();
                 }
               } else {
-                // Nothing after phone — scan next lines
-                for (var k2 = i + 1; k2 < lines.length && k2 <= i + 3; k2++) {
+                // Nothing after phone — scan next lines, collect ALL (not just first)
+                var _nextCompanyParts = [];
+                var _nextNoteParts = [];
+                for (var k2 = i + 1; k2 < lines.length && k2 <= i + 5; k2++) {
                   var nl2 = lines[k2].trim();
                   if (!nl2) continue;
                   if (/^[\d,]+\.?\d*$/.test(nl2)) {
                     // 纯数字（含小数） → 公积金/金额
                     if (!fund) fund = nl2.replace(/,/g, '');
                   } else if (/^\d+$/.test(nl2)) {
-                    // 纯整数 → note/amount
+                    // 纯整数 → 可能是有意义的数字备注
+                    if (!note && !fund) note = nl2;
+                  } else if (/^(新增跟进|已拨|正常号|空号|停机|无法接通|挂断|意向|备注|新增|待跟进|已跟进|无效|未接|已接通|关机|占线|无人接听|通话中)$/.test(nl2)) {
+                    // 状态关键词 → 跳过（放在 note 里标记一下）
                     if (!note) note = nl2;
                   } else if (nl2.length > 1 && !/^\d{11}$/.test(nl2)) {
-                    // Text → company
-                    company = nl2; break;
+                    // 文本 → 判断是公司还是备注
+                    if (/幼儿园|小学|中学|大学|学院|学校|公司|企业|集团|工厂|医院|银行|保险|证券|基金|局$|院$|所$|部$|中心$|厂$|处$|会$|队$|站$|海关|政府|研究院|实验室/.test(nl2)) {
+                      _nextCompanyParts.push(nl2);
+                    } else {
+                      _nextNoteParts.push(nl2);
+                    }
                   }
+                }
+                company = _nextCompanyParts.join(' ');
+                if (!company && _nextNoteParts.length > 0) {
+                  company = _nextNoteParts.shift();
+                }
+                if (!note && _nextNoteParts.length > 0) {
+                  note = _nextNoteParts.join('; ');
                 }
               }
             }
@@ -1916,32 +1950,69 @@ export default {
       var seenPhones = {};
       var contacts = [];
       var lines = rawText.split(/\r?\n/);
-      lines.forEach(function(line) {
-        line = line.trim();
-        if (!line) return;
+      for (var li = 0; li < lines.length; li++) {
+        var line = lines[li].trim();
+        if (!line) continue;
         var phones = line.match(phoneRe);
-        if (!phones) return;
+        if (!phones) continue;
         phones.forEach(function(phone) {
           if (seenPhones[phone]) return;
           seenPhones[phone] = true;
-          var name = '', company = '', fund = '';
+          var name = '', company = '', fund = '', note = '';
           var before = line.substring(0, line.indexOf(phone)).trim();
           var nm = before.match(/(?:^|\s)([一-龥]{2,4})(?=\s|$)/);
           if (!nm) nm = before.match(/^([一-龥]{2,4})/);
           if (!nm) nm = before.match(/([一-龥]{1,4})\s*$/);
           if (nm) name = nm[1].replace(/^[新旧听一]+[\s\-\|]*/, '');
           var after = line.substring(line.indexOf(phone) + phone.length).trim();
-          // 提取末尾公积金数字（含小数点，如 18662.00 / 27,501）
-          var fundAtEnd = after.match(/([\d,]+\.?\d*)$/);
-          if (fundAtEnd) {
-            fund = fundAtEnd[1].replace(/,/g, '');
-            company = after.replace(/[\d,]+\.?\d*$/g, '').replace(/\s*(新增跟进|已拨|正常号|空号|停机|无法接通|挂断|意向|备注).*$/, '').trim();
-          } else {
-            company = after.replace(/[\d.]+[\d\s]*$/g, '').replace(/\s*(新增跟进|已拨|正常号|空号|停机|无法接通|挂断|意向|备注).*$/, '').trim();
+
+          if (after) {
+            // 同行有文本：先提取末尾公积金数字
+            var fundAtEnd = after.match(/([\d,]+\.?\d*)$/);
+            if (fundAtEnd) {
+              fund = fundAtEnd[1].replace(/,/g, '');
+              after = after.replace(/[\d,]+\.?\d*$/g, '').trim();
+            }
+            // 清理状态关键词
+            after = after.replace(/\s*(新增跟进|已拨|正常号|空号|停机|无法接通|挂断|意向|备注|新增|待跟进|已跟进|无效|未接|已接通|关机|占线|无人接听|通话中)$/, '').trim();
+            if (after) {
+              company = after;
+            }
           }
-          contacts.push({ name: name, phone: phone, company: company, fund: fund, note: '' });
+
+          // 同行没有文本或只有公积金 → 扫描后续行
+          if (!company && !note) {
+            var _fbCompanyParts = [];
+            var _fbNoteParts = [];
+            for (var kj = li + 1; kj < lines.length && kj <= li + 5; kj++) {
+              var nll = lines[kj].trim();
+              if (!nll) continue;
+              if (/^[\d,]+\.?\d*$/.test(nll)) {
+                if (!fund) fund = nll.replace(/,/g, '');
+              } else if (/^(新增跟进|已拨|正常号|空号|停机|无法接通|挂断|意向|备注|新增|待跟进|已跟进|无效|未接|已接通|关机|占线|无人接听|通话中)$/.test(nll)) {
+                if (!note) note = nll;
+              } else if (nll.length > 1 && !/^\d{11}$/.test(nll)) {
+                if (/幼儿园|小学|中学|大学|学院|学校|公司|企业|集团|工厂|医院|银行|保险|证券|基金|局$|院$|所$|部$|中心$|厂$|处$|会$|队$|站$|海关|政府|研究院|实验室/.test(nll)) {
+                  _fbCompanyParts.push(nll);
+                } else {
+                  _fbNoteParts.push(nll);
+                }
+              }
+            }
+            if (_fbCompanyParts.length > 0) {
+              company = _fbCompanyParts.join(' ');
+            } else if (_fbNoteParts.length > 0) {
+              company = _fbNoteParts.shift();
+            }
+            if (_fbNoteParts.length > 0) {
+              note = _fbNoteParts.join('; ');
+            }
+          }
+
+          // 如果上面都没解析出公司，after 前面已经被置为 company
+          contacts.push({ name: name, phone: phone, company: company, fund: fund, note: note || '' });
         });
-      });
+      }
       return contacts;
     }
 
