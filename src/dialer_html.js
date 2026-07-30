@@ -2772,6 +2772,7 @@
 
     // 批次达标自动转公海：≥50人 且 ≥90%已操作 → 整批转入公海
     var _transferredBatches = {};
+    var _transferTimers = {};
     function checkAndTransferBatch(client) {
       if (!client) return;
       var seq = client._seq || 0;
@@ -2789,36 +2790,39 @@
         if (bc.copied || bc.dialedStatus === 'success' || bc.dialedStatus === 'failed') operated++;
       }
       if (operated / total < 0.9) return;
-      // 达标：标记已处理，提取手机号，静默转公海
-      _transferredBatches[batch] = true;
-      var mobiles = [];
-      for (var j = 0; j < batchClients.length; j++) {
-        var m = batchClients[j].phone || batchClients[j].mobile;
-        if (m) mobiles.push(m);
-      }
-      console.log('[auto-transfer] 批次 ' + batch + ' 达标: ' + total + '人, ' + operated + '已操作, 转入公海...');
-      fetch('/api/dialer/customers/transfer-to-pool', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ mobiles: mobiles })
-      }).then(function(r) { return r.json(); })
-        .then(function(d) {
-          if (d.success) {
-            console.log('[auto-transfer] 批次 ' + batch + ' 已转入公海, ' + d.transferred + '/' + d.total);
-            // 从本地列表移除已转公海的客户
-            var mobileSet = {};
-            for (var mi = 0; mi < mobiles.length; mi++) { mobileSet[mobiles[mi]] = true; }
-            importedClients = importedClients.filter(function(c) {
-              var cm = c.phone || c.mobile;
-              return !mobileSet[cm];
-            });
-            saveState();
-            renderDialCards();
-          } else {
-            console.error('[auto-transfer] 批次 ' + batch + ' 转公海失败: ' + (d.error || 'unknown'));
-          }
-        })
-        .catch(function(e) { console.error('[auto-transfer] 请求失败: ' + e.message); });
+      // 达标：等5秒再转公海，期间继续操作会重置定时器
+      if (_transferTimers[batch]) clearTimeout(_transferTimers[batch]);
+      _transferTimers[batch] = setTimeout(function() {
+        _transferredBatches[batch] = true;
+        _transferTimers[batch] = null;
+        var mobiles = [];
+        for (var j = 0; j < batchClients.length; j++) {
+          var m = batchClients[j].phone || batchClients[j].mobile;
+          if (m) mobiles.push(m);
+        }
+        console.log('[auto-transfer] 批次 ' + batch + ' 达标: ' + total + '人, ' + operated + '已操作, 转入公海...');
+        fetch('/api/dialer/customers/transfer-to-pool', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ mobiles: mobiles })
+        }).then(function(r) { return r.json(); })
+          .then(function(d) {
+            if (d.success) {
+              console.log('[auto-transfer] 批次 ' + batch + ' 已转入公海, ' + d.transferred + '/' + d.total);
+              var mobileSet = {};
+              for (var mi = 0; mi < mobiles.length; mi++) { mobileSet[mobiles[mi]] = true; }
+              importedClients = importedClients.filter(function(c) {
+                var cm = c.phone || c.mobile;
+                return !mobileSet[cm];
+              });
+              saveState();
+              renderDialCards();
+            } else {
+              console.error('[auto-transfer] 批次 ' + batch + ' 转公海失败: ' + (d.error || 'unknown'));
+            }
+          })
+          .catch(function(e) { console.error('[auto-transfer] 请求失败: ' + e.message); });
+      }, 5000);
     }
 
     function uploadCustomersToSupabase(customers, batchLabel) {
