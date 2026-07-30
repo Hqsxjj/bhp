@@ -2454,7 +2454,7 @@
     // Reminder: 3-minute popup with WeChat operation tips
     var _reminderShown = false;
     window._reminderTimer = null;
-    var _reminderOpCount = 0;
+    var _reminderSeqTimer = null;
 
     function showReminderOverlay() {
       var overlay = document.getElementById('reminderOverlay');
@@ -2479,28 +2479,27 @@
       window._reminderTimer = setInterval(updateCountdown, 1000);
     }
 
-    function triggerReminder() {
+    // 操作到序号50的客户卡片时，2秒后弹出提醒
+    function scheduleReminder(client) {
       if (_reminderShown) return;
-      _reminderOpCount++;
-      if (_reminderOpCount < 5) return;
-      _reminderShown = true;
-      showReminderOverlay();
+      if (!client) return;
+      var seq = client._seq || 0;
+      if (seq < 50) return;
+      if (_reminderSeqTimer) clearTimeout(_reminderSeqTimer);
+      _reminderSeqTimer = setTimeout(function() {
+        _reminderShown = true;
+        _reminderSeqTimer = null;
+        showReminderOverlay();
+      }, 2000);
     }
 
-    // Fallback: auto-show after 2 minutes even if op count < 5
-    setTimeout(function() {
-      if (!_reminderShown) {
-        _reminderShown = true;
-        showReminderOverlay();
-      }
-    }, 120000);
-
-    // Wire dismiss button to clear countdown
+    // Wire dismiss button to clear countdown + seq timer
     (function() {
       var dismissBtn = document.getElementById('reminderDismiss');
       if (dismissBtn) {
         dismissBtn.addEventListener('click', function() {
           if (window._reminderTimer) { clearInterval(window._reminderTimer); window._reminderTimer = null; }
+          if (_reminderSeqTimer) { clearTimeout(_reminderSeqTimer); _reminderSeqTimer = null; }
         });
       }
     })();
@@ -6078,7 +6077,7 @@
               client.copied = true;
               saveState();
               checkAndTransferBatch(client);
-              triggerReminder();
+              scheduleReminder(client);
             }
             b.classList.add('copied');
 
@@ -6114,7 +6113,7 @@
               client.copied = true;
               saveState();
               checkAndTransferBatch(client);
-              triggerReminder();
+              scheduleReminder(client);
             }
 
             var card = document.getElementById('xdc_' + idx);
@@ -6159,7 +6158,7 @@
               clientComp.copied = true;
               saveState();
               checkAndTransferBatch(clientComp);
-              triggerReminder();
+              scheduleReminder(clientComp);
             }
 
             setTimeout(function() {
@@ -6452,7 +6451,7 @@
  }
  saveState();
  checkAndTransferBatch(c);
- triggerReminder();
+ scheduleReminder(c);
  renderDialCards();
 
  var nextIdx = getNextClientIndex(currentCallIdx);
