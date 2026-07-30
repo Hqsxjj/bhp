@@ -2035,6 +2035,7 @@
       <div class="crm-tab" data-tab="线索池">线索池 <span class="crm-tab-close">关闭</span></div>
       <div class="crm-tab" data-tab="公海客户">公海客户 <span class="crm-tab-close">关闭</span></div>
       <div class="crm-tab" data-tab="accountMgr">账户管理</div>
+      <div class="crm-tab" data-tab="backupMgr">数据备份</div>
       <div class="crm-tabs-right">
         <button class="db-close" id="dbClose">关闭</button>
       </div>
@@ -2143,6 +2144,30 @@
         <button id="dbResetAccountsBtn" style="flex:1; height:34px; background:transparent; border:1px solid #e74c3c; color:#e74c3c; border-radius:var(--radius-xs); font-size:0.72rem; font-weight:700; cursor:pointer;">重置所有账户</button>
       </div>
       <div id="dbResetAccountsError" style="font-size:0.62rem; min-height:16px; text-align:center;"></div>
+    </div>
+
+    <!-- Backup Manager Panel -->
+    <div id="dbBackupMgrPanel" style="display:none; flex-direction:column; gap:14px; padding:16px; overflow-y:auto; flex:1;">
+      <div style="font-size:0.85rem; font-weight:600; color:var(--text-main);">数据备份</div>
+      <div style="font-size:0.72rem; color:var(--text-light); line-height:1.5;">导出所有账户的全部客户数据为 CSV 文件，通过邮件发送到指定邮箱。<br>需要配置 Resend API Key（<a href="https://resend.com" target="_blank" style="color:#4a6cf7;">resend.com</a> 免费注册，100封/天）。</div>
+
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:0.72rem;font-weight:600;color:var(--text-soft);">Resend API Key</label>
+        <input type="password" id="dbResendApiKey" class="auth-input" placeholder="re_xxxxxxxx" style="font-size:0.78rem;height:34px;">
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:0.72rem;font-weight:600;color:var(--text-soft);">发送者邮箱 (需在Resend验证)</label>
+        <input id="dbBackupFromEmail" class="auth-input" placeholder="backup@yourdomain.com" style="font-size:0.78rem;height:34px;">
+      </div>
+      <button id="dbSaveEmailConfigBtn" class="auth-btn" style="font-size:0.78rem;padding:8px 0;">保存配置</button>
+      <div id="dbEmailConfigStatus" style="font-size:0.68rem; min-height:18px;"></div>
+
+      <div style="border-top:0.5px solid var(--separator);padding-top:14px;display:flex;flex-direction:column;gap:6px;">
+        <label style="font-size:0.72rem;font-weight:600;color:var(--text-soft);">接收备份的邮箱</label>
+        <input id="dbBackupEmail" class="auth-input" type="email" placeholder="your@email.com" style="font-size:0.78rem;height:34px;">
+      </div>
+      <button id="dbSendBackupBtn" class="auth-btn" style="font-size:0.78rem;padding:8px 0;background:#4a6cf7;color:#fff;">发送备份</button>
+      <div id="dbBackupStatus" style="font-size:0.68rem; min-height:18px; line-height:1.4;"></div>
     </div>
 
     <!-- Batch category mini-panel -->
@@ -8183,25 +8208,29 @@ function updateAutoDialBtn() {
       tabs.forEach(function(tab) {
         tab.onclick = function() {
           var tabName = tab.getAttribute('data-tab') || 'all';
-          if (tabName === 'accountMgr') {
+          if (tabName === 'accountMgr' || tabName === 'backupMgr') {
             tabs.forEach(function(t) { t.classList.remove('active'); });
             tab.classList.add('active');
             var mp = document.getElementById('dbAccountMgrPanel');
+            var bp = document.getElementById('dbBackupMgrPanel');
             var tb = document.querySelector('#dbOverlay .crm-table');
             var sc = document.querySelector('#dbOverlay .crm-search-card');
             var tl = document.querySelector('#dbOverlay .crm-toolbar');
-            if (mp) mp.style.display = 'flex';
+            if (mp) mp.style.display = tabName === 'accountMgr' ? 'flex' : 'none';
+            if (bp) bp.style.display = tabName === 'backupMgr' ? 'flex' : 'none';
             if (tb) tb.style.display = 'none';
             if (sc) sc.style.display = 'none';
             if (tl) tl.style.display = 'none';
-            loadSubAccounts();
-            loadAccountStats();
+            if (tabName === 'accountMgr') { loadSubAccounts(); loadAccountStats(); }
+            if (tabName === 'backupMgr') { loadBackupConfig(); }
           } else {
             var mp2 = document.getElementById('dbAccountMgrPanel');
+            var bp2 = document.getElementById('dbBackupMgrPanel');
             var tb2 = document.querySelector('#dbOverlay .crm-table');
             var sc2 = document.querySelector('#dbOverlay .crm-search-card');
             var tl2 = document.querySelector('#dbOverlay .crm-toolbar');
             if (mp2) mp2.style.display = 'none';
+            if (bp2) bp2.style.display = 'none';
             if (tb2) tb2.style.display = '';
             if (sc2) sc2.style.display = '';
             if (tl2) tl2.style.display = '';
@@ -9104,6 +9133,93 @@ function updateAutoDialBtn() {
       }
     }
 
+    function initBackupMgrPanel() {
+      // Save email config
+      var saveConfigBtn = document.getElementById('dbSaveEmailConfigBtn');
+      if (saveConfigBtn) {
+        saveConfigBtn.addEventListener('click', function() {
+          var key = document.getElementById('dbResendApiKey').value.trim();
+          var fromEmail = document.getElementById('dbBackupFromEmail').value.trim();
+          var status = document.getElementById('dbEmailConfigStatus');
+          if (!key) { status.textContent = '请输入 Resend API Key'; status.style.color = '#e74c3c'; return; }
+          saveConfigBtn.disabled = true; saveConfigBtn.textContent = '保存中...';
+          var token = getSessionToken();
+          fetch('/api/dialer/stats/email-config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({ resendApiKey: key, backupFromEmail: fromEmail || undefined, saveOnly: true })
+          })
+          .then(function(r) { return r.json(); })
+          .then(function(res) {
+            if (res.success) {
+              status.textContent = '配置已保存';
+              status.style.color = '#07c160';
+              document.getElementById('dbResendApiKey').value = '';
+              setTimeout(function() { status.textContent = ''; }, 3000);
+            } else {
+              status.textContent = res.error || '保存失败';
+              status.style.color = '#e74c3c';
+            }
+          })
+          .catch(function() { status.textContent = '网络错误'; status.style.color = '#e74c3c'; })
+          .finally(function() { saveConfigBtn.disabled = false; saveConfigBtn.textContent = '保存配置'; });
+        });
+      }
+
+      // Send backup
+      var sendBtn = document.getElementById('dbSendBackupBtn');
+      if (sendBtn) {
+        sendBtn.addEventListener('click', function() {
+          var email = document.getElementById('dbBackupEmail').value.trim();
+          var status = document.getElementById('dbBackupStatus');
+          if (!email) { status.textContent = '请输入接收邮箱'; status.style.color = '#e74c3c'; return; }
+          if (email.indexOf('@') === -1) { status.textContent = '邮箱格式不正确'; status.style.color = '#e74c3c'; return; }
+          sendBtn.disabled = true; sendBtn.textContent = '正在导出并发送...';
+          status.style.color = 'var(--text-light)';
+          status.textContent = '正在从数据库导出全部客户数据，请稍候...';
+          var token = getSessionToken();
+          fetch('/api/dialer/stats/export-email', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({ email: email })
+          })
+          .then(function(r) { return r.json(); })
+          .then(function(res) {
+            if (res.success) {
+              status.style.color = '#07c160';
+              status.textContent = '备份邮件已发送至 ' + email + '！共 ' + res.count + ' 条记录。请查收附件。';
+              document.getElementById('dbBackupEmail').value = '';
+            } else {
+              status.style.color = '#e74c3c';
+              status.textContent = res.error || '发送失败';
+            }
+          })
+          .catch(function() { status.textContent = '网络错误，请重试'; status.style.color = '#e74c3c'; })
+          .finally(function() { sendBtn.disabled = false; sendBtn.textContent = '发送备份'; });
+        });
+      }
+
+      // Master-only visibility
+      var backupSection = document.getElementById('dbBackupMgrPanel');
+      if (backupSection && !isSessionMaster()) {
+        backupSection.querySelectorAll('input,button').forEach(function(el) { el.disabled = true; });
+      }
+    }
+
+    function loadBackupConfig() {
+      var token = getSessionToken();
+      if (!token) return;
+      fetch('/api/dialer/stats/email-config', { method: 'GET', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token } })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          var status = document.getElementById('dbEmailConfigStatus');
+          if (status) {
+            if (res.hasKey) { status.textContent = '已配置 Resend API Key'; status.style.color = '#07c160'; }
+            else { status.textContent = '尚未配置'; status.style.color = 'var(--text-light)'; }
+          }
+        })
+        .catch(function() {});
+    }
 
     function loadSubAccounts() {
       var list = document.getElementById('dbSubAccountList');
@@ -9597,6 +9713,7 @@ function updateAutoDialBtn() {
     safeInit('loadPersistedState', loadPersistedState);
     safeInit('initCustViewer', initCustViewer);
     safeInit('initAccountMgrPanel', initAccountMgrPanel);
+    safeInit('initBackupMgrPanel', initBackupMgrPanel);
 
     safeInit('initDialerTemplateBtn', function() {
       var btn = document.getElementById('dialerTemplateBtn');

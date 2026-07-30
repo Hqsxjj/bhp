@@ -545,6 +545,164 @@ export default {
       }
     }
 
+    // ==================== Export API (master-only) ====================
+
+    // POST /api/dialer/stats/email-config — save Resend API key
+    if (path === '/api/dialer/stats/email-config' && request.method === 'POST') {
+      try {
+        var authHeader = request.headers.get('Authorization') || '';
+        var sessionToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+        var session = await dialerValidateSession(env, sessionToken);
+        if (!session) throw new Error('未登录');
+
+        var accounts = await dialerGetAccounts(env);
+        var master = null;
+        for (var ak = 0; ak < accounts.length; ak++) {
+          if (accounts[ak].account_id === session.account_id && accounts[ak].is_master !== false) { master = accounts[ak]; break; }
+        }
+        if (!master) throw new Error('仅主账户可操作');
+
+        var body = await request.json();
+        if (body.resendApiKey !== undefined) {
+          await env.DATA_KV.put('config:resend_api_key', body.resendApiKey || '');
+        }
+        if (body.backupFromEmail !== undefined) {
+          await env.DATA_KV.put('config:backup_from_email', body.backupFromEmail || '');
+        }
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: e.message === '未登录' ? 401 : 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
+    // GET /api/dialer/stats/email-config — check if Resend key is set (never expose the key)
+    if (path === '/api/dialer/stats/email-config' && request.method === 'GET') {
+      try {
+        var authHeader = request.headers.get('Authorization') || '';
+        var sessionToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+        var session = await dialerValidateSession(env, sessionToken);
+        if (!session) throw new Error('未登录');
+
+        var accounts = await dialerGetAccounts(env);
+        var master = null;
+        for (var ak = 0; ak < accounts.length; ak++) {
+          if (accounts[ak].account_id === session.account_id && accounts[ak].is_master !== false) { master = accounts[ak]; break; }
+        }
+        if (!master) throw new Error('仅主账户可操作');
+
+        var key = await env.DATA_KV.get('config:resend_api_key') || '';
+
+        return new Response(JSON.stringify({ hasKey: !!key }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ hasKey: false, error: e.message }), {
+          status: e.message === '未登录' ? 401 : 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
+    // POST /api/dialer/stats/export-email — export all customers and email as CSV
+    if (path === '/api/dialer/stats/export-email' && request.method === 'POST') {
+      try {
+        var authHeader = request.headers.get('Authorization') || '';
+        var sessionToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+        var session = await dialerValidateSession(env, sessionToken);
+        if (!session) throw new Error('未登录');
+
+        var accounts = await dialerGetAccounts(env);
+        var master = null;
+        for (var ak = 0; ak < accounts.length; ak++) {
+          if (accounts[ak].account_id === session.account_id && accounts[ak].is_master !== false) { master = accounts[ak]; break; }
+        }
+        if (!master) throw new Error('仅主账户可操作');
+
+        var body = await request.json();
+        var targetEmail = (body.email || '').trim();
+        if (!targetEmail || targetEmail.indexOf('@') === -1) throw new Error('请输入有效的邮箱地址');
+
+        // Get Resend config
+        var resendKey = await env.DATA_KV.get('config:resend_api_key') || '';
+        if (!resendKey) throw new Error('请先在数据备份页面配置 Resend API Key');
+
+        var fromEmail = await env.DATA_KV.get('config:backup_from_email') || 'backup@resend.dev';
+
+        // Fetch all customers
+        var sb = createSupabaseClient(env);
+        var rows = await sb.exportAllCustomers();
+
+        // Generate CSV with UTF-8 BOM
+        var BOM = '﻿';
+        var headers = ['name', 'mobile', 'company_name', 'category', 'note', 'fund', 'batch_label', 'created_at', 'last_operation', 'account_id'];
+        var lines = [headers.join(',')];
+        for (var i = 0; i < rows.length; i++) {
+          var r = rows[i];
+          var fields = [];
+          for (var hi = 0; hi < headers.length; hi++) {
+            var val = r[headers[hi]];
+            if (val === null || val === undefined) val = '';
+            var str = String(val);
+            // CSV escape: wrap in quotes if contains comma, quote, or newline
+            if (str.indexOf(',') !== -1 || str.indexOf('"') !== -1 || str.indexOf('\n') !== -1 || str.indexOf('\r') !== -1) {
+              str = '"' + str.replace(/"/g, '""') + '"';
+            } else {
+              str = '"' + str + '"';
+            }
+            fields.push(str);
+          }
+          lines.push(fields.join(','));
+        }
+        var csvContent = BOM + lines.join('\r\n');
+        var base64 = Buffer.from(csvContent, 'utf-8').toString('base64');
+
+        // Today's date for filename
+        var today = new Date();
+        var dateStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+
+        // Send via Resend API
+        var resendResp = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + resendKey
+          },
+          body: JSON.stringify({
+            from: 'BHP Backup <' + fromEmail + '>',
+            to: [targetEmail],
+            subject: 'BHP 数据备份 - ' + dateStr,
+            text: '请查收附件中的客户数据备份。共 ' + rows.length + ' 条记录，来自所有账户。',
+            attachments: [{
+              filename: 'bhp_backup_' + dateStr + '.csv',
+              content: base64,
+              content_type: 'text/csv'
+            }]
+          })
+        });
+
+        if (!resendResp.ok) {
+          var errText = await resendResp.text();
+          console.error('[export-email] Resend API error:', errText);
+          throw new Error('邮件发送失败，请检查 Resend API Key 和发送者邮箱配置');
+        }
+
+        return new Response(JSON.stringify({ success: true, count: rows.length, email: targetEmail, date: dateStr }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: e.message === '未登录' ? 401 : 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
     // ==================== WeChat Count API (KV-synced per account) ====================
 
     if (path === '/api/dialer/wechat/count' && request.method === 'GET') {

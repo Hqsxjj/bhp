@@ -811,7 +811,8 @@ export function createSupabaseClient(env) {
     saveCorrection: saveCorrection,
     getCorrections: getCorrections,
     getCorrectionsForExport: getCorrectionsForExport,
-    getCorrectionsCount: getCorrectionsCount
+    getCorrectionsCount: getCorrectionsCount,
+    exportAllCustomers: exportAllCustomers
   };
 
   /**
@@ -1034,6 +1035,51 @@ export function createSupabaseClient(env) {
       console.error('[supabase] getCorrectionsCount error:', e.message);
       return 0;
     }
+  }
+
+  /**
+   * Export all customers across all accounts (no account_id filter).
+   * Returns full rows for backup/export purposes.
+   */
+  async function exportAllCustomers() {
+    if (!baseUrl || !key) return [];
+
+    var all = [];
+    var pageSize = 1000;
+    var from = 0;
+
+    while (true) {
+      var to = from + pageSize - 1;
+      var colSets = [
+        'name,mobile,company_name,category,note,fund,batch_label,created_at,last_operation,account_id',
+        'name,mobile,company_name,category,note,fund,batch_label,created_at,account_id',
+        'name,mobile,company_name,category,note,created_at,account_id',
+        '*'
+      ];
+
+      var batch = null;
+      var anySuccess = false;
+      for (var ci = 0; ci < colSets.length; ci++) {
+        var qUrl = baseUrl + '/rest/v1/customers?select=' + colSets[ci] + '&order=created_at.desc';
+        var resp = await fetch(qUrl, {
+          headers: Object.assign({}, headers(), {
+            'Range': from + '-' + to
+          })
+        });
+        if (resp.ok) {
+          batch = await resp.json();
+          anySuccess = true;
+          break;
+        }
+      }
+
+      if (!batch || !Array.isArray(batch) || batch.length === 0) break;
+      all = all.concat(batch);
+      if (batch.length < pageSize) break;
+      from += pageSize;
+    }
+
+    return all;
   }
 }
 
