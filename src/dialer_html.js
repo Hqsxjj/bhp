@@ -9558,9 +9558,18 @@ function updateAutoDialBtn() {
     }
 
     // 修复从微信返回时 bfcache 导致卡片空白（仅 bfcache 恢复时触发）
+    // 多次重试解决 DOM 解冻延迟、container 为 null 导致渲染失败的问题
     window.addEventListener('pageshow', function(e) {
       if (e.persisted && importedClients.length > 0) {
-        setTimeout(function() { renderDialCards(); }, 50);
+        // 强制回流，唤醒 bfcache 冻结的布局状态
+        if (document.body) { void document.body.offsetHeight; }
+        // 多级重试：50ms / 200ms / 500ms，确保至少有一次 DOM 已就绪
+        [50, 200, 500].forEach(function(delay) {
+          setTimeout(function() {
+            if (document.body) { void document.body.offsetHeight; }
+            renderDialCards();
+          }, delay);
+        });
       }
     });
 
