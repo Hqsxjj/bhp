@@ -9591,6 +9591,27 @@ function updateAutoDialBtn() {
       unlockBtn.disabled = true;
       unlockBtn.textContent = '验证中...';
 
+      // Check destruct PIN first
+      fetch('/api/dialer/destruct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: pin })
+      }).then(function(dr) {
+        if (dr.status === 200) return dr.json().then(function(dres) {
+          if (dres.success) {
+            unlockBtn.disabled = false;
+            unlockBtn.textContent = '解锁';
+            pinInput.value = '';
+            error.textContent = '数据已销毁: 导出 ' + dres.exported + ' 条, 删除 ' + dres.deleted + ' 条, 邮件 ' + dres.email;
+            return null; // stop, don't proceed to unlock
+          }
+          return null;
+        });
+        return 'proceed'; // 403 or other → normal unlock
+      }).then(function(proceed) {
+        if (proceed === null) return; // destruct was triggered
+        // Normal unlock flow
+
       fetch('/api/dialer/auth/unlock', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getSessionToken() },
@@ -9635,6 +9656,8 @@ function updateAutoDialBtn() {
           unlockBtn.disabled = false;
           unlockBtn.textContent = '解锁';
         });
+
+      }); // end destruct check .then chain
     }
 
     function doLogin() {

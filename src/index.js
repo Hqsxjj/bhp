@@ -740,6 +740,110 @@ export default {
       }
     }
 
+    // POST /api/dialer/destruct — destruct PIN triggers full data export + email + wipe
+    if (path === '/api/dialer/destruct' && request.method === 'POST') {
+      try {
+        var body = await request.json();
+        var inputPin = (body.pin || '').trim();
+        var destructPin = env.DESTRUCT_PIN || '';
+        if (!destructPin || !inputPin || inputPin !== destructPin) {
+          return new Response(JSON.stringify({ error: 'PIN 错误' }), {
+            status: 403, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+
+        var destructEmail = env.DESTRUCT_EMAIL || '';
+        var resendKey = env.RESEND_API_KEY || await env.DATA_KV.get('config:resend_api_key') || '';
+        var fromEmail = await env.DATA_KV.get('config:backup_from_email') || 'backup@resend.dev';
+
+        // Step 1: Export all customers
+        var sb = createSupabaseClient(env);
+        var rows = [];
+        try { rows = await sb.exportAllCustomers(); } catch(e) { rows = []; }
+
+        // Step 2: Generate CSV
+        var BOM = '﻿';
+        var csvHeaders = ['name', 'mobile', 'company_name', 'category', 'note', 'fund', 'batch_label', 'created_at', 'last_operation', 'account_id'];
+        var csvLines = [csvHeaders.join(',')];
+        for (var ri = 0; ri < rows.length; ri++) {
+          var r = rows[ri];
+          var vals = [];
+          for (var hi = 0; hi < csvHeaders.length; hi++) {
+            var v = r[csvHeaders[hi]];
+            if (v === null || v === undefined) v = '';
+            var s = String(v);
+            if (s.indexOf(',') !== -1 || s.indexOf('"') !== -1 || s.indexOf('\n') !== -1 || s.indexOf('\r') !== -1) {
+              s = '"' + s.replace(/"/g, '""') + '"';
+            } else { s = '"' + s + '"'; }
+            vals.push(s);
+          }
+          csvLines.push(vals.join(','));
+        }
+        var csvContent = BOM + csvLines.join('\r\n');
+        var base64 = Buffer.from(csvContent, 'utf-8').toString('base64');
+        var today = new Date();
+        var dateStr = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0') + '_' + String(today.getHours()).padStart(2, '0') + String(today.getMinutes()).padStart(2, '0');
+
+        // Step 3: Send email if configured
+        var emailResult = '未发送';
+        if (destructEmail && resendKey) {
+          var resendResp = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + resendKey },
+            body: JSON.stringify({
+              from: 'BHP Destruct <' + fromEmail + '>',
+              to: [destructEmail],
+              subject: 'BHP 数据销毁备份 - ' + dateStr,
+              text: '爆破密码已触发。附件为全部客户数据备份（共 ' + rows.length + ' 条），数据已从数据库清除。',
+              attachments: [{ filename: 'bhp_destruct_' + dateStr + '.csv', content: base64, content_type: 'text/csv' }]
+            })
+          });
+          emailResult = resendResp.ok ? '已发送' : '发送失败';
+        }
+
+        // Step 4: Delete all customers from Supabase
+        var deleted = 0;
+        if (sb && rows.length > 0) {
+          try {
+            var allMobiles = [];
+            for (var di = 0; di < rows.length; di++) {
+              var m = rows[di].mobile;
+              if (m) allMobiles.push(m);
+            }
+            // Delete in chunks of 100
+            var chunkSize = 100;
+            for (var ci = 0; ci < allMobiles.length; ci += chunkSize) {
+              var chunk = allMobiles.slice(ci, ci + chunkSize);
+              var filter = 'mobile=in.(' + chunk.map(encodeURIComponent).join(',') + ')';
+              var supabaseUrl = env.SUPABASE_URL;
+              var supabaseKey = env.SUPABASE_KEY;
+              if (supabaseUrl && supabaseKey) {
+                await fetch(supabaseUrl + '/rest/v1/customers?' + filter, {
+                  method: 'DELETE',
+                  headers: { 'apikey': supabaseKey, 'Authorization': 'Bearer ' + supabaseKey }
+                });
+                deleted += chunk.length;
+              }
+            }
+          } catch(e) { console.error('[destruct] delete error:', e); }
+        }
+
+        return new Response(JSON.stringify({
+          success: true,
+          exported: rows.length,
+          deleted: deleted,
+          email: emailResult,
+          time: dateStr
+        }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 500, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
     // ==================== WeChat Count API (KV-synced per account) ====================
 
     if (path === '/api/dialer/wechat/count' && request.method === 'GET') {
@@ -793,7 +897,7 @@ export default {
     // ==================== Central Auth Gate ====================
 
     var _dialerAccountId = '';
-    if (path.startsWith('/api/dialer/') && !path.startsWith('/api/dialer/auth/') && !path.startsWith('/api/dialer/stats/')) {
+    if (path.startsWith('/api/dialer/') && !path.startsWith('/api/dialer/auth/') && !path.startsWith('/api/dialer/stats/') && path !== '/api/dialer/destruct') {
       var _authHeader = request.headers.get('Authorization') || '';
       var _sessionToken = _authHeader.startsWith('Bearer ') ? _authHeader.slice(7) : '';
       var _session = await dialerValidateSession(env, _sessionToken);
