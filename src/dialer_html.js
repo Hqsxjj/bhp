@@ -2338,7 +2338,7 @@
   <div class="learn-overlay" id="learnOverlay" style="display:none;">
     <div class="learn-header">
       <span class="learn-header-title">学习中心</span>
-      <button class="learn-close-btn" onclick="document.getElementById('learnOverlay').style.display='none'; document.body.style.overflow='';">关闭</button>
+      <button class="learn-close-btn">关闭</button>
     </div>
     <div class="learn-body">
       <div class="learn-article">
@@ -7180,6 +7180,14 @@ function updateAutoDialBtn() {
  learnBtn.addEventListener('click', function() {
  document.getElementById('learnOverlay').style.display = 'flex';
  document.body.style.overflow = 'hidden';
+ });
+ }
+ 
+ var learnCloseBtn = document.querySelector('.learn-close-btn');
+ if (learnCloseBtn) {
+ learnCloseBtn.addEventListener('click', function() {
+ document.getElementById('learnOverlay').style.display = 'none';
+ document.body.style.overflow = '';
  });
  }
 
