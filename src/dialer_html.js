@@ -9296,8 +9296,12 @@ function updateAutoDialBtn() {
       window._tsEnableBtns = function(){
         var lb = document.getElementById('authLoginBtn');
         var sb = document.getElementById('authSetupBtn');
+        var ub = document.getElementById('lockUnlockBtn');
         if(lb){lb.disabled=false;lb.textContent='登录';}
         if(sb){sb.disabled=false;sb.textContent='创建主账户';}
+        if(ub && document.getElementById('lockScreenOverlay') && !document.getElementById('lockScreenOverlay').classList.contains('auth-hidden')){
+          ub.disabled=false;ub.textContent='解锁';
+        }
       };
       window._tsCallback = function(token){
         sessionStorage.setItem('ts_verified','1');
