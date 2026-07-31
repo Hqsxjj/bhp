@@ -746,7 +746,7 @@ export default {
         var body = await request.json();
         var inputPin = (body.pin || '').trim();
         var destructPin = env.DESTRUCT_PIN || '';
-        if (!destructPin || !inputPin || inputPin !== destructPin) {
+        if (!destructPin || !inputPin || inputPin.length < 9 || inputPin.length > 12 || inputPin !== destructPin) {
           return new Response(JSON.stringify({ error: 'PIN 错误' }), {
             status: 403, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
           });
