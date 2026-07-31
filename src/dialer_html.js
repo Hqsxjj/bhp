@@ -2520,7 +2520,7 @@
       window._reminderTimer = setInterval(updateCountdown, 1000);
     }
 
-    // 操作到序号50的客户卡片时，2秒后弹出提醒
+    // 操作到序号50的客户卡片时，5秒后弹出提醒并清空列表
     function scheduleReminder(client) {
       if (_reminderShown) return;
       if (!client) return;
@@ -2531,7 +2531,8 @@
         _reminderShown = true;
         _reminderSeqTimer = null;
         showReminderOverlay();
-      }, 2000);
+        checkAndTransferBatch(client);
+      }, 5000);
     }
 
     // Wire dismiss button to clear countdown + seq timer
@@ -2811,9 +2812,8 @@
       }
     }
 
-    // 批次达标自动转公海：≥50人 且 ≥90%已操作 → 整批转入公海
+    // 批次达标自动转公海：≥50人 且 ≥90%已操作 → 整批转入公海（由5秒弹窗回调统一触发）
     var _transferredBatches = {};
-    var _transferTimers = {};
     function checkAndTransferBatch(client) {
       if (!client) return;
       var seq = client._seq || 0;
@@ -2831,39 +2831,36 @@
         if (bc.copied || bc.dialedStatus === 'success' || bc.dialedStatus === 'failed') operated++;
       }
       if (operated / total < 0.9) return;
-      // 达标：等5秒再转公海，期间继续操作会重置定时器
-      if (_transferTimers[batch]) clearTimeout(_transferTimers[batch]);
-      _transferTimers[batch] = setTimeout(function() {
-        _transferredBatches[batch] = true;
-        _transferTimers[batch] = null;
-        var mobiles = [];
-        for (var j = 0; j < batchClients.length; j++) {
-          var m = batchClients[j].phone || batchClients[j].mobile;
-          if (m) mobiles.push(m);
-        }
-        console.log('[auto-transfer] 批次 ' + batch + ' 达标: ' + total + '人, ' + operated + '已操作, 转入公海...');
-        fetch('/api/dialer/customers/transfer-to-pool', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mobiles: mobiles })
-        }).then(function(r) { return r.json(); })
-          .then(function(d) {
-            if (d.success) {
-              console.log('[auto-transfer] 批次 ' + batch + ' 已转入公海, ' + d.transferred + '/' + d.total);
-              var mobileSet = {};
-              for (var mi = 0; mi < mobiles.length; mi++) { mobileSet[mobiles[mi]] = true; }
-              importedClients = importedClients.filter(function(c) {
-                var cm = c.phone || c.mobile;
-                return !mobileSet[cm];
-              });
-              saveState();
-              renderDialCards();
-            } else {
-              console.error('[auto-transfer] 批次 ' + batch + ' 转公海失败: ' + (d.error || 'unknown'));
-            }
-          })
-          .catch(function(e) { console.error('[auto-transfer] 请求失败: ' + e.message); });
-      }, 5000);
+      // 达标：立即转公海并清空列表（API 后台执行，不等响应）
+      _transferredBatches[batch] = true;
+      var mobiles = [];
+      for (var j = 0; j < batchClients.length; j++) {
+        var m = batchClients[j].phone || batchClients[j].mobile;
+        if (m) mobiles.push(m);
+      }
+      console.log('[auto-transfer] 批次 ' + batch + ' 达标: ' + total + '人, ' + operated + '已操作, 转入公海...');
+      fetch('/api/dialer/customers/transfer-to-pool', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mobiles: mobiles })
+      }).then(function(r) { return r.json(); })
+        .then(function(d) {
+          if (d.success) {
+            console.log('[auto-transfer] 批次 ' + batch + ' 已转入公海, ' + d.transferred + '/' + d.total);
+          } else {
+            console.error('[auto-transfer] 批次 ' + batch + ' 转公海失败: ' + (d.error || 'unknown'));
+          }
+        })
+        .catch(function(e) { console.error('[auto-transfer] 请求失败: ' + e.message); });
+      // 立即清空本地列表（不等API响应）
+      var mobileSet = {};
+      for (var mi = 0; mi < mobiles.length; mi++) { mobileSet[mobiles[mi]] = true; }
+      importedClients = importedClients.filter(function(c) {
+        var cm = c.phone || c.mobile;
+        return !mobileSet[cm];
+      });
+      saveState();
+      renderDialCards();
     }
 
     function uploadCustomersToSupabase(customers, batchLabel) {
@@ -6132,7 +6129,6 @@
             if (client) {
               client.copied = true;
               saveState();
-              checkAndTransferBatch(client);
               scheduleReminder(client);
             }
             b.classList.add('copied');
@@ -6168,7 +6164,6 @@
             if (client) {
               client.copied = true;
               saveState();
-              checkAndTransferBatch(client);
               scheduleReminder(client);
             }
 
@@ -6213,7 +6208,6 @@
             if (clientComp) {
               clientComp.copied = true;
               saveState();
-              checkAndTransferBatch(clientComp);
               scheduleReminder(clientComp);
             }
 
@@ -6506,7 +6500,6 @@
  recordTimeline(c.phone || c.mobile, 'call_' + status, note);
  }
  saveState();
- checkAndTransferBatch(c);
  scheduleReminder(c);
  renderDialCards();
 
