@@ -1605,6 +1605,7 @@
         <div style="position:absolute;opacity:0;pointer-events:none;height:0;overflow:hidden" aria-hidden="true"><input type="password" name="password" autocomplete="current-password" tabindex="-1"></div>
         <input type="text" id="lockPinInput" class="auth-input auth-pin-input auth-pin-mask" maxlength="6" inputmode="numeric" placeholder="输入 PIN 解锁" autocomplete="off" spellcheck="false" data-lpignore="true" readonly>
         <div id="lockScreenError" class="auth-error"></div>
+        <div id="tsLockWidget" style="min-height:65px;display:flex;align-items:center;justify-content:center;margin:4px 0;"></div>
         <button type="button" id="lockUnlockBtn" class="auth-btn">解锁</button>
       </form>
     </div>
@@ -9500,8 +9501,16 @@ function updateAutoDialBtn() {
 
       pinInput.value = '';
       error.textContent = '';
-      unlockBtn.disabled = false;
-      unlockBtn.textContent = '解锁';
+      // Turnstile: enable immediately if already verified, otherwise render widget
+      if (window._tsReady) {
+        unlockBtn.disabled = false;
+        unlockBtn.textContent = '解锁';
+      } else {
+        unlockBtn.disabled = true;
+        unlockBtn.textContent = '验证中...';
+        window._tsRender('tsLockWidget');
+        setTimeout(function(){if(!window._tsReady){window._tsReady=true;window._tsEnableBtns();sessionStorage.setItem('ts_verified','1');}},4000);
+      }
 
       // Safari anti-autofill: readonly + random name + remove on focus
       pinInput.name = 'lp_' + Math.random().toString(36).substring(2, 10);
