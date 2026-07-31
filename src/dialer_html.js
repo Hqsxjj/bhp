@@ -1554,10 +1554,9 @@
     .learn-overlay {
       position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000;
       background: var(--bg-soft, #f2f2f7);
-      display: none; flex-direction: column;
+      flex-direction: column;
       -webkit-overflow-scrolling: touch;
     }
-    .learn-overlay.active { display: flex; }
     .learn-header {
       display: flex; align-items: center; justify-content: space-between;
       padding: 12px 16px; gap: 12px;
@@ -1735,7 +1734,7 @@
         <!-- Auto Dial Toggle -->
         <button id="autoDialBtn" title="自动拨打" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: var(--accent-wechat); cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-sm); white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
         <button id="refreshBatchBtn" title="换一批 — 按最新导入顺序拉取，拉过的自动沉底" onclick="if(window.refreshBatch)window.refreshBatch()" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: #e67e22; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-sm); margin-right: 8px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
-        <button id="learnBtn" title="学习" onclick="document.getElementById('learnOverlay').classList.add('active'); document.body.style.overflow='hidden';" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: #4a6cf7; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-sm); margin-right: 8px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></button>
+        <button id="learnBtn" title="学习" onclick="document.getElementById('learnOverlay').style.display='flex'; document.body.style.overflow='hidden';" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: #4a6cf7; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-sm); margin-right: 8px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></button>
         <button id="lockScreenBtn" title="锁定屏幕" style="font-size:0.68rem;padding:3px 6px;border:none;background:transparent;color:var(--text-soft);cursor:pointer;outline:none;font-weight:700;border-radius:3px;margin-right:6px;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
         <!-- Dropdown Menu Trigger on the Right -->
         <div style="position: relative; display: inline-block;">
@@ -2336,10 +2335,10 @@
 </div>
 
   <!-- Learn Magazine Overlay -->
-  <div class="learn-overlay" id="learnOverlay">
+  <div class="learn-overlay" id="learnOverlay" style="display:none;">
     <div class="learn-header">
       <span class="learn-header-title">学习中心</span>
-      <button class="learn-close-btn" onclick="document.getElementById('learnOverlay').classList.remove('active'); document.body.style.overflow='';">关闭</button>
+      <button class="learn-close-btn" onclick="document.getElementById('learnOverlay').style.display='none'; document.body.style.overflow='';">关闭</button>
     </div>
     <div class="learn-body">
       <div class="learn-article">
