@@ -1650,7 +1650,7 @@
             <button class="dropdown-item" id="exportBtn" style="display:none;">导出记录</button>
             <button class="dropdown-item" id="clearBtn" style="display:none; color: #e74c3c;">清空数据</button>
             <button class="dropdown-item" id="darkToggleBtn">切换主题</button>
-            <div class="dropdown-item" style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:default;color:var(--text-soft);"><span style="font-size:0.7rem;">账户</span><span id="accountDisplay" style="font-size:0.68rem;font-weight:700;font-family:monospace;color:var(--text-main);"></span></div>
+            <div class="dropdown-item" style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:default;color:var(--text-soft);"><span style="font-size:0.7rem;">账户</span><span style="display:flex;align-items:center;gap:4px;"><span id="accountDisplay" style="font-size:0.68rem;font-weight:700;font-family:monospace;color:var(--text-main);"></span><span id="accountDataCount" style="font-size:0.62rem;font-weight:600;color:var(--text-light);"></span></span></div>
             <button class="dropdown-item" id="headerLogoutBtn" style="color: #e74c3c;">退出登录</button>
           </div>
         </div>
@@ -2363,6 +2363,12 @@
       d.textContent = label ? '[' + label + ']' : '[' + id.slice(0, 10) + ']';
       var typeTag = isSessionMaster() ? ' [主账户]' : (getSessionAccountId() ? ' [子账户]' : '');
       d.title = '账户: ' + id + (label ? ' (' + label + ')' : '') + typeTag;
+      // Update data count in dropdown
+      var cd = document.getElementById('accountDataCount');
+      if (cd) {
+        var total = (typeof importedClients !== 'undefined' && importedClients) ? importedClients.length : 0;
+        cd.textContent = total > 0 ? total + '条' : '';
+      }
     }
 
     // Monkey-patch fetch to inject Authorization header
@@ -2918,6 +2924,11 @@
       var pctText = document.getElementById('percentText');
       if (pctText) {
         pctText.textContent = '(' + Math.round(percent) + '%)';
+      }
+      // Update account data count in dropdown
+      var cd = document.getElementById('accountDataCount');
+      if (cd) {
+        cd.textContent = total > 0 ? total + '条' : '';
       }
     }
 
