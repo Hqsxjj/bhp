@@ -1,123 +1,5 @@
-// 学习中心 - 微信营销与账号运营手册
-export const LEARN_HTML = `<!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
-  <title>学习中心</title>
-  <link rel="icon" href="/icon.svg" type="image/svg+xml">
-  <link rel="apple-touch-icon" href="/icon.svg">
-  <style>
-    :root {
-      --bg-app: #f2f2f7;
-      --card-bg: rgba(255,255,255,0.95);
-      --card-border: rgba(0,0,0,0.04);
-      --text-main: #1c1c1e;
-      --text-soft: #3a3a3c;
-      --text-light: #5c5c60;
-      --btn-bg: rgba(0,0,0,0.04);
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    html { -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; }
-    body {
-      font-family: -apple-system, 'SF Pro', 'Helvetica Neue', sans-serif;
-      background: var(--bg-app); color: var(--text-main);
-      min-height: 100vh; -webkit-overflow-scrolling: touch;
-    }
-
-    .learn-header {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px 16px;
-      background: rgba(242,242,247,0.85); border-bottom: 0.5px solid var(--card-border);
-      position: sticky; top: 0; z-index: 10;
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    }
-    .learn-back-btn {
-      font-size: 0.8rem; padding: 6px 12px; border: none; background: var(--btn-bg);
-      color: #4a6cf7; cursor: pointer; outline: none; font-weight: 700;
-      border-radius: 999px; white-space: nowrap; text-decoration: none;
-      min-width: 44px; min-height: 34px; display: inline-flex; align-items: center; justify-content: center;
-      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
-    }
-    .learn-header-title {
-      font-size: 1.05rem; font-weight: 700; color: var(--text-main);
-      letter-spacing: -0.01em;
-    }
-    .learn-body {
-      padding: 20px 16px 40px; overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-    }
-    .learn-article { max-width: 680px; margin: 0 auto; }
-    .learn-article h1 {
-      font-size: 1.5rem; font-weight: 900; color: var(--text-main);
-      letter-spacing: -0.02em; line-height: 1.25; margin: 0 0 6px;
-    }
-    .learn-article .learn-subtitle {
-      font-size: 0.78rem; color: var(--text-light); font-weight: 500;
-      margin-bottom: 24px; line-height: 1.5;
-    }
-    .learn-article h2 {
-      font-size: 1.15rem; font-weight: 800; color: var(--text-main);
-      letter-spacing: -0.01em; margin: 28px 0 10px; padding-top: 12px;
-      border-top: 0.5px solid var(--card-border);
-    }
-    .learn-article h2:first-of-type { border-top: none; padding-top: 0; margin-top: 20px; }
-    .learn-article h3 {
-      font-size: 0.95rem; font-weight: 700; color: var(--text-main);
-      letter-spacing: -0.01em; margin: 16px 0 6px;
-    }
-    .learn-article h4 {
-      font-size: 0.85rem; font-weight: 700; color: var(--text-soft);
-      margin: 12px 0 4px;
-    }
-    .learn-article p {
-      font-size: 0.82rem; color: var(--text-soft); line-height: 1.7;
-      margin: 0 0 8px;
-    }
-    .learn-article ul, .learn-article ol {
-      margin: 0 0 10px; padding-left: 18px;
-      font-size: 0.8rem; color: var(--text-soft); line-height: 1.7;
-    }
-    .learn-article li { margin-bottom: 2px; }
-    .learn-article .learn-highlight {
-      background: var(--card-bg); border-radius: 10px; padding: 12px 14px;
-      margin: 10px 0; border-left: 3px solid #4a6cf7;
-    }
-    .learn-article .learn-highlight p { margin-bottom: 4px; }
-    .learn-article .learn-highlight p:last-child { margin-bottom: 0; }
-    .learn-article strong { color: var(--text-main); font-weight: 700; }
-    .learn-toc {
-      background: var(--card-bg); border-radius: 16px; padding: 16px;
-      margin-bottom: 24px;
-    }
-    .learn-toc-title {
-      font-size: 0.78rem; font-weight: 700; color: var(--text-main);
-      margin-bottom: 8px; letter-spacing: -0.01em;
-    }
-    .learn-toc a {
-      display: block; font-size: 0.74rem; color: #4a6cf7; text-decoration: none;
-      padding: 3px 0; font-weight: 600; line-height: 1.5;
-    }
-    .learn-article hr {
-      border: none; border-top: 0.5px solid var(--card-border);
-      margin: 24px 0;
-    }
-    .learn-article .section-accent {
-      display: inline-block; width: 4px; height: 18px; border-radius: 2px;
-      background: #4a6cf7; margin-right: 8px; vertical-align: middle;
-      position: relative; top: -1px;
-    }
-  </style>
-</head>
-<body>
-  <div class="learn-header">
-    <a class="learn-back-btn" href="/">返回</a>
-    <span class="learn-header-title">学习中心</span>
-  </div>
-  <div class="learn-body">
-    <div class="learn-article">
-      <h1>微信营销与账号运营完全手册</h1>
-      <p class="learn-subtitle">加人策略 · 账号养号 · 朋友圈运营 · 客户转化 · 风控合规</p>
+export const LEARN_DEFAULT_CONTENT = `<h1>微信营销与账号运营完全手册</h1>
+      <p class="learn-subtitle">加人策略 \\u00b7 账号养号 \\u00b7 朋友圈运营 \\u00b7 客户转化 \\u00b7 风控合规</p>
 
       <div class="learn-toc">
         <div class="learn-toc-title">目录</div>
@@ -441,8 +323,126 @@ export const LEARN_HTML = `<!DOCTYPE html>
         <li>长期不登录号：至少30天</li>
         <li>第二次封号解封后：至少15天</li>
         <li>第三次封号解封后：30天停止一切营销操作</li>
-      </ul>
-    </div>
+      </ul>`;
+
+// 学习中心 - 微信营销与账号运营手册
+export const LEARN_HTML = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <title>学习中心</title>
+  <link rel="icon" href="/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/icon.svg">
+  <style>
+    :root {
+      --bg-app: #f2f2f7;
+      --card-bg: rgba(255,255,255,0.95);
+      --card-border: rgba(0,0,0,0.04);
+      --text-main: #1c1c1e;
+      --text-soft: #3a3a3c;
+      --text-light: #5c5c60;
+      --btn-bg: rgba(0,0,0,0.04);
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html { -webkit-font-smoothing: antialiased; letter-spacing: -0.01em; }
+    body {
+      font-family: -apple-system, 'SF Pro', 'Helvetica Neue', sans-serif;
+      background: var(--bg-app); color: var(--text-main);
+      min-height: 100vh; -webkit-overflow-scrolling: touch;
+    }
+
+    .learn-header {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 16px;
+      background: rgba(242,242,247,0.85); border-bottom: 0.5px solid var(--card-border);
+      position: sticky; top: 0; z-index: 10;
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+    }
+    .learn-back-btn {
+      font-size: 0.8rem; padding: 6px 12px; border: none; background: var(--btn-bg);
+      color: #4a6cf7; cursor: pointer; outline: none; font-weight: 700;
+      border-radius: 999px; white-space: nowrap; text-decoration: none;
+      min-width: 44px; min-height: 34px; display: inline-flex; align-items: center; justify-content: center;
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+    }
+    .learn-header-title {
+      font-size: 1.05rem; font-weight: 700; color: var(--text-main);
+      letter-spacing: -0.01em;
+    }
+    .learn-body {
+      padding: 20px 16px 40px; overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .learn-article { max-width: 680px; margin: 0 auto; }
+    .learn-article h1 {
+      font-size: 1.5rem; font-weight: 900; color: var(--text-main);
+      letter-spacing: -0.02em; line-height: 1.25; margin: 0 0 6px;
+    }
+    .learn-article .learn-subtitle {
+      font-size: 0.78rem; color: var(--text-light); font-weight: 500;
+      margin-bottom: 24px; line-height: 1.5;
+    }
+    .learn-article h2 {
+      font-size: 1.15rem; font-weight: 800; color: var(--text-main);
+      letter-spacing: -0.01em; margin: 28px 0 10px; padding-top: 12px;
+      border-top: 0.5px solid var(--card-border);
+    }
+    .learn-article h2:first-of-type { border-top: none; padding-top: 0; margin-top: 20px; }
+    .learn-article h3 {
+      font-size: 0.95rem; font-weight: 700; color: var(--text-main);
+      letter-spacing: -0.01em; margin: 16px 0 6px;
+    }
+    .learn-article h4 {
+      font-size: 0.85rem; font-weight: 700; color: var(--text-soft);
+      margin: 12px 0 4px;
+    }
+    .learn-article p {
+      font-size: 0.82rem; color: var(--text-soft); line-height: 1.7;
+      margin: 0 0 8px;
+    }
+    .learn-article ul, .learn-article ol {
+      margin: 0 0 10px; padding-left: 18px;
+      font-size: 0.8rem; color: var(--text-soft); line-height: 1.7;
+    }
+    .learn-article li { margin-bottom: 2px; }
+    .learn-article .learn-highlight {
+      background: var(--card-bg); border-radius: 10px; padding: 12px 14px;
+      margin: 10px 0; border-left: 3px solid #4a6cf7;
+    }
+    .learn-article .learn-highlight p { margin-bottom: 4px; }
+    .learn-article .learn-highlight p:last-child { margin-bottom: 0; }
+    .learn-article strong { color: var(--text-main); font-weight: 700; }
+    .learn-toc {
+      background: var(--card-bg); border-radius: 16px; padding: 16px;
+      margin-bottom: 24px;
+    }
+    .learn-toc-title {
+      font-size: 0.78rem; font-weight: 700; color: var(--text-main);
+      margin-bottom: 8px; letter-spacing: -0.01em;
+    }
+    .learn-toc a {
+      display: block; font-size: 0.74rem; color: #4a6cf7; text-decoration: none;
+      padding: 3px 0; font-weight: 600; line-height: 1.5;
+    }
+    .learn-article hr {
+      border: none; border-top: 0.5px solid var(--card-border);
+      margin: 24px 0;
+    }
+    .learn-article .section-accent {
+      display: inline-block; width: 4px; height: 18px; border-radius: 2px;
+      background: #4a6cf7; margin-right: 8px; vertical-align: middle;
+      position: relative; top: -1px;
+    }
+  </style>
+</head>
+<body>
+  <div class="learn-header">
+    <a class="learn-back-btn" href="/">返回</a>
+    <span class="learn-header-title">学习中心</span>
+  </div>
+  <div class="learn-body">
+    <div class="learn-article"><!--LEARN_CONTENT--></div>
   </div>
 </body>
 </html>`;

@@ -2043,6 +2043,7 @@
       <div class="crm-tab" data-tab="公海客户">公海客户 <span class="crm-tab-close">关闭</span></div>
       <div class="crm-tab" data-tab="accountMgr">账户管理</div>
       <div class="crm-tab" data-tab="backupMgr">数据备份</div>
+      <div class="crm-tab" data-tab="contentConfig">内容配置</div>
       <div class="crm-tabs-right">
         <button class="db-close" id="dbClose">关闭</button>
       </div>
@@ -2175,6 +2176,51 @@
       </div>
       <button id="dbSendBackupBtn" class="auth-btn" style="font-size:0.78rem;padding:8px 0;background:#4a6cf7;color:#fff;">发送备份</button>
       <div id="dbBackupStatus" style="font-size:0.68rem; min-height:18px; line-height:1.4;"></div>
+    </div>
+
+    <!-- Content Config Panel -->
+    <div id="dbContentConfigPanel" style="display:none; flex-direction:column; gap:14px; padding:16px; overflow-y:auto; flex:1;">
+      <div style="font-size:0.85rem; font-weight:900; color:var(--text-main); border-bottom:0.5px solid var(--card-border); padding-bottom:8px;">内容配置（仅主账号可编辑）</div>
+
+      <!-- Reminder Config -->
+      <div style="display:flex; flex-direction:column; gap:8px; background:var(--card-bg); border-radius:var(--radius-sm); padding:12px; border:0.5px solid var(--card-border);">
+        <div style="font-size:0.78rem; font-weight:800; color:var(--text-main);">微信提醒弹窗</div>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <span style="font-size:0.7rem; font-weight:600; color:var(--text-soft); white-space:nowrap;">标题</span>
+          <input id="cfgReminderTitle" class="auth-input" placeholder="微信运营提醒" style="flex:1; height:28px; font-size:0.72rem;">
+        </div>
+        <div id="cfgReminderItems" style="display:flex; flex-direction:column; gap:4px;">
+        </div>
+        <div style="display:flex; gap:6px;">
+          <button id="cfgReminderAddItem" class="btn-secondary" style="font-size:0.68rem; padding:4px 10px;">+ 添加条目</button>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button id="cfgSaveReminder" class="btn-primary" style="font-size:0.72rem; padding:6px 16px;">保存提醒配置</button>
+          <span id="cfgReminderStatus" style="font-size:0.65rem; min-height:16px;"></span>
+        </div>
+      </div>
+
+      <!-- Learn Config -->
+      <div style="display:flex; flex-direction:column; gap:8px; background:var(--card-bg); border-radius:var(--radius-sm); padding:12px; border:0.5px solid var(--card-border);">
+        <div style="font-size:0.78rem; font-weight:800; color:var(--text-main);">学习中心</div>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <span style="font-size:0.7rem; font-weight:600; color:var(--text-soft); white-space:nowrap;">标题</span>
+          <input id="cfgLearnTitle" class="auth-input" placeholder="微信营销与账号运营完全手册" style="flex:1; height:28px; font-size:0.72rem;">
+        </div>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <span style="font-size:0.7rem; font-weight:600; color:var(--text-soft); white-space:nowrap;">副标题</span>
+          <input id="cfgLearnSubtitle" class="auth-input" placeholder="加人策略 · 账号养号 · 朋友圈运营 · 客户转化 · 风控合规" style="flex:1; height:28px; font-size:0.72rem;">
+        </div>
+        <div style="display:flex; flex-direction:column; gap:4px;">
+          <span style="font-size:0.7rem; font-weight:600; color:var(--text-soft);">正文 HTML</span>
+          <textarea id="cfgLearnHtml" class="auth-input" placeholder="输入自定义HTML内容..." style="width:100%; height:200px; font-size:0.7rem; font-family:monospace; resize:vertical; padding:8px; border:0.5px solid var(--card-border); border-radius:var(--radius-xs); background:var(--card-bg); color:var(--text-main); outline:none;"></textarea>
+        </div>
+        <div style="display:flex; gap:8px; align-items:center;">
+          <button id="cfgSaveLearn" class="btn-primary" style="font-size:0.72rem; padding:6px 16px;">保存学习中心</button>
+          <button id="cfgResetLearn" class="btn-secondary" style="font-size:0.68rem; padding:6px 12px;">恢复默认</button>
+          <span id="cfgLearnStatus" style="font-size:0.65rem; min-height:16px;"></span>
+        </div>
+      </div>
     </div>
 
     <!-- Batch category mini-panel -->
@@ -2496,29 +2542,6 @@
     var _reminderShown = false;
     window._reminderTimer = null;
     var _reminderSeqTimer = null;
-
-    function showReminderOverlay() {
-      var overlay = document.getElementById('reminderOverlay');
-      var countdownEl = document.getElementById('reminderCountdown');
-      if (!overlay || !countdownEl) return;
-      overlay.classList.add('active');
-      var total = 180;
-      var remaining = total;
-      function updateCountdown() {
-        var min = Math.floor(remaining / 60);
-        var sec = remaining % 60;
-        countdownEl.textContent = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
-        if (remaining <= 30) countdownEl.classList.add('urgent');
-        if (remaining <= 0) {
-          clearInterval(window._reminderTimer);
-          window._reminderTimer = null;
-          overlay.classList.remove('active');
-        }
-        remaining--;
-      }
-      updateCountdown();
-      window._reminderTimer = setInterval(updateCountdown, 1000);
-    }
 
     // 操作到序号50的客户卡片时，5秒后弹出提醒并清空列表
     function scheduleReminder(client) {
@@ -8227,29 +8250,34 @@ function updateAutoDialBtn() {
       tabs.forEach(function(tab) {
         tab.onclick = function() {
           var tabName = tab.getAttribute('data-tab') || 'all';
-          if (tabName === 'accountMgr' || tabName === 'backupMgr') {
+          if (tabName === 'accountMgr' || tabName === 'backupMgr' || tabName === 'contentConfig') {
             tabs.forEach(function(t) { t.classList.remove('active'); });
             tab.classList.add('active');
             var mp = document.getElementById('dbAccountMgrPanel');
             var bp = document.getElementById('dbBackupMgrPanel');
+            var cp = document.getElementById('dbContentConfigPanel');
             var tb = document.querySelector('#dbOverlay .crm-table');
             var sc = document.querySelector('#dbOverlay .crm-search-card');
             var tl = document.querySelector('#dbOverlay .crm-toolbar');
             if (mp) mp.style.display = tabName === 'accountMgr' ? 'flex' : 'none';
             if (bp) bp.style.display = tabName === 'backupMgr' ? 'flex' : 'none';
+            if (cp) cp.style.display = tabName === 'contentConfig' ? 'flex' : 'none';
             if (tb) tb.style.display = 'none';
             if (sc) sc.style.display = 'none';
             if (tl) tl.style.display = 'none';
             if (tabName === 'accountMgr') { loadSubAccounts(); loadAccountStats(); }
             if (tabName === 'backupMgr') { loadBackupConfig(); }
+            if (tabName === 'contentConfig') { loadContentConfig(); }
           } else {
             var mp2 = document.getElementById('dbAccountMgrPanel');
             var bp2 = document.getElementById('dbBackupMgrPanel');
+            var cp2 = document.getElementById('dbContentConfigPanel');
             var tb2 = document.querySelector('#dbOverlay .crm-table');
             var sc2 = document.querySelector('#dbOverlay .crm-search-card');
             var tl2 = document.querySelector('#dbOverlay .crm-toolbar');
             if (mp2) mp2.style.display = 'none';
             if (bp2) bp2.style.display = 'none';
+            if (cp2) cp2.style.display = 'none';
             if (tb2) tb2.style.display = '';
             if (sc2) sc2.style.display = '';
             if (tl2) tl2.style.display = '';
@@ -9240,6 +9268,223 @@ function updateAutoDialBtn() {
         .catch(function() {});
     }
 
+    // Content config loading (called when tab opened)
+    function loadContentConfig() {
+      var panel = document.getElementById('dbContentConfigPanel');
+      if (!panel) return;
+      // Master-only check
+      if (!isSessionMaster()) {
+        panel.querySelectorAll('input,textarea,button').forEach(function(el) { el.disabled = true; });
+        return;
+      }
+      // Load reminder config
+      fetch('/api/dialer/config?key=reminder')
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res && res.title !== undefined) {
+            document.getElementById('cfgReminderTitle').value = res.title || '';
+            renderReminderItemInputs(res.items || []);
+          }
+        }).catch(function() {});
+      // Load learn config
+      fetch('/api/dialer/config?key=learn')
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res && res.title !== undefined) {
+            document.getElementById('cfgLearnTitle').value = res.title || '';
+            document.getElementById('cfgLearnSubtitle').value = res.subtitle || '';
+            document.getElementById('cfgLearnHtml').value = res.html || '';
+          }
+        }).catch(function() {});
+    }
+
+    function renderReminderItemInputs(items) {
+      var container = document.getElementById('cfgReminderItems');
+      if (!container) return;
+      container.innerHTML = '';
+      for (var i = 0; i < items.length; i++) {
+        (function(idx, val) {
+          var row = document.createElement('div');
+          row.style.cssText = 'display:flex; gap:6px; align-items:center;';
+          var input = document.createElement('input');
+          input.type = 'text'; input.value = val; input.maxLength = 100;
+          input.style.cssText = 'flex:1; height:28px; padding:0 8px; font-size:0.7rem; border:0.5px solid var(--card-border); border-radius:var(--radius-xs); background:var(--card-bg); color:var(--text-main); outline:none;';
+          var delBtn = document.createElement('button');
+          delBtn.textContent = '删除';
+          delBtn.style.cssText = 'height:28px; padding:0 8px; font-size:0.65rem; border:0.5px solid #e74c3c; background:transparent; color:#e74c3c; border-radius:var(--radius-xs); cursor:pointer;';
+          delBtn.onclick = function() {
+            row.parentNode.removeChild(row);
+          };
+          row.appendChild(input);
+          row.appendChild(delBtn);
+          container.appendChild(row);
+        })(i, items[i]);
+      }
+    }
+
+    function initContentConfigPanel() {
+      var panel = document.getElementById('dbContentConfigPanel');
+      if (!panel) return;
+
+      // Master-only: hide panel for non-masters (already handled in loadContentConfig via disabled)
+      // But we also hide the tab for non-masters
+      if (!isSessionMaster()) {
+        var tab = document.querySelector('#dbOverlay .crm-tab[data-tab="contentConfig"]');
+        if (tab) tab.style.display = 'none';
+      }
+
+      // Save reminder config
+      var saveReminder = document.getElementById('cfgSaveReminder');
+      if (saveReminder) {
+        saveReminder.addEventListener('click', function() {
+          var title = document.getElementById('cfgReminderTitle').value.trim() || '微信运营提醒';
+          var inputs = document.querySelectorAll('#cfgReminderItems input[type="text"]');
+          var items = [];
+          for (var i = 0; i < inputs.length; i++) {
+            var v = inputs[i].value.trim();
+            if (v) items.push(v);
+          }
+          if (items.length === 0) {
+            document.getElementById('cfgReminderStatus').textContent = '至少保留一条提醒内容';
+            document.getElementById('cfgReminderStatus').style.color = '#e74c3c';
+            return;
+          }
+          var status = document.getElementById('cfgReminderStatus');
+          status.textContent = '保存中...'; status.style.color = 'var(--text-light)';
+          var token = getSessionToken();
+          fetch('/api/dialer/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({ key: 'reminder', data: { title: title, items: items } })
+          }).then(function(r) { return r.json(); })
+            .then(function(res) {
+              if (res.success) {
+                status.textContent = '已保存'; status.style.color = '#07c160';
+                // Refresh local cache
+                _reminderConfig = { title: title, items: items };
+                setTimeout(function() { status.textContent = ''; }, 3000);
+              } else {
+                status.textContent = res.error || '保存失败'; status.style.color = '#e74c3c';
+              }
+            }).catch(function() { status.textContent = '网络错误'; status.style.color = '#e74c3c'; });
+        });
+      }
+
+      // Add reminder item
+      var addItemBtn = document.getElementById('cfgReminderAddItem');
+      if (addItemBtn) {
+        addItemBtn.addEventListener('click', function() {
+          var container = document.getElementById('cfgReminderItems');
+          if (!container) return;
+          var idx = container.children.length;
+          var row = document.createElement('div');
+          row.style.cssText = 'display:flex; gap:6px; align-items:center;';
+          var input = document.createElement('input');
+          input.type = 'text'; input.placeholder = '新提醒内容'; input.maxLength = 100;
+          input.style.cssText = 'flex:1; height:28px; padding:0 8px; font-size:0.7rem; border:0.5px solid var(--card-border); border-radius:var(--radius-xs); background:var(--card-bg); color:var(--text-main); outline:none;';
+          var delBtn = document.createElement('button');
+          delBtn.textContent = '删除';
+          delBtn.style.cssText = 'height:28px; padding:0 8px; font-size:0.65rem; border:0.5px solid #e74c3c; background:transparent; color:#e74c3c; border-radius:var(--radius-xs); cursor:pointer;';
+          delBtn.onclick = function() { row.parentNode.removeChild(row); };
+          row.appendChild(input);
+          row.appendChild(delBtn);
+          container.appendChild(row);
+        });
+      }
+
+      // Save learn config
+      var saveLearn = document.getElementById('cfgSaveLearn');
+      if (saveLearn) {
+        saveLearn.addEventListener('click', function() {
+          var title = document.getElementById('cfgLearnTitle').value.trim() || '微信营销与账号运营完全手册';
+          var subtitle = document.getElementById('cfgLearnSubtitle').value.trim();
+          var html = document.getElementById('cfgLearnHtml').value;
+          var status = document.getElementById('cfgLearnStatus');
+          status.textContent = '保存中...'; status.style.color = 'var(--text-light)';
+          var token = getSessionToken();
+          fetch('/api/dialer/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({ key: 'learn', data: { title: title, subtitle: subtitle, html: html } })
+          }).then(function(r) { return r.json(); })
+            .then(function(res) {
+              if (res.success) {
+                status.textContent = '已保存'; status.style.color = '#07c160';
+                setTimeout(function() { status.textContent = ''; }, 3000);
+              } else {
+                status.textContent = res.error || '保存失败'; status.style.color = '#e74c3c';
+              }
+            }).catch(function() { status.textContent = '网络错误'; status.style.color = '#e74c3c'; });
+        });
+      }
+
+      // Reset learn config
+      var resetLearn = document.getElementById('cfgResetLearn');
+      if (resetLearn) {
+        resetLearn.addEventListener('click', function() {
+          if (confirm('确认恢复学习中心为默认内容？\\n此操作将清空自定义内容。')) {
+            document.getElementById('cfgLearnHtml').value = '';
+            document.getElementById('cfgLearnTitle').value = '微信营销与账号运营完全手册';
+            document.getElementById('cfgLearnSubtitle').value = '加人策略 \\u00b7 账号养号 \\u00b7 朋友圈运营 \\u00b7 客户转化 \\u00b7 风控合规';
+            document.getElementById('cfgLearnStatus').textContent = '已恢复默认（请点保存生效）'; document.getElementById('cfgLearnStatus').style.color = '#4a6cf7';
+          }
+        });
+      }
+    }
+
+    // Dynamic reminder overlay
+    var _reminderConfig = null;
+    function loadReminderConfig() {
+      fetch('/api/dialer/config?key=reminder')
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res && res.title !== undefined) {
+            _reminderConfig = res;
+          }
+        }).catch(function() {});
+    }
+
+    function showReminderOverlay() {
+      var overlay = document.getElementById('reminderOverlay');
+      var countdownEl = document.getElementById('reminderCountdown');
+      if (!overlay || !countdownEl) return;
+      // Update title
+      var titleEl = overlay.querySelector('.reminder-title');
+      if (titleEl && _reminderConfig && _reminderConfig.title) {
+        titleEl.textContent = _reminderConfig.title;
+      }
+      // Update list items
+      var listEl = overlay.querySelector('.reminder-list');
+      if (listEl && _reminderConfig && _reminderConfig.items && _reminderConfig.items.length > 0) {
+        var itemsHtml = '';
+        for (var i = 0; i < _reminderConfig.items.length; i++) {
+          itemsHtml += '<li class="reminder-item"><span class="reminder-num">' + (i + 1) + '</span>' + escHtml(_reminderConfig.items[i]) + '</li>';
+        }
+        listEl.innerHTML = itemsHtml;
+      }
+      overlay.classList.add('active');
+      var total = 180;
+      var remaining = total;
+      function updateCountdown() {
+        var min = Math.floor(remaining / 60);
+        var sec = remaining % 60;
+        countdownEl.textContent = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
+        if (remaining <= 30) countdownEl.classList.add('urgent');
+        if (remaining <= 0) {
+          clearInterval(window._reminderTimer);
+          window._reminderTimer = null;
+          overlay.classList.remove('active');
+        }
+        remaining--;
+      }
+      updateCountdown();
+      window._reminderTimer = setInterval(updateCountdown, 1000);
+    }
+
+    function escHtml(str) {
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
     function loadSubAccounts() {
       var list = document.getElementById('dbSubAccountList');
       if (!list) return;
@@ -9351,6 +9596,8 @@ function updateAutoDialBtn() {
       document.getElementById('authLoginOverlay').classList.add('auth-hidden');
       document.getElementById('authSetupOverlay').classList.add('auth-hidden');
       document.getElementById('lockScreenOverlay').classList.add('auth-hidden');
+      // Load dynamic configs
+      loadReminderConfig();
     }
 
     function showAuthScreen() {
@@ -9819,6 +10066,7 @@ function updateAutoDialBtn() {
     safeInit('initCustViewer', initCustViewer);
     safeInit('initAccountMgrPanel', initAccountMgrPanel);
     safeInit('initBackupMgrPanel', initBackupMgrPanel);
+    safeInit('initContentConfigPanel', initContentConfigPanel);
 
     safeInit('initDialerTemplateBtn', function() {
       var btn = document.getElementById('dialerTemplateBtn');

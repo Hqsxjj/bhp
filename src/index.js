@@ -3,7 +3,7 @@
 
 import { DIALER_HTML } from './dialer_html.js';
 import { DIET_HTML } from './diet_html.js';
-import { LEARN_HTML } from './learn_html.js';
+import { LEARN_HTML, LEARN_DEFAULT_CONTENT } from './learn_html.js';
 import { createSupabaseClient } from './supabase.js';
 
 // KV 读取缓存
@@ -605,6 +605,91 @@ export default {
       } catch (e) {
         return new Response(JSON.stringify({ hasKey: false, error: e.message }), {
           status: e.message === '未登录' ? 401 : 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
+    // ==================== Content Config API ====================
+
+    // GET /api/dialer/config?key=reminder|learn — 获取自定义内容配置（公开接口）
+    if (path === '/api/dialer/config' && request.method === 'GET') {
+      try {
+        var configKey = url.searchParams.get('key') || '';
+        if (configKey !== 'reminder' && configKey !== 'learn') {
+          return new Response(JSON.stringify({ error: '无效的 key，请使用 reminder 或 learn' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+        var kvRaw = await env.DATA_KV.get('config:' + configKey);
+        if (kvRaw) {
+          return new Response(kvRaw, {
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+        // 返回默认内容
+        if (configKey === 'reminder') {
+          return new Response(JSON.stringify({
+            title: '微信运营提醒',
+            items: [
+              '休息30-50分钟，防止微信频繁',
+              '给加上的微信打招呼设置标签',
+              '打招呼记得多聊两句哦，增加权重',
+              '早晚想一下非硬广告的文案，朋友圈每天发一条',
+              '有些纠结的客户主动删除他防止权重降低'
+            ]
+          }), {
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        } else {
+          return new Response(JSON.stringify({
+            title: '微信营销与账号运营完全手册',
+            subtitle: '加人策略 \\u00b7 账号养号 \\u00b7 朋友圈运营 \\u00b7 客户转化 \\u00b7 风控合规',
+            html: ''
+          }), {
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
+    // POST /api/dialer/config — 保存自定义内容配置（仅主账户）
+    if (path === '/api/dialer/config' && request.method === 'POST') {
+      try {
+        var authHeader = request.headers.get('Authorization') || '';
+        var sessionToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+        var session = await dialerValidateSession(env, sessionToken);
+        if (!session) throw new Error('未登录');
+
+        var accounts = await dialerGetAccounts(env);
+        var master = null;
+        for (var ak = 0; ak < accounts.length; ak++) {
+          if (accounts[ak].account_id === session.account_id && accounts[ak].is_master !== false) { master = accounts[ak]; break; }
+        }
+        if (!master) throw new Error('仅主账户可操作');
+
+        var body = await request.json();
+        var cfgKey = (body.key || '').trim();
+        if (cfgKey !== 'reminder' && cfgKey !== 'learn') {
+          throw new Error('无效的 key，请使用 reminder 或 learn');
+        }
+        if (!body.data || typeof body.data !== 'object') {
+          throw new Error('缺少 data 字段');
+        }
+        await env.DATA_KV.put('config:' + cfgKey, JSON.stringify(body.data));
+
+        return new Response(JSON.stringify({ success: true }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: e.message === '未登录' ? 401 : (e.message === '仅主账户可操作' ? 403 : 400),
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       }
@@ -2503,11 +2588,29 @@ export default {
 
     // ==================== Page Serving ====================
 
-    // 学习中心页面
+    // 学习中心页面（支持自定义内容）
     if (path === '/learn' || path === '/learn/') {
-      return new Response(LEARN_HTML, {
-        headers: { 'Content-Type': 'text/html; charset=UTF-8' }
-      });
+      try {
+        var learnRaw = await env.DATA_KV.get('config:learn');
+        var learnContent = LEARN_DEFAULT_CONTENT;
+        if (learnRaw) {
+          try {
+            var learnCfg = JSON.parse(learnRaw);
+            if (learnCfg.html && learnCfg.html.trim()) {
+              learnContent = learnCfg.html;
+            }
+          } catch (parseErr) { /* use default */ }
+        }
+        var learnPage = LEARN_HTML.replace('<!--LEARN_CONTENT-->', learnContent);
+        return new Response(learnPage, {
+          headers: { 'Content-Type': 'text/html; charset=UTF-8' }
+        });
+      } catch (e) {
+        // Fallback to default
+        return new Response(LEARN_HTML.replace('<!--LEARN_CONTENT-->', LEARN_DEFAULT_CONTENT), {
+          headers: { 'Content-Type': 'text/html; charset=UTF-8' }
+        });
+      }
     }
 
     // 减肥打卡页面
