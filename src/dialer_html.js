@@ -2931,7 +2931,7 @@
       }
       // Refresh DB account count after batch changes
       var cd = document.getElementById('accountDataCount');
-      if (cd && total > 0) {
+      if (cd) {
         fetch('/api/dialer/stats/my-count')
           .then(function(r) { return r.json(); })
           .then(function(res) {
