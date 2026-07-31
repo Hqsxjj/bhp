@@ -3,6 +3,7 @@
 
 import { DIALER_HTML } from './dialer_html.js';
 import { DIET_HTML } from './diet_html.js';
+import { LEARN_HTML } from './learn_html.js';
 import { createSupabaseClient } from './supabase.js';
 
 // KV 读取缓存
@@ -2397,6 +2398,13 @@ export default {
     }
 
     // ==================== Page Serving ====================
+
+    // 学习中心页面
+    if (path === '/learn' || path === '/learn/') {
+      return new Response(LEARN_HTML, {
+        headers: { 'Content-Type': 'text/html; charset=UTF-8' }
+      });
+    }
 
     // 减肥打卡页面
     if (path === '/diet' || path === '/diet/') {
