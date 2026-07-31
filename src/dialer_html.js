@@ -10,6 +10,7 @@
   <meta name="theme-color" content="#ededed">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icon.svg">
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -1586,7 +1587,8 @@
         <input type="text" id="authLoginAccountName" class="auth-input" placeholder="账号" autocomplete="off" spellcheck="false" data-lpignore="true" readonly>
         <input type="text" id="authLoginPin" class="auth-input auth-pin-input auth-pin-mask" maxlength="6" inputmode="numeric" placeholder="PIN" autocomplete="off" spellcheck="false" data-lpignore="true" readonly>
         <div id="authLoginError" class="auth-error"></div>
-        <button type="button" id="authLoginBtn" class="auth-btn">登录</button>
+        <div id="tsLoginWidget" style="min-height:65px;display:flex;align-items:center;justify-content:center;margin:4px 0;"></div>
+        <button type="button" id="authLoginBtn" class="auth-btn" disabled>验证中...</button>
       </form>
     </div>
   </div>
@@ -1620,7 +1622,8 @@
       <input type="password" id="authSetupPin" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="设置 4-6 位 PIN 码" autocomplete="new-password">
       <input type="password" id="authSetupPinConfirm" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="再次输入 PIN 码" autocomplete="new-password">
       <div id="authSetupError" class="auth-error"></div>
-      <button id="authSetupBtn" class="auth-btn">创建主账户</button>
+      <div id="tsSetupWidget" style="min-height:65px;display:flex;align-items:center;justify-content:center;margin:4px 0;"></div>
+      <button id="authSetupBtn" class="auth-btn" disabled>验证中...</button>
       <span id="authShowLoginLink" class="auth-link">已有账户？返回登录</span>
     </div>
   </div>
@@ -9287,6 +9290,26 @@ function updateAutoDialBtn() {
     // ========== Auth Flow ==========
 
     function initAuth() {
+      // Turnstile shared state
+      window._tsReady = sessionStorage.getItem('ts_verified') === '1';
+      window._tsEnableBtns = function(){
+        var lb = document.getElementById('authLoginBtn');
+        var sb = document.getElementById('authSetupBtn');
+        if(lb){lb.disabled=false;lb.textContent='登录';}
+        if(sb){sb.disabled=false;sb.textContent='创建主账户';}
+      };
+      window._tsCallback = function(token){
+        sessionStorage.setItem('ts_verified','1');
+        window._tsReady=true;
+        window._tsEnableBtns();
+      };
+      window._tsRender = function(widgetId){
+        var el = document.getElementById(widgetId);
+        if(el && !el.hasChildNodes() && typeof turnstile !== 'undefined'){
+          turnstile.render(el,{sitekey:'0x4AAAAAAECnjVwNlyMwf-l8',callback:'_tsCallback',theme:'auto'});
+        }
+      };
+      if(window._tsReady){ window._tsEnableBtns(); }
       // #db hash: skip login, show app shell for DB dashboard access (DB has its own password gate)
       if (window.location.hash === '#db') {
         showAppShell();
@@ -9362,7 +9385,17 @@ function updateAutoDialBtn() {
       accountInput.value = '';
       pinInput.value = '';
       error.textContent = '';
-      loginBtn.disabled = false;
+      // Turnstile: enable button only if verified, otherwise render widget
+      if (window._tsReady) {
+        loginBtn.disabled = false;
+        loginBtn.textContent = '登录';
+      } else {
+        loginBtn.disabled = true;
+        loginBtn.textContent = '验证中...';
+        window._tsRender('tsLoginWidget');
+        // Fallback: if Turnstile fails to load, enable after 4s
+        setTimeout(function(){if(!window._tsReady){window._tsReady=true;window._tsEnableBtns();sessionStorage.setItem('ts_verified','1');}},4000);
+      }
 
       // Safari anti-autofill: readonly + random name + remove on focus
       var r1 = 'a_' + Math.random().toString(36).substring(2, 10);
@@ -9644,6 +9677,15 @@ function updateAutoDialBtn() {
       document.getElementById('authSetupPin').value = '';
       document.getElementById('authSetupPinConfirm').value = '';
       document.getElementById('authSetupError').textContent = '';
+      var setupBtn = document.getElementById('authSetupBtn');
+      if (window._tsReady) {
+        setupBtn.disabled = false;
+        setupBtn.textContent = '创建主账户';
+      } else {
+        setupBtn.disabled = true;
+        setupBtn.textContent = '验证中...';
+        window._tsRender('tsSetupWidget');
+      }
 
       document.getElementById('authSetupBtn').onclick = doSetup;
       document.getElementById('authSetupPinConfirm').onkeypress = function(e) {
