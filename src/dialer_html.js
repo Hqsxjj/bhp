@@ -2369,7 +2369,7 @@
         .then(function(res) {
           var cd = document.getElementById('accountDataCount');
           if (cd) {
-            cd.textContent = res.count > 0 ? res.count + '条' : '';
+            cd.textContent = res.count > 0 ? res.count : '';
           }
         })
         .catch(function() {});
@@ -2936,7 +2936,7 @@
           .then(function(r) { return r.json(); })
           .then(function(res) {
             var el = document.getElementById('accountDataCount');
-            if (el) { el.textContent = res.count > 0 ? res.count + '条' : ''; }
+            if (el) { el.textContent = res.count > 0 ? res.count : ''; }
           })
           .catch(function() {});
       }
