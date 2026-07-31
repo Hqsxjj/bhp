@@ -2363,12 +2363,16 @@
       d.textContent = label ? '[' + label + ']' : '[' + id.slice(0, 10) + ']';
       var typeTag = isSessionMaster() ? ' [主账户]' : (getSessionAccountId() ? ' [子账户]' : '');
       d.title = '账户: ' + id + (label ? ' (' + label + ')' : '') + typeTag;
-      // Update data count in dropdown
-      var cd = document.getElementById('accountDataCount');
-      if (cd) {
-        var total = (typeof importedClients !== 'undefined' && importedClients) ? importedClients.length : 0;
-        cd.textContent = total > 0 ? total + '条' : '';
-      }
+      // Fetch DB count for this account
+      fetch('/api/dialer/stats/my-count')
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          var cd = document.getElementById('accountDataCount');
+          if (cd) {
+            cd.textContent = res.count > 0 ? res.count + '条' : '';
+          }
+        })
+        .catch(function() {});
     }
 
     // Monkey-patch fetch to inject Authorization header
@@ -2925,10 +2929,16 @@
       if (pctText) {
         pctText.textContent = '(' + Math.round(percent) + '%)';
       }
-      // Update account data count in dropdown
+      // Refresh DB account count after batch changes
       var cd = document.getElementById('accountDataCount');
-      if (cd) {
-        cd.textContent = total > 0 ? total + '条' : '';
+      if (cd && total > 0) {
+        fetch('/api/dialer/stats/my-count')
+          .then(function(r) { return r.json(); })
+          .then(function(res) {
+            var el = document.getElementById('accountDataCount');
+            if (el) { el.textContent = res.count > 0 ? res.count + '条' : ''; }
+          })
+          .catch(function() {});
       }
     }
 

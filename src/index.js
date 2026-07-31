@@ -703,6 +703,42 @@ export default {
       }
     }
 
+    // GET /api/dialer/stats/my-count — quick count of current account's customers
+    if (path === '/api/dialer/stats/my-count' && request.method === 'GET') {
+      try {
+        var mcAuth = request.headers.get('Authorization') || '';
+        var mcToken = mcAuth.startsWith('Bearer ') ? mcAuth.slice(7) : '';
+        var mcSession = await dialerValidateSession(env, mcToken);
+        if (!mcSession) throw new Error('未登录');
+
+        var supabaseUrl = env.SUPABASE_URL;
+        var supabaseKey = env.SUPABASE_KEY;
+        var count = 0;
+
+        if (supabaseUrl && supabaseKey) {
+          var mcHdrs = { 'apikey': supabaseKey, 'Authorization': 'Bearer ' + supabaseKey, 'Prefer': 'count=exact' };
+          var mcResp = await fetch(
+            supabaseUrl + '/rest/v1/customers?select=id&account_id=eq.' + encodeURIComponent(mcSession.account_id) + '&limit=1',
+            { headers: mcHdrs }
+          );
+          var contentRange = mcResp.headers.get('content-range');
+          if (contentRange) {
+            var parts = contentRange.split('/');
+            count = parseInt(parts[parts.length - 1], 10) || 0;
+          }
+        }
+
+        return new Response(JSON.stringify({ count: count }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: e.message === '未登录' ? 401 : 500,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
     // ==================== WeChat Count API (KV-synced per account) ====================
 
     if (path === '/api/dialer/wechat/count' && request.method === 'GET') {
