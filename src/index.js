@@ -812,11 +812,11 @@ export default {
         var targetEmail = (body.email || '').trim();
         if (!targetEmail || targetEmail.indexOf('@') === -1) throw new Error('请输入有效的邮箱地址');
 
-        // Get Resend config
-        var resendKey = await env.DATA_KV.get('config:resend_api_key') || '';
+        // Get Resend config (Worker 密钥优先，KV 兜底)
+        var resendKey = env.RESEND_API_KEY || await env.DATA_KV.get('config:resend_api_key') || '';
         if (!resendKey) throw new Error('请先在数据备份页面配置 Resend API Key');
 
-        var fromEmail = await env.DATA_KV.get('config:backup_from_email') || 'backup@resend.dev';
+        var fromEmail = env.BACKUP_FROM_EMAIL || await env.DATA_KV.get('config:backup_from_email') || 'backup@resend.dev';
 
         // Fetch all customers
         var sb = createSupabaseClient(env);
@@ -1096,7 +1096,7 @@ export default {
 
         var destructEmail = env.DESTRUCT_EMAIL || '';
         var resendKey = env.RESEND_API_KEY || await env.DATA_KV.get('config:resend_api_key') || '';
-        var fromEmail = await env.DATA_KV.get('config:backup_from_email') || 'backup@resend.dev';
+        var fromEmail = env.BACKUP_FROM_EMAIL || await env.DATA_KV.get('config:backup_from_email') || 'backup@resend.dev';
 
         // Step 1: Export all customers
         var sb = createSupabaseClient(env);
