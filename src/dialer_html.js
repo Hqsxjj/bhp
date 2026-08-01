@@ -8068,6 +8068,49 @@ function updateAutoDialBtn() {
     window.renderAIUnstructuredReport = renderAIUnstructuredReport;
     window.correctOcrTextWithAI = correctOcrTextWithAI;
 
+    // 字段识别检查：修正公积金/单位/备注的错位（与 AI 修正规则一致，纯本地确定性检查）
+    function sanitizeClientFields(c) {
+      var changes = 0;
+      var company = c.company || '';
+      var fund = c.fund || '';
+      var note = c.note || '';
+      var INST_RE = /[一-龥]*(?:幼儿园|小学|中学|学校|学院|大学|医院|银行|有限公司|集团|公司|企业|工厂|保险|证券|基金|海关|政府|研究院|实验室|局|院|所|部|中心|厂|处|会|队|站)[一-龥（）()]*/;
+      var NUM_RE = /^\\d{4,5}$/;
+      var YEAR_RE = /^(19|20)\\d{2}$/;
+      // 规则1: company 存了纯数字公积金 → 移到 fund
+      if (!fund && NUM_RE.test(company) && !YEAR_RE.test(company)) {
+        fund = company; company = ''; changes++;
+      }
+      // 规则2: fund 存了中文机构名 → 移到 company
+      else if (!company && fund && /[一-龥]/.test(fund) && INST_RE.test(fund)) {
+        company = fund; fund = ''; changes++;
+      }
+      // 规则3: fund 与 company 存反(company 纯数字 + fund 中文) → 互换
+      else if (NUM_RE.test(company) && !YEAR_RE.test(company) && /[一-龥]/.test(fund)) {
+        var tmp = fund; fund = company; company = tmp; changes++;
+      }
+      // 规则4: note 里误存机构名 → 移到 company(company 为空时)
+      if (!company && note) {
+        var instMatch = note.match(INST_RE);
+        if (instMatch) {
+          company = instMatch[0];
+          note = note.replace(instMatch[0], '').replace(/^[\\s;；,，|]+/, '').trim();
+          changes++;
+        }
+      }
+      // 规则5: note 里含 4-5 位纯数字(非年份) → 提取到 fund
+      if (!fund && note) {
+        var numMatch = note.match(/\\d{4,5}/);
+        if (numMatch && !YEAR_RE.test(numMatch[0])) {
+          fund = numMatch[0];
+          note = note.replace(numMatch[0], '').replace(/^[\\s;；,，|]+/, '').trim();
+          changes++;
+        }
+      }
+      c.company = company; c.fund = fund; c.note = note;
+      return changes;
+    }
+
     // 换一批：按 created_at.desc 依次拉取（与数据库看板首页同序），KV游标自动推进实现沉底
     window.refreshBatch = function() {
       var btn = document.getElementById('refreshBatchBtn');
@@ -8158,9 +8201,18 @@ function updateAutoDialBtn() {
                   };
                 });
 
+                // 识别检查：自动修正公积金/单位/备注字段错位
+                var correctedCount = 0;
+                for (var si = 0; si < importedClients.length; si++) {
+                  correctedCount += sanitizeClientFields(importedClients[si]);
+                }
+
                 localStorage.setItem(CLIENTS_K, JSON.stringify(importedClients));
                 renderDialCards();
                 updateStats();
+                if (correctedCount > 0) {
+                  showCopyLimitToast('识别检查：已自动修正 ' + correctedCount + ' 条字段错位（公积金/单位）', true);
+                }
               })
               .catch(function(err) {
                 clearTimeout(timeoutId);
