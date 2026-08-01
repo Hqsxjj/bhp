@@ -1244,6 +1244,16 @@
       display: flex; align-items: center; justify-content: center;
       margin-top: 1px;
     }
+    .reminder-round-info {
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; padding: 8px 2px 10px;
+      border-bottom: 0.5px solid var(--card-border);
+      font-size: 0.72rem; color: var(--text-light);
+    }
+    .reminder-round-info b {
+      font-weight: 700; color: var(--text-main);
+      font-variant-numeric: tabular-nums;
+    }
     .reminder-dismiss {
       align-self: stretch; padding: 10px 0; border: none;
       background: var(--btn-bg); color: var(--text-main);
@@ -1565,6 +1575,10 @@
       <div class="reminder-header">
         <span class="reminder-title">微信运营提醒</span>
         <span class="reminder-countdown" id="reminderCountdown">03:00</span>
+      </div>
+      <div class="reminder-round-info" id="reminderRoundInfo">
+        <span>今日第 <b id="reminderRoundNum">1</b> 轮添加</span>
+        <span>下一轮倒计时 <b id="reminderRoundCd">30:00</b></span>
       </div>
       <ol class="reminder-list">
         <li class="reminder-item"><span class="reminder-num">1</span>休息30-50分钟，防止微信频繁</li>
@@ -2914,6 +2928,7 @@
           console.error("Supabase upload failed:", data.error || "未知错误");
         } else {
           showCheckToast();
+          recordRoundAdded(); // 成功导入一批 → 记一轮，并启动下一轮30分钟倒计时
           console.log("Supabase upload: 成功上传 " + data.count + " 条客户数据到云端" + (data.skipped > 0 ? " (其中 " + data.skipped + " 条已跳过)" : ""));
         }
         return data;
@@ -9514,6 +9529,46 @@ function updateAutoDialBtn() {
         }).catch(function() {});
     }
 
+    // 轮次统计：每成功导入一批客户记一轮（按本地日期），下一轮需等待30分钟（防微信频繁）
+    var ROUND_INFO_K = 'bhp_round_info';
+    function todayLocalStr() {
+      var d = new Date();
+      return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+    function getRoundInfo() {
+      try {
+        var raw = localStorage.getItem(ROUND_INFO_K);
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+      return null;
+    }
+    function saveRoundInfo(info) {
+      try { localStorage.setItem(ROUND_INFO_K, JSON.stringify(info)); } catch (e) {}
+    }
+    function recordRoundAdded() {
+      var today = todayLocalStr();
+      var info = getRoundInfo() || {};
+      if (info.date !== today) info = { date: today, count: 0 };
+      info.count = (info.count || 0) + 1;
+      info.addTs = Date.now();
+      saveRoundInfo(info);
+    }
+    function formatRoundCountdown(ms) {
+      var totalSec = Math.ceil(ms / 1000);
+      var m = Math.floor(totalSec / 60);
+      var s = totalSec % 60;
+      return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+    }
+    function renderRoundInfo() {
+      var numEl = document.getElementById('reminderRoundNum');
+      var cdEl = document.getElementById('reminderRoundCd');
+      if (!numEl || !cdEl) return;
+      var info = getRoundInfo();
+      numEl.textContent = (info && info.count) ? info.count : 1;
+      var remainMs = (info && info.addTs) ? Math.max(0, info.addTs + 30 * 60 * 1000 - Date.now()) : 0;
+      cdEl.textContent = formatRoundCountdown(remainMs);
+    }
+
     function showReminderOverlay() {
       var overlay = document.getElementById('reminderOverlay');
       var countdownEl = document.getElementById('reminderCountdown');
@@ -9536,6 +9591,7 @@ function updateAutoDialBtn() {
       var total = 180;
       var remaining = total;
       function updateCountdown() {
+        renderRoundInfo(); // 每秒刷新轮次倒计时
         var min = Math.floor(remaining / 60);
         var sec = remaining % 60;
         countdownEl.textContent = String(min).padStart(2, '0') + ':' + String(sec).padStart(2, '0');
