@@ -2543,7 +2543,7 @@
     window._reminderTimer = null;
     var _reminderSeqTimer = null;
 
-    // 操作到序号50的客户卡片时，5秒后弹出提醒并清空列表
+    // 操作到序号50的客户卡片时，8秒后弹出提醒并清空列表
     // 页面不可见（如切到微信粘贴号码）时暂停倒计时，回到页面后再重新触发，避免回来时列表已被清空
     var _pendingReminderClient = null;
     function scheduleReminder(client) {
@@ -2560,7 +2560,7 @@
         _reminderShown = true;
         showReminderOverlay();
         checkAndTransferBatch(client);
-      }, 5000);
+      }, 8000);
     }
     document.addEventListener('visibilitychange', function() {
       if (!document.hidden && _pendingReminderClient && !_reminderShown) {
@@ -2846,7 +2846,7 @@
       }
     }
 
-    // 批次达标自动转公海：≥50人 且 ≥90%已操作 → 整批转入公海（由5秒弹窗回调统一触发）
+    // 批次达标自动转公海：≥50人 且 ≥90%已操作 → 整批转入公海（由8秒弹窗回调统一触发）
     var _transferredBatches = {};
     function checkAndTransferBatch(client) {
       if (!client) return;
