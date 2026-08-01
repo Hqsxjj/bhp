@@ -8100,7 +8100,8 @@ function updateAutoDialBtn() {
       }
       // 规则5: note 里含 4-5 位金额数字(非年份，支持"5000.56"小数) → 提取到 fund
       if (!fund && note) {
-        var numMatch = note.match(/\\d{4,5}(?:\\.\\d{1,2})?/);
+        // 前后数字边界防截断：6位以上数字不截前5位，保持原样
+        var numMatch = note.match(/(?<!\\d)\\d{4,5}(?:\\.\\d{1,2})?(?!\\d)/);
         if (numMatch && !YEAR_RE.test(numMatch[0])) {
           fund = numMatch[0];
           note = note.replace(numMatch[0], '').replace(/^[\\s;；,，|]+/, '').trim();
@@ -9009,7 +9010,10 @@ function updateAutoDialBtn() {
  btn.textContent = 'AI 扫描修正中...';
  btn.disabled = true;
 
- fetch('/api/admin/ai-correct-fund')
+ fetch('/api/admin/ai-correct-fund', {
+   method: 'POST',
+   headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + (localStorage.getItem('dialer_sess_token') || '') }
+ })
  .then(function(r) { return r.json(); })
  .then(function(res) {
  btn.textContent = originalText;
@@ -9018,8 +9022,9 @@ function updateAutoDialBtn() {
  if (res.success) {
  var msg = 'AI 公积金修正完成\\n\\n';
  msg += '扫描总条数: ' + res.total_scanned + '\\n';
- msg += '发现可疑: ' + res.suspicious_found + ' 条\\n';
- msg += '已修正: ' + res.ai_corrected + ' 条\\n\\n';
+ msg += '本地规则修正: ' + (res.local_corrected || 0) + ' 条\\n';
+ msg += 'AI 判断可疑: ' + (res.suspicious_found || 0) + ' 条\\n';
+ msg += 'AI 修正: ' + (res.ai_corrected || 0) + ' 条\\n\\n';
 
  if (res.corrections && res.corrections.length > 0) {
  msg += '修正详情（最多显示 20 条）：\\n';

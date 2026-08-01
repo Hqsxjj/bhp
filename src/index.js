@@ -62,6 +62,104 @@ async function dialerValidateSession(env, token) {
   return session;
 }
 
+// 批量 AI 判断公积金/单位/备注字段错位（复用 /api/ocr/correct 的 AI 配置模式）
+async function aiJudgeFundBatch(env, batch) {
+  let provider = await env.DATA_KV.get('config:ai_provider') || 'gemini';
+  const visionKey = await env.DATA_KV.get('config:vision_api_key') || '';
+  const aiKey = await env.DATA_KV.get('config:ai_api_key') || await env.DATA_KV.get('config:deepseek_api_key') || env.AI_API_KEY || env.DEEPSEEK_API_KEY || '';
+
+  let apiKey = aiKey;
+  if (provider === 'gemini' || (visionKey && !aiKey)) {
+    provider = 'gemini';
+    apiKey = visionKey || aiKey;
+  }
+  if (!apiKey) throw new Error('未配置 AI Key');
+
+  let apiBase = await env.DATA_KV.get('config:ai_api_base') || env.AI_API_BASE;
+  let model = await env.DATA_KV.get('config:ai_model') || env.AI_API_MODEL;
+
+  if (provider === 'gemini') {
+    if (!apiBase) apiBase = 'https://generativelanguage.googleapis.com/v1beta/openai/';
+    if (!model) model = 'gemini-2.5-flash';
+  } else {
+    if (!apiBase) apiBase = 'https://api.deepseek.com/v1/';
+    if (!model) model = 'deepseek-chat';
+  }
+
+  let url = apiBase;
+  if (!url.endsWith('/')) url += '/';
+  url += 'chat/completions';
+
+  const systemPrompt = '你是客户数据修正专家。客户记录包含「公积金(fund)」「单位(company_name)」「备注(note)」三个字段，可能存错了位置。请逐条判断并输出修正建议。\n' +
+    '规则：\n' +
+    '1. fund 存了公司名称 → action=move_fund_to_company，company_name 填公司名，fund 清空\n' +
+    '2. company_name 存了纯数字公积金（4-5位，非年份，可带小数如 5000.56）→ action=move_company_to_fund，fund 填该数字，company_name 清空\n' +
+    '3. fund 和 company_name 存反了（company_name 是纯数字、fund 是中文机构名）→ action=swap\n' +
+    '4. note 备注里误存了公司名称 → action=move_note_to_company，company_name 填公司名，note 移除该名称\n' +
+    '5. note 备注里含 4-5 位金额数字（非年份，如 5000.56）且 fund 为空 → action=move_note_number_to_fund，fund 填整个金额含小数，note 移除该数字\n' +
+    '6. fund 是乱码/无意义文字 → action=clear_fund，fund 清空\n' +
+    '7. 记录没有错位问题 → action=skip，字段原样返回\n\n' +
+    '金额带小数时整个金额含小数作为 fund（如 5000.56），绝对不要把小数部分拆进 note。\n' +
+    '只输出 JSON 数组（禁止 markdown 包裹）：[{"mobile":"原手机号","company_name":"修正后的单位","fund":"修正后的公积金","note":"修正后的备注","action":"动作类型"}]，action 只能是 move_fund_to_company|move_company_to_fund|swap|move_note_to_company|move_note_number_to_fund|clear_fund|skip，每条必须包含 mobile 原值';
+
+  const resp = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer ' + apiKey
+    },
+    body: JSON.stringify({
+      model: model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: '请修正以下客户记录的字段错位：\n' + JSON.stringify(batch) }
+      ],
+      temperature: 0.1,
+      max_tokens: 4096
+    })
+  });
+
+  if (!resp.ok) {
+    const errText = await resp.text();
+    throw new Error('AI API error ' + resp.status + ': ' + errText.substring(0, 200));
+  }
+
+  const aiData = await resp.json();
+  let content = aiData.choices[0].message.content.trim();
+  if (content.startsWith('```')) {
+    content = content.replace(/^```json\s*/i, '').replace(/```$/, '').trim();
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(content);
+  } catch (e) {
+    const arrMatch = content.match(/\[[\s\S]*\]/);
+    if (arrMatch) {
+      try { parsed = JSON.parse(arrMatch[0]); } catch (e2) {}
+    }
+  }
+  return Array.isArray(parsed) ? parsed : [];
+}
+
+// 本地规则未命中时的可疑判定：这些条目交给 AI 判断（乱码 fund、混入数字的 company、残留数字的 note）
+function isSuspiciousFundEntry(c, INST_RE) {
+  var f = (c.fund || '').trim();
+  var comp = (c.company_name || '').trim();
+  var note = (c.note || '').trim();
+  // fund 含中文但非机构名 → 疑似乱码/注释
+  if (f && /[一-龥]/.test(f) && !INST_RE.test(f)) return true;
+  // fund 含非数字字符（¥/元/人民币/小数点 等合理成分除外）→ 疑似乱码
+  var fClean = f.replace(/[¥￥元块人民币\s.,]+/g, '');
+  if (fClean && /[^0-9]/.test(fClean)) return true;
+  // fund 过长 → 疑似混入其他内容
+  if (f.length > 12) return true;
+  // company 含数字（非纯数字公积金，可能连写或混入）→ AI 判断
+  if (comp && /\d/.test(comp)) return true;
+  // note 仍含数字（可能 6 位以上金额或其他数字）→ AI 判断
+  if (note && /\d/.test(note)) return true;
+  return false;
+}
+
 // ========== Main Worker ==========
 
 export default {
@@ -784,6 +882,165 @@ export default {
       } catch (e) {
         return new Response(JSON.stringify({ success: false, error: e.message }), {
           status: e.message === '未登录' ? 401 : 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
+    // POST /api/admin/ai-correct-fund — AI 扫描修正公积金/单位/备注字段错位（仅主账户）
+    if (path === '/api/admin/ai-correct-fund' && request.method === 'POST') {
+      try {
+        var authHeader = request.headers.get('Authorization') || '';
+        var sessionToken = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : '';
+        var session = await dialerValidateSession(env, sessionToken);
+        if (!session) throw new Error('未登录');
+
+        var accounts = await dialerGetAccounts(env);
+        var master = null;
+        for (var ak = 0; ak < accounts.length; ak++) {
+          if (accounts[ak].account_id === session.account_id && accounts[ak].is_master !== false) { master = accounts[ak]; break; }
+        }
+        if (!master) throw new Error('仅主账户可操作');
+
+        var sb = createSupabaseClient(env);
+        var result = await sb.getAllCustomers(1, 200, '', 'created_at', 'asc', '', '', null, '');
+        var all = result.data || [];
+        var totalScanned = all.length;
+
+        // 与前端字段识别检查一致：机构名/纯数字金额(支持小数)/年份 判定
+        var INST_RE = /[一-龥]*(?:幼儿园|小学|中学|学校|学院|大学|医院|银行|有限公司|集团|公司|企业|工厂|保险|证券|基金|海关|政府|研究院|实验室|局|院|所|部|中心|厂|处|会|队|站)[一-龥（）()]*/;
+        var NUM_RE = /^\d{4,5}(\.\d{1,2})?$/;
+        var YEAR_RE = /^(19|20)\d{2}$/;
+
+        var corrections = [];
+        var errors = [];
+        var aiCandidates = [];
+        var localCorrected = 0;
+
+        for (var i = 0; i < all.length; i++) {
+          var c = all[i];
+          if (!c || !c.mobile) continue;
+          var company = c.company_name || '';
+          var fund = c.fund || '';
+          var note = c.note || '';
+          var action = '';
+
+          // 本地确定性规则（与前端 sanitizeClientFields 一致）
+          if (!fund && NUM_RE.test(company) && !YEAR_RE.test(company)) {
+            fund = company; company = ''; action = 'move_company_to_fund';
+          } else if (!company && fund && /[一-龥]/.test(fund) && INST_RE.test(fund)) {
+            company = fund; fund = ''; action = 'move_fund_to_company';
+          } else if (NUM_RE.test(company) && !YEAR_RE.test(company) && /[一-龥]/.test(fund)) {
+            var tmp = fund; fund = company; company = tmp; action = 'swap';
+          }
+          if (!action && !company && note) {
+            var instMatch = note.match(INST_RE);
+            if (instMatch) {
+              company = instMatch[0];
+              note = note.replace(instMatch[0], '').replace(/^[\s;；,，|]+/, '').trim();
+              action = 'move_note_to_company';
+            }
+          }
+          if (!action && !fund && note) {
+            // 前后数字边界防截断：6位以上数字不截前5位，留给 AI 判断
+            var numMatch = note.match(/(?<!\d)\d{4,5}(?:\.\d{1,2})?(?!\d)/);
+            if (numMatch && !YEAR_RE.test(numMatch[0])) {
+              fund = numMatch[0];
+              note = note.replace(numMatch[0], '').replace(/^[\s;；,，|]+/, '').trim();
+              action = 'move_note_number_to_fund';
+            }
+          }
+
+          if (action) {
+            localCorrected++;
+            corrections.push({
+              mobile: c.mobile, action: action,
+              old_company_name: c.company_name || '', old_fund: c.fund || '', old_note: c.note || '',
+              new_company_name: company, new_fund: fund, fund_value: fund
+            });
+            try {
+              var upFields = {};
+              if (company !== (c.company_name || '')) upFields.company_name = company;
+              if (fund !== (c.fund || '')) upFields.fund = fund;
+              if (note !== (c.note || '')) upFields.note = note;
+              await sb.updateCustomer(c.mobile, upFields, c.account_id || '');
+            } catch (e) {
+              errors.push(c.mobile + ': ' + e.message);
+            }
+          } else if (isSuspiciousFundEntry(c, INST_RE)) {
+            // 本地规则无法确定 → 送 AI 判断
+            aiCandidates.push({
+              mobile: c.mobile, name: c.name || '',
+              company_name: c.company_name || '', fund: c.fund || '', note: c.note || '',
+              account_id: c.account_id || ''
+            });
+          }
+        }
+
+        // AI 批量判断（每批 15 条，单批失败不中断整体）
+        var aiCorrected = 0;
+        if (aiCandidates.length > 0) {
+          var batchSize = 15;
+          for (var bi = 0; bi < aiCandidates.length; bi += batchSize) {
+            var batch = aiCandidates.slice(bi, bi + batchSize);
+            try {
+              var aiRes = await aiJudgeFundBatch(env, batch);
+              for (var ri = 0; ri < aiRes.length; ri++) {
+                var rec = aiRes[ri];
+                if (!rec || !rec.mobile) continue;
+                var orig = null;
+                for (var oi = 0; oi < batch.length; oi++) {
+                  if (batch[oi].mobile === String(rec.mobile)) { orig = batch[oi]; break; }
+                }
+                if (!orig) continue;
+                var aiAction = rec.action || 'skip';
+                if (aiAction === 'skip') continue;
+                var newCompany = rec.company_name !== undefined ? String(rec.company_name || '').trim() : orig.company_name;
+                var newFund = rec.fund !== undefined ? String(rec.fund || '').trim() : orig.fund;
+                var newNote = rec.note !== undefined ? String(rec.note || '').trim() : orig.note;
+                // 按 action 强制字段清空，防止 AI 输出不一致
+                if (aiAction === 'clear_fund') newFund = '';
+                if (aiAction === 'move_company_to_fund') newCompany = '';
+                if (aiAction === 'move_fund_to_company') newFund = '';
+                // AI 提取金额放宽到 4-8 位（本地规则只认 4-5 位，更长数字由 AI 判断）
+                if (aiAction === 'move_note_number_to_fund' && !/^\d{4,8}(?:\.\d{1,2})?$/.test(newFund)) newFund = '';
+                var aiUp = {};
+                if (newCompany !== orig.company_name) aiUp.company_name = newCompany;
+                if (newFund !== orig.fund) aiUp.fund = newFund;
+                if (newNote !== orig.note) aiUp.note = newNote;
+                if (Object.keys(aiUp).length === 0) continue;
+                aiCorrected++;
+                corrections.push({
+                  mobile: orig.mobile, action: aiAction,
+                  old_company_name: orig.company_name, old_fund: orig.fund, old_note: orig.note,
+                  new_company_name: newCompany, new_fund: newFund, fund_value: newFund
+                });
+                try {
+                  await sb.updateCustomer(orig.mobile, aiUp, orig.account_id || '');
+                } catch (e) {
+                  errors.push(orig.mobile + ': ' + e.message);
+                }
+              }
+            } catch (e) {
+              errors.push('AI 判断批次失败: ' + e.message);
+            }
+          }
+        }
+
+        return new Response(JSON.stringify({
+          success: true,
+          total_scanned: totalScanned,
+          suspicious_found: aiCandidates.length,
+          local_corrected: localCorrected,
+          ai_corrected: aiCorrected,
+          corrections: corrections,
+          errors: errors
+        }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: e.message === '未登录' ? 401 : (e.message === '仅主账户可操作' ? 403 : 400),
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       }
