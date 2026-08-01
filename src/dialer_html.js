@@ -3874,11 +3874,11 @@
             }
           }
 
-          // Extract fund (公积金/金额) from note parts: 4-5位纯数字(排除年份)，支持"5000元"等后缀
+          // Extract fund (公积金/金额) from note parts: 4-5位金额数字(排除年份)，支持"5000.56"小数和"5000元"后缀
           var fund = '';
           for (var nj = noteParts.length - 1; nj >= 0; nj--) {
             var np = noteParts[nj].replace(/^[¥￥]\\s*/, '').replace(/[元块人民币]+$/, '').trim();
-            if (/^\\d{4,5}$/.test(np) && !/^(19|20)\\d{2}$/.test(np)) {
+            if (/^\\d{4,5}(\\.\\d{1,2})?$/.test(np) && !/^(19|20)\\d{2}$/.test(np)) {
               fund = np;
               noteParts.splice(nj, 1);
               break;
@@ -8098,9 +8098,9 @@ function updateAutoDialBtn() {
           changes++;
         }
       }
-      // 规则5: note 里含 4-5 位纯数字(非年份) → 提取到 fund
+      // 规则5: note 里含 4-5 位金额数字(非年份，支持"5000.56"小数) → 提取到 fund
       if (!fund && note) {
-        var numMatch = note.match(/\\d{4,5}/);
+        var numMatch = note.match(/\\d{4,5}(?:\\.\\d{1,2})?/);
         if (numMatch && !YEAR_RE.test(numMatch[0])) {
           fund = numMatch[0];
           note = note.replace(numMatch[0], '').replace(/^[\\s;；,，|]+/, '').trim();
