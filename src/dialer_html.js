@@ -8116,10 +8116,8 @@ function updateAutoDialBtn() {
       var btn = document.getElementById('refreshBatchBtn');
       if (!btn || btn.disabled) return;
 
-      var REFRESH_ICON = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>';
-
+      // 静默加载：按钮保持原样，仅禁用防止重复点击
       btn.disabled = true;
-      btn.textContent = '加载中...';
 
       var retryCount = 0;
       var maxRetries = 5;
@@ -8151,20 +8149,17 @@ function updateAutoDialBtn() {
             // Handle server-side lock (another request in-flight for same account)
             if (res.locked && retryCount < maxRetries) {
               retryCount++;
-              btn.textContent = '排队中(' + retryCount + ')...';
               setTimeout(doPull, 1500);
               return;
             }
 
             if (res.locked) {
               btn.disabled = false;
-              btn.innerHTML = REFRESH_ICON;
               alert('服务器繁忙，请稍后再试');
               return;
             }
 
                 btn.disabled = false;
-                btn.innerHTML = REFRESH_ICON;
 
                 if (res.error) { alert('加载失败: ' + res.error); return; }
 
@@ -8201,23 +8196,18 @@ function updateAutoDialBtn() {
                   };
                 });
 
-                // 识别检查：自动修正公积金/单位/备注字段错位
-                var correctedCount = 0;
+                // 识别检查（静默）：自动修正公积金/单位/备注字段错位
                 for (var si = 0; si < importedClients.length; si++) {
-                  correctedCount += sanitizeClientFields(importedClients[si]);
+                  sanitizeClientFields(importedClients[si]);
                 }
 
                 localStorage.setItem(CLIENTS_K, JSON.stringify(importedClients));
                 renderDialCards();
                 updateStats();
-                if (correctedCount > 0) {
-                  showCopyLimitToast('识别检查：已自动修正 ' + correctedCount + ' 条字段错位（公积金/单位）', true);
-                }
               })
               .catch(function(err) {
                 clearTimeout(timeoutId);
                 btn.disabled = false;
-                btn.innerHTML = REFRESH_ICON;
                 if (err.name === 'AbortError') {
                   alert('请求超时，请检查网络后重试');
                 } else {
@@ -8226,7 +8216,6 @@ function updateAutoDialBtn() {
               });
         } catch (syncErr) {
           btn.disabled = false;
-          btn.innerHTML = REFRESH_ICON;
           alert('操作失败: ' + syncErr.message);
         }
 
