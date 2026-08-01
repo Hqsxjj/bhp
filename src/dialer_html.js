@@ -3645,7 +3645,7 @@
               if (!/^[一-龥]$/.test(cleanStr)) return false;
               return true;
             }
-        if (/姓名|电话|手机|号码|公司|备注|联系人|客户|微信|意向|跟进|记录|挂断|接通|无效|加微信|想买|说明|介绍|详情|tel|phone|mobile|name/i.test(cleanStr)) {
+        if (/姓名|电话|手机|号码|公司|备注|联系人|客户|微信|意向|跟进|记录|挂断|接通|无效|加微信|想买|说明|介绍|详情|单位|公积金|社保|基数|工资|需求|tel|phone|mobile|name/i.test(cleanStr)) {
           return false;
         }
         if (/有限公司|有限责任|集团|公司|企业|厂|店|中心|商行|工作室|股份|学校|幼儿园|小学|中学|大学|学院|研究院|研究所|实验室|医院|银行|局|委|会|处|所|站|部|厅|署|社|团|队|组/.test(cleanStr)) {
@@ -3743,20 +3743,20 @@
           var bestCompany = '';
           for (var j = 0; j < remainingParts.length; j++) {
             var part = remainingParts[j];
-            if (/联系人|负责人|姓名|电话|手机|号码|备注|意向|跟进|记录|挂断|接通|无效|加微信/i.test(part)) {
+            if (/联系人|负责人|姓名|电话|手机|号码|备注|意向|跟进|记录|挂断|接通|无效|加微信|单位|公积金|社保|基数|工资|需求/i.test(part)) {
               continue;
             }
-            if (/有限公司|有限责任|集团|公司|企业|厂|店|中心|商行|工作室|股份|科技|技术|网络|制造|金融|地产|开发/.test(part)) {
+            if (/有限公司|有限责任|集团|公司|企业|厂|店|中心|商行|工作室|股份|科技|技术|网络|制造|金融|地产|开发|幼儿园|小学|中学|学校|学院|大学|医院|银行|保险|证券|基金|海关|政府|研究院|实验室|支行|分行|法院|检察院|公安局|派出所/.test(part)) {
               bestCompany = part;
               break;
             }
           }
-          
+
           // Fallback Company (institution suffixes)
           if (!bestCompany) {
             for (var j = 0; j < remainingParts.length; j++) {
               var part = remainingParts[j];
-              if (/局|厅|科|所|校|院|部/.test(part)) {
+              if (/局|厅|科|所|校|院|部|关|队|站|处|会/.test(part)) {
                 bestCompany = part;
                 break;
               }
@@ -3776,10 +3776,18 @@
             }
           }
           
+          var companySkipSet = {};
           if (bestCompany) {
             company = bestCompany;
+            companySkipSet[bestCompany] = true;
+            // 合并括号注释：如 "海关(养)"，括号内容属于单位名一部分，防止漏进备注或误判为姓名
+            var parenMerge = new RegExp('(?:' + bestCompany.replace(/[.*+?^\\x24{}()|\\[\\]\\\\]/g, '\\$&') + ')\\s*[（(]([一-龥a-zA-Z0-9]{1,4})[）)]').exec(line);
+            if (parenMerge) {
+              company = parenMerge[0];
+              if (parenMerge[1]) companySkipSet[parenMerge[1]] = true;
+            }
           }
-          
+
           // Spatial prefix/suffix extraction
           var prefix = line.substring(0, phoneInfo.index).trim();
           var prefixMatch = /(?:^|\\s)([\\u4e00-\\u9fa5]{2,4})(?=\\s|$)/.exec(prefix) || /^([\\u4e00-\\u9fa5]{2,4})/.exec(prefix) || /([\\u4e00-\\u9fa5]{1,4})\\s*$/.exec(prefix);
@@ -3793,13 +3801,13 @@
           // Phase A: Segment matches starting with common surnames
           for (var j = 0; j < remainingParts.length; j++) {
             var part = remainingParts[j];
-            if (part === company) continue;
+            if (part === company || companySkipSet[part]) continue;
             if (isValidNameHeuristic(part) && SURNAMES.test(part) && part.length <= 4) {
               name = part;
               break;
             }
           }
-          
+
           // Phase B: Adjacent prefix/suffix matches starting with common surnames
           if (!name) {
             if (prefixName && isValidNameHeuristic(prefixName) && SURNAMES.test(prefixName)) {
@@ -3808,19 +3816,19 @@
               name = suffixName;
             }
           }
-          
+
           // Phase C: Regular segments (Chinese name / titles) satisfying validity
           if (!name) {
             for (var j = 0; j < remainingParts.length; j++) {
               var part = remainingParts[j];
-              if (part === company) continue;
+              if (part === company || companySkipSet[part]) continue;
               if (isValidNameHeuristic(part) && part.length <= 4) {
                 name = part;
                 break;
               }
             }
           }
-          
+
           // Phase D: Adjacent prefix/suffix satisfying validity
           if (!name) {
             if (prefixName && isValidNameHeuristic(prefixName)) {
@@ -3829,12 +3837,12 @@
               name = suffixName;
             }
           }
-          
+
           // Phase E: Any valid remaining segment up to 6 characters
           if (!name) {
             for (var j = 0; j < remainingParts.length; j++) {
               var part = remainingParts[j];
-              if (part === company) continue;
+              if (part === company || companySkipSet[part]) continue;
               if (isValidNameHeuristic(part)) {
                 name = part;
                 break;
@@ -3850,9 +3858,9 @@
           // Extract Notes from remaining parts
           for (var j = 0; j < remainingParts.length; j++) {
             var part = remainingParts[j];
-            if (part !== name && part !== company) {
+            if (part !== name && part !== company && !companySkipSet[part]) {
               // Skip UI labels/metadata in notes to keep them clean
-              if (/姓名|电话|手机|号码|公司|备注|联系人|客户|微信|负责人|说明|介绍|详情/i.test(part) && part.length <= 5) {
+              if (/姓名|电话|手机|号码|公司|备注|联系人|客户|微信|负责人|说明|介绍|详情|单位|公积金|社保|基数|工资|需求/i.test(part) && part.length <= 5) {
                 continue;
               }
               var cleanPart = part.replace(/[-\\s.,，。:：;；%&|()（）\\[\\]{}<>]/g, '');
@@ -3865,13 +3873,18 @@
               noteParts.push(part);
             }
           }
-          
-          var finalNote = noteParts.join(' ');
+
+          // Extract fund (公积金/金额) from note parts: 4-5位纯数字(排除年份)，支持"5000元"等后缀
           var fund = '';
-          if (/^\\d{4,5}$/.test(finalNote)) {
-            fund = finalNote;
-            finalNote = '';
+          for (var nj = noteParts.length - 1; nj >= 0; nj--) {
+            var np = noteParts[nj].replace(/^[¥￥]\\s*/, '').replace(/[元块人民币]+$/, '').trim();
+            if (/^\\d{4,5}$/.test(np) && !/^(19|20)\\d{2}$/.test(np)) {
+              fund = np;
+              noteParts.splice(nj, 1);
+              break;
+            }
           }
+          var finalNote = noteParts.join(' ');
           results.push({
             name: name,
             phone: phoneStr,
