@@ -2881,6 +2881,7 @@
       if (operated / total < 0.9) return;
       // 达标：立即转公海并清空列表（API 后台执行，不等响应）
       _transferredBatches[batch] = true;
+      recordRoundTransferred(); // 从转出公海时刻起算下一轮30分钟倒计时
       var mobiles = [];
       for (var j = 0; j < batchClients.length; j++) {
         var m = batchClients[j].phone || batchClients[j].mobile;
@@ -9529,7 +9530,7 @@ function updateAutoDialBtn() {
         }).catch(function() {});
     }
 
-    // 轮次统计：每成功导入一批客户记一轮（按本地日期），下一轮需等待30分钟（防微信频繁）
+    // 轮次统计：每成功导入一批客户记一轮（按本地日期），下一轮倒计时从转出公海时刻起算30分钟（防微信频繁）
     var ROUND_INFO_K = 'bhp_round_info';
     function todayLocalStr() {
       var d = new Date();
@@ -9550,7 +9551,13 @@ function updateAutoDialBtn() {
       var info = getRoundInfo() || {};
       if (info.date !== today) info = { date: today, count: 0 };
       info.count = (info.count || 0) + 1;
-      info.addTs = Date.now();
+      saveRoundInfo(info);
+    }
+    function recordRoundTransferred() {
+      var today = todayLocalStr();
+      var info = getRoundInfo() || {};
+      if (info.date !== today) info = { date: today, count: 0 };
+      info.transferTs = Date.now();
       saveRoundInfo(info);
     }
     function formatRoundCountdown(ms) {
@@ -9565,7 +9572,7 @@ function updateAutoDialBtn() {
       if (!numEl || !cdEl) return;
       var info = getRoundInfo();
       numEl.textContent = (info && info.count) ? info.count : 1;
-      var remainMs = (info && info.addTs) ? Math.max(0, info.addTs + 30 * 60 * 1000 - Date.now()) : 0;
+      var remainMs = (info && info.transferTs) ? Math.max(0, info.transferTs + 30 * 60 * 1000 - Date.now()) : 0;
       cdEl.textContent = formatRoundCountdown(remainMs);
     }
 
