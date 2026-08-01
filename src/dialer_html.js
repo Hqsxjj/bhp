@@ -9274,13 +9274,14 @@ function updateAutoDialBtn() {
           var key = document.getElementById('dbResendApiKey').value.trim();
           var fromEmail = document.getElementById('dbBackupFromEmail').value.trim();
           var status = document.getElementById('dbEmailConfigStatus');
-          if (!key) { status.textContent = '请输入 Resend API Key'; status.style.color = '#e74c3c'; return; }
+          // Key 可留空：已配置 Worker 密钥 RESEND_API_KEY 时只保存发送者邮箱即可
+          if (!key && !fromEmail) { status.textContent = '请填写发送者邮箱或 Resend API Key'; status.style.color = '#e74c3c'; return; }
           saveConfigBtn.disabled = true; saveConfigBtn.textContent = '保存中...';
           var token = getSessionToken();
           fetch('/api/dialer/stats/email-config', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-            body: JSON.stringify({ resendApiKey: key, backupFromEmail: fromEmail || undefined, saveOnly: true })
+            body: JSON.stringify({ resendApiKey: key || undefined, backupFromEmail: fromEmail || undefined, saveOnly: true })
           })
           .then(function(r) { return r.json(); })
           .then(function(res) {
