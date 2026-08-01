@@ -695,7 +695,7 @@ export default {
         }
         if (!master) throw new Error('仅主账户可操作');
 
-        var key = await env.DATA_KV.get('config:resend_api_key') || '';
+        var key = env.RESEND_API_KEY || await env.DATA_KV.get('config:resend_api_key') || '';
 
         return new Response(JSON.stringify({ hasKey: !!key }), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
