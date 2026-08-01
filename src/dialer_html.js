@@ -2544,19 +2544,29 @@
     var _reminderSeqTimer = null;
 
     // 操作到序号50的客户卡片时，5秒后弹出提醒并清空列表
+    // 页面不可见（如切到微信粘贴号码）时暂停倒计时，回到页面后再重新触发，避免回来时列表已被清空
+    var _pendingReminderClient = null;
     function scheduleReminder(client) {
       if (_reminderShown) return;
       if (!client) return;
       var seq = client._seq || 0;
       if (seq < 50) return;
+      _pendingReminderClient = client;
+      if (document.hidden) return; // 不在页面时等待 visibilitychange 重新触发
       if (_reminderSeqTimer) clearTimeout(_reminderSeqTimer);
       _reminderSeqTimer = setTimeout(function() {
-        _reminderShown = true;
         _reminderSeqTimer = null;
+        if (document.hidden) return; // 倒计时结束时仍不在页面：放弃本次，回到页面后重新计时
+        _reminderShown = true;
         showReminderOverlay();
         checkAndTransferBatch(client);
       }, 5000);
     }
+    document.addEventListener('visibilitychange', function() {
+      if (!document.hidden && _pendingReminderClient && !_reminderShown) {
+        scheduleReminder(_pendingReminderClient);
+      }
+    });
 
     // Wire dismiss button to clear countdown + seq timer
     (function() {
@@ -2565,6 +2575,7 @@
         dismissBtn.addEventListener('click', function() {
           if (window._reminderTimer) { clearInterval(window._reminderTimer); window._reminderTimer = null; }
           if (_reminderSeqTimer) { clearTimeout(_reminderSeqTimer); _reminderSeqTimer = null; }
+          _pendingReminderClient = null; // 已手动关闭：回到页面也不重新触发
         });
       }
     })();
