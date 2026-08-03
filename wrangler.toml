@@ -7,6 +7,13 @@ compatibility_flags = [ "nodejs_compat" ]
 [limits]
 subrequest = 1000
 
+# 邮件备份配置（Resend）
+# 发送者必须是 Resend 已验证域名的邮箱；目前用官方测试地址 onboarding@resend.dev，
+# 验证自己的域名后可改为 backup@你的域名.com
+[vars]
+BACKUP_FROM_EMAIL = "onboarding@resend.dev"
+BACKUP_TARGET_EMAIL = "zy28341215@gmail.com"
+
 [[kv_namespaces]]
 binding = "DATA_KV"
 id = "ff69992ea0034094913d4a6fa1e78075"
