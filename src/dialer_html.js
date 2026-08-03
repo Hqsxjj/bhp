@@ -2642,17 +2642,11 @@
     // 操作到序号50的客户卡片时，8秒后弹出提醒并清空列表
     // 页面不可见（如切到微信粘贴号码）时暂停倒计时，回到页面后再重新触发，避免回来时列表已被清空
     var _pendingReminderClient = null;
-    function scheduleReminder(client, resume) {
+    function scheduleReminder(client) {
       if (_reminderShown) return;
       if (!client) return;
       var seq = client._seq || 0;
       if (seq < 50) return;
-      if (!resume) {
-        // 同一客户本轮回已触发过提醒（如刷新/锁定后再次操作该客户）：不再重复弹窗
-        if (client._reminded) return;
-        client._reminded = true;
-        saveState();
-      }
       _pendingReminderClient = client;
       if (document.hidden) return; // 不在页面时等待 visibilitychange 重新触发
       if (_reminderSeqTimer) clearTimeout(_reminderSeqTimer);
@@ -2666,7 +2660,7 @@
     }
     document.addEventListener('visibilitychange', function() {
       if (!document.hidden && _pendingReminderClient && !_reminderShown) {
-        scheduleReminder(_pendingReminderClient, true); // resume: 跳过已提醒检查，保证从微信返回仍能弹出
+        scheduleReminder(_pendingReminderClient); // 从微信返回后重新计时弹出
       }
     });
 
@@ -2952,9 +2946,7 @@
     // 操作满一轮（序号50触发提醒）：已操作客户（复制过号码/姓名/单位，或拨打完成）清出列表并转公海，
     // 无论批次是否全部完成——每50人一轮，轮次+1并启动下一轮30分钟倒计时（由8秒弹窗回调统一触发）
     function checkAndTransferBatch(client) {
-      if (!client) return;
-      var seq = client._seq || 0;
-      if (seq < 50) return; // 操作到序号50才触发
+      if (!client) return; // 触发时 scheduleReminder 已校验序号≥50，此处不重复校验（避免8秒内列表重排误判）
       // 找出所有已操作客户
       var operatedClients = importedClients.filter(function(c) {
         return c.copied || c.dialedStatus === 'success' || c.dialedStatus === 'failed';
