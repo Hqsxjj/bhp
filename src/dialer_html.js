@@ -1616,7 +1616,7 @@
   <div class="progress-drawer-overlay" id="progressDrawerOverlay">
     <div class="progress-drawer" id="progressDrawer">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
-        <span style="font-size:1rem;font-weight:700;color:var(--text-main);letter-spacing:-0.01em;">工作进度</span>
+        <span style="font-size:1rem;font-weight:700;color:var(--text-main);letter-spacing:-0.01em;">添加动作</span>
         <button class="drawer-close-btn" id="progressDrawerClose" title="关闭" style="border:none;background:transparent;color:var(--text-soft);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
       <div class="drawer-stat-row">
@@ -1635,7 +1635,7 @@
       </div>
       <div style="height:0.5px;background:var(--card-border);margin:4px 0;"></div>
       <div class="drawer-stat-row">
-        <span>添加动作数量（今日）</span>
+        <span>通过微信数量（今日）</span>
         <span style="display:inline-flex;align-items:center;gap:8px;">
           <button class="drawer-step-btn" id="drawerWechatMinus" title="减1">−</button>
           <span class="drawer-stat-value" id="drawerWechatVal" style="min-width:48px;text-align:center;font-size:1.2rem;font-weight:700;">0</span>
@@ -1643,11 +1643,11 @@
         </span>
       </div>
       <div class="drawer-stat-row">
-        <span>添加动作数量（本周）</span>
+        <span>通过微信数量（本周）</span>
         <span class="drawer-stat-value" id="drawerWeekWechatVal">0</span>
       </div>
       <div class="drawer-stat-row">
-        <span>添加动作数量（本月）</span>
+        <span>通过微信数量（本月）</span>
         <span class="drawer-stat-value" id="drawerMonthWechatVal">0</span>
       </div>
     </div>
