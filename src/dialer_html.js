@@ -2190,6 +2190,7 @@
         <div style="font-size:0.68rem; color:var(--text-light); line-height:1.5;">保存配置后，该邮箱也会作为爆破密码触发时的自动备份接收邮箱。</div>
       </div>
       <button id="dbSendBackupBtn" class="auth-btn" style="font-size:0.78rem;padding:8px 0;background:#4a6cf7;color:#fff;">发送备份</button>
+      <button id="dbTestBackupBtn" class="auth-btn" style="font-size:0.78rem;padding:8px 0;background:transparent;border:0.5px solid var(--card-border);color:var(--text-main);">测试邮件（1条客户数据）</button>
       <div id="dbBackupStatus" style="font-size:0.68rem; min-height:18px; line-height:1.4;"></div>
     </div>
 
@@ -9328,6 +9329,37 @@ function updateAutoDialBtn() {
           })
           .catch(function() { status.textContent = '网络错误，请重试'; status.style.color = '#e74c3c'; })
           .finally(function() { sendBtn.disabled = false; sendBtn.textContent = '发送备份'; });
+        });
+      }
+
+      // Test email: 只带 1 条客户数据，验证邮件通道
+      var testBtn = document.getElementById('dbTestBackupBtn');
+      if (testBtn) {
+        testBtn.addEventListener('click', function() {
+          var email = document.getElementById('dbBackupEmail').value.trim();
+          var status = document.getElementById('dbBackupStatus');
+          if (email && email.indexOf('@') === -1) { status.textContent = '邮箱格式不正确'; status.style.color = '#e74c3c'; return; }
+          testBtn.disabled = true; testBtn.textContent = '测试中...';
+          status.style.color = 'var(--text-light)';
+          status.textContent = '正在发送测试邮件（1条客户数据）...';
+          var token = getSessionToken();
+          fetch('/api/dialer/stats/backup-test', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+            body: JSON.stringify({ email: email || undefined })
+          })
+          .then(function(r) { return r.json(); })
+          .then(function(res) {
+            if (res.success) {
+              status.style.color = '#07c160';
+              status.textContent = '测试邮件已发送至 ' + res.email + '！请查收（附件含' + (res.sample ? '1条客户数据' : '测试说明，暂无客户数据') + '）。';
+            } else {
+              status.style.color = '#e74c3c';
+              status.textContent = res.error || '发送失败';
+            }
+          })
+          .catch(function() { status.textContent = '网络错误，请重试'; status.style.color = '#e74c3c'; })
+          .finally(function() { testBtn.disabled = false; testBtn.textContent = '测试邮件（1条客户数据）'; });
         });
       }
 

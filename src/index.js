@@ -1053,6 +1053,92 @@ export default {
       }
     }
 
+    // POST /api/dialer/stats/backup-test — 测试邮件：只带 1 条客户数据，验证 Resend 配置
+    if (path === '/api/dialer/stats/backup-test' && request.method === 'POST') {
+      try {
+        var btAuth = request.headers.get('Authorization') || '';
+        var btToken = btAuth.startsWith('Bearer ') ? btAuth.slice(7) : '';
+        var btSession = await dialerValidateSession(env, btToken);
+        if (!btSession) throw new Error('未登录');
+
+        var btAccounts = await dialerGetAccounts(env);
+        var btMaster = null;
+        for (var bk = 0; bk < btAccounts.length; bk++) {
+          if (btAccounts[bk].account_id === btSession.account_id && btAccounts[bk].is_master !== false) { btMaster = btAccounts[bk]; break; }
+        }
+        if (!btMaster) throw new Error('仅主账户可操作');
+
+        var btBody = await request.json();
+        var btEmail = (btBody.email || '').trim() || env.BACKUP_TARGET_EMAIL || await env.DATA_KV.get('config:backup_target_email') || '';
+        if (!btEmail || btEmail.indexOf('@') === -1) throw new Error('请输入有效的邮箱地址');
+
+        var btKey = env.RESEND_API_KEY || await env.DATA_KV.get('config:resend_api_key') || '';
+        if (!btKey) throw new Error('请先配置 Resend API Key（Worker 环境变量 RESEND_API_KEY 或数据备份页面保存）');
+        var btFrom = env.BACKUP_FROM_EMAIL || await env.DATA_KV.get('config:backup_from_email') || 'backup@resend.dev';
+
+        // 只拉 1 条客户数据（单次子请求，不触发分页上限）
+        var sample = null;
+        var btUrl = env.SUPABASE_URL;
+        var btKey2 = env.SUPABASE_KEY;
+        if (btUrl && btKey2) {
+          var btResp = await fetch(btUrl + '/rest/v1/customers?select=name,mobile,company_name,category,note,fund&order=created_at.desc&limit=1', {
+            headers: { 'apikey': btKey2, 'Authorization': 'Bearer ' + btKey2 }
+          });
+          if (btResp.ok) {
+            var btRows = await btResp.json();
+            if (Array.isArray(btRows) && btRows.length > 0) sample = btRows[0];
+          }
+        }
+
+        // 构造测试 CSV（1 条数据；无客户数据时用说明行）
+        var btHeaders = ['name', 'mobile', 'company_name', 'category', 'note', 'fund'];
+        var btLines = [btHeaders.join(',')];
+        if (sample) {
+          var bvals = [];
+          for (var bhi = 0; bhi < btHeaders.length; bhi++) {
+            var bv = sample[btHeaders[bhi]];
+            if (bv === null || bv === undefined) bv = '';
+            var bs = String(bv);
+            if (bs.indexOf(',') !== -1 || bs.indexOf('"') !== -1 || bs.indexOf('\n') !== -1 || bs.indexOf('\r') !== -1) {
+              bs = '"' + bs.replace(/"/g, '""') + '"';
+            } else { bs = '"' + bs + '"'; }
+            bvals.push(bs);
+          }
+          btLines.push(bvals.join(','));
+        } else {
+          btLines.push('（暂无客户数据，仅测试邮件通道）,,,,,');
+        }
+        var btCsv = String.fromCharCode(0xFEFF) + btLines.join('\r\n');
+        var btBase64 = Buffer.from(btCsv, 'utf-8').toString('base64');
+
+        var btSend = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + btKey },
+          body: JSON.stringify({
+            from: 'BHP Backup <' + btFrom + '>',
+            to: [btEmail],
+            subject: 'BHP 邮件测试',
+            text: '这是一封测试邮件，用于验证邮件备份通道。附件包含 1 条客户数据' + (sample ? '' : '（当前无客户数据）') + '。',
+            attachments: [{ filename: 'bhp_test.csv', content: btBase64, content_type: 'text/csv' }]
+          })
+        });
+        if (!btSend.ok) {
+          var btErr = await btSend.text();
+          console.error('[backup-test] Resend API error:', btErr);
+          throw new Error('邮件发送失败，请检查 Resend API Key 和发送者邮箱配置');
+        }
+
+        return new Response(JSON.stringify({ success: true, email: btEmail, sample: !!sample }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: e.message === '未登录' ? 401 : 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
     // GET /api/dialer/stats/my-count — quick count of current account's customers
     if (path === '/api/dialer/stats/my-count' && request.method === 'GET') {
       try {
