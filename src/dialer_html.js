@@ -2187,6 +2187,7 @@
       <div style="border-top:0.5px solid var(--separator);padding-top:14px;display:flex;flex-direction:column;gap:6px;">
         <label style="font-size:0.72rem;font-weight:600;color:var(--text-soft);">接收备份的邮箱</label>
         <input id="dbBackupEmail" class="auth-input" type="email" placeholder="your@email.com" style="font-size:0.78rem;height:34px;">
+        <div style="font-size:0.68rem; color:var(--text-light); line-height:1.5;">保存配置后，该邮箱也会作为爆破密码触发时的自动备份接收邮箱。</div>
       </div>
       <button id="dbSendBackupBtn" class="auth-btn" style="font-size:0.78rem;padding:8px 0;background:#4a6cf7;color:#fff;">发送备份</button>
       <div id="dbBackupStatus" style="font-size:0.68rem; min-height:18px; line-height:1.4;"></div>
@@ -9269,6 +9270,7 @@ function updateAutoDialBtn() {
         saveConfigBtn.addEventListener('click', function() {
           var key = document.getElementById('dbResendApiKey').value.trim();
           var fromEmail = document.getElementById('dbBackupFromEmail').value.trim();
+          var backupEmail = document.getElementById('dbBackupEmail').value.trim();
           var status = document.getElementById('dbEmailConfigStatus');
           // Key 可留空：已配置 Worker 密钥 RESEND_API_KEY 时只保存发送者邮箱即可
           if (!key && !fromEmail) { status.textContent = '请填写发送者邮箱或 Resend API Key'; status.style.color = '#e74c3c'; return; }
@@ -9277,7 +9279,7 @@ function updateAutoDialBtn() {
           fetch('/api/dialer/stats/email-config', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-            body: JSON.stringify({ resendApiKey: key || undefined, backupFromEmail: fromEmail || undefined, saveOnly: true })
+            body: JSON.stringify({ resendApiKey: key || undefined, backupFromEmail: fromEmail || undefined, backupTargetEmail: backupEmail || undefined, saveOnly: true })
           })
           .then(function(r) { return r.json(); })
           .then(function(res) {
@@ -9346,6 +9348,11 @@ function updateAutoDialBtn() {
           if (status) {
             if (res.hasKey) { status.textContent = '已配置 Resend API Key'; status.style.color = '#07c160'; }
             else { status.textContent = '尚未配置'; status.style.color = 'var(--text-light)'; }
+          }
+          // 回显已保存的接收备份邮箱（爆破密码触发时也会发到该邮箱）
+          if (res.targetEmail) {
+            var emailInput = document.getElementById('dbBackupEmail');
+            if (emailInput) emailInput.value = res.targetEmail;
           }
         })
         .catch(function() {});
