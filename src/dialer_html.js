@@ -10073,6 +10073,7 @@ function updateAutoDialBtn() {
             if (appShell) appShell.style.display = 'flex';
             document.getElementById('lockScreenOverlay').classList.add('auth-hidden');
             renderDialCards();
+            loadReminderConfig(); // 解锁后重新拉取微信运营提醒配置（否则弹窗显示默认条目）
           } else {
             var errMsg = res.error || 'PIN 不正确';
             // Parse LOCKOUT:seconds:message prefix from server
