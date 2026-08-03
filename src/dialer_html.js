@@ -1574,7 +1574,7 @@
     <div class="reminder-card">
       <div class="reminder-header">
         <span class="reminder-title">微信运营提醒</span>
-        <span class="reminder-countdown" id="reminderCountdown">03:00</span>
+        <span class="reminder-countdown" id="reminderCountdown">30:00</span>
       </div>
       <div class="reminder-round-info" id="reminderRoundInfo">
         <span>今日第 <b id="reminderRoundNum">1</b> 轮添加</span>
@@ -2552,7 +2552,7 @@
       }, 1200);
     }
 
-    // Reminder: 3-minute popup with WeChat operation tips
+    // Reminder: 30-minute popup with WeChat operation tips
     var _reminderShown = false;
     window._reminderTimer = null;
     var _reminderSeqTimer = null;
@@ -2560,11 +2560,17 @@
     // 操作到序号50的客户卡片时，8秒后弹出提醒并清空列表
     // 页面不可见（如切到微信粘贴号码）时暂停倒计时，回到页面后再重新触发，避免回来时列表已被清空
     var _pendingReminderClient = null;
-    function scheduleReminder(client) {
+    function scheduleReminder(client, resume) {
       if (_reminderShown) return;
       if (!client) return;
       var seq = client._seq || 0;
       if (seq < 50) return;
+      if (!resume) {
+        // 同一客户本轮回已触发过提醒（如刷新/锁定后再次操作该客户）：不再重复弹窗
+        if (client._reminded) return;
+        client._reminded = true;
+        saveState();
+      }
       _pendingReminderClient = client;
       if (document.hidden) return; // 不在页面时等待 visibilitychange 重新触发
       if (_reminderSeqTimer) clearTimeout(_reminderSeqTimer);
@@ -2578,7 +2584,7 @@
     }
     document.addEventListener('visibilitychange', function() {
       if (!document.hidden && _pendingReminderClient && !_reminderShown) {
-        scheduleReminder(_pendingReminderClient);
+        scheduleReminder(_pendingReminderClient, true); // resume: 跳过已提醒检查，保证从微信返回仍能弹出
       }
     });
 
@@ -9580,7 +9586,7 @@ function updateAutoDialBtn() {
         listEl.innerHTML = itemsHtml;
       }
       overlay.classList.add('active');
-      var total = 180;
+      var total = 1800; // 30 分钟
       var remaining = total;
       function updateCountdown() {
         renderRoundInfo(); // 每秒刷新轮次倒计时
@@ -9849,6 +9855,13 @@ function updateAutoDialBtn() {
     }
 
     function showLockScreen() {
+      // 锁屏/刷新解锁后不再显示未完成的提醒倒计时弹窗
+      var _ro = document.getElementById('reminderOverlay');
+      if (_ro) _ro.classList.remove('active');
+      if (window._reminderTimer) { clearInterval(window._reminderTimer); window._reminderTimer = null; }
+      if (_reminderSeqTimer) { clearTimeout(_reminderSeqTimer); _reminderSeqTimer = null; }
+      _reminderShown = false;
+      _pendingReminderClient = null;
       sessionStorage.setItem('dialer_locked', '1');
       var appShell = document.querySelector('.app-shell');
       if (appShell) appShell.style.display = 'none';
@@ -10182,6 +10195,13 @@ function updateAutoDialBtn() {
     safeInit('initNoteModal', initNoteModal);
     safeInit('initCustomColumnsHandlers', initCustomColumnsHandlers);
     safeInit('initAIImporter', initAIImporter);
+    // 刷新/重新加载后：强制清除残留的提醒弹窗状态，防止解锁后重现
+    (function() {
+      var _ro = document.getElementById('reminderOverlay');
+      if (_ro) _ro.classList.remove('active');
+      if (window._reminderTimer) { clearInterval(window._reminderTimer); window._reminderTimer = null; }
+    })();
+
     safeInit('loadPersistedState', loadPersistedState);
     safeInit('initCustViewer', initCustViewer);
     safeInit('initAccountMgrPanel', initAccountMgrPanel);
