@@ -1723,13 +1723,9 @@
     <div class="container">
       <!-- Header -->
       <div class="header-bar">
-        <!-- Minimal Stats on the Left -->
+        <!-- 圆饼图（点击拉出工作进度面板，数字/百分比已收进抽屉） -->
         <div class="header-stats-minimal" id="headerStatsMinimal" style="display: none;">
-          <span style="display:inline-flex;align-items:center;margin-right:1px;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></span>
-          <span id="doneCount" style="color: var(--accent-wechat);">0</span>
-          <span style="color: var(--text-light);">/</span>
-          <span id="totalCount">0</span>
-          <span id="percentText" style="font-size: 0.65rem; color: var(--text-light); margin-left: 2px;">(0%)</span>
+          <span style="display:inline-flex;align-items:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></span>
         </div>
         
         <!-- Auto Dial Toggle -->
@@ -3046,16 +3042,8 @@
           done++;
         }
       });
-      document.getElementById('totalCount').textContent = total;
-      document.getElementById('doneCount').textContent = done;
-
       var percent = total > 0 ? (done / total) * 100 : 0;
       document.getElementById('progressFill').style.width = percent + '%';
-      
-      var pctText = document.getElementById('percentText');
-      if (pctText) {
-        pctText.textContent = '(' + Math.round(percent) + '%)';
-      }
       // 抽屉打开时同步刷新进度
       var drawerOverlay = document.getElementById('progressDrawerOverlay');
       if (drawerOverlay && drawerOverlay.classList.contains('active')) {
@@ -9683,8 +9671,10 @@ function updateAutoDialBtn() {
         if (c.dialedStatus === 'success' || c.dialedStatus === 'failed') dialed++;
         if (c.copied || c.dialedStatus === 'success' || c.dialedStatus === 'failed') operated++;
       });
-      document.getElementById('drawerDialedVal').textContent = dialed + '/' + total;
-      document.getElementById('drawerWorkVal').textContent = operated + '/' + total;
+      var dialedPct = total > 0 ? Math.round((dialed / total) * 100) : 0;
+      var workPct = total > 0 ? Math.round((operated / total) * 100) : 0;
+      document.getElementById('drawerDialedVal').textContent = dialed + '/' + total + ' (' + dialedPct + '%)';
+      document.getElementById('drawerWorkVal').textContent = operated + '/' + total + ' (' + workPct + '%)';
       document.getElementById('drawerDialedBar').style.width = (total > 0 ? (dialed / total) * 100 : 0) + '%';
       document.getElementById('drawerWorkBar').style.width = (total > 0 ? (operated / total) * 100 : 0) + '%';
       var rInfo = getRoundInfo();
