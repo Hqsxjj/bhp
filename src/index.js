@@ -160,6 +160,37 @@ function isSuspiciousFundEntry(c, INST_RE) {
   return false;
 }
 
+// 工作数据（轮数/通过微信数量）读写 Supabase work_stats 表（按账号+日期）
+async function fetchWorkRow(env, accountId, date) {
+  var su = env.SUPABASE_URL;
+  var sk = env.SUPABASE_KEY;
+  if (!su || !sk) return null;
+  var resp = await fetch(su + '/rest/v1/work_stats?account_id=eq.' + encodeURIComponent(accountId) + '&date=eq.' + encodeURIComponent(date) + '&select=rounds,wechat_count,transfer_ts', {
+    headers: { 'apikey': sk, 'Authorization': 'Bearer ' + sk }
+  });
+  if (!resp.ok) return null;
+  var rows = await resp.json();
+  return (Array.isArray(rows) && rows.length > 0) ? rows[0] : null;
+}
+async function upsertWorkRow(env, accountId, date, stats) {
+  var su = env.SUPABASE_URL;
+  var sk = env.SUPABASE_KEY;
+  if (!su || !sk) return;
+  var payload = {
+    account_id: accountId,
+    date: date,
+    rounds: stats.rounds || 0,
+    wechat_count: stats.wechat_count || 0,
+    transfer_ts: stats.transfer_ts || 0,
+    updated_at: new Date().toISOString()
+  };
+  await fetch(su + '/rest/v1/work_stats', {
+    method: 'POST',
+    headers: { 'apikey': sk, 'Authorization': 'Bearer ' + sk, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
+    body: JSON.stringify(payload)
+  });
+}
+
 // ========== Main Worker ==========
 
 export default {
@@ -713,18 +744,17 @@ export default {
       }
     }
 
-    // GET /api/dialer/rounds?date=YYYY-MM-DD — 今日轮次（跨设备同步，云端为准）
-    if (path === '/api/dialer/rounds' && request.method === 'GET') {
+    // GET /api/dialer/work-stats?date=YYYY-MM-DD — 工作数据（轮数/通过微信数量，按账号存 Supabase）
+    if (path === '/api/dialer/work-stats' && request.method === 'GET') {
       try {
-        var rdAuth = request.headers.get('Authorization') || '';
-        var rdToken = rdAuth.startsWith('Bearer ') ? rdAuth.slice(7) : '';
-        var rdSession = await dialerValidateSession(env, rdToken);
-        if (!rdSession) throw new Error('未登录');
-        var rdDate = url.searchParams.get('date') || '';
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(rdDate)) throw new Error('date 格式应为 YYYY-MM-DD');
-        var rdRaw = await env.DATA_KV.get('rounds:' + rdDate);
-        var rdInfo = rdRaw ? JSON.parse(rdRaw) : { date: rdDate, count: 0, transferTs: 0 };
-        return new Response(JSON.stringify(rdInfo), {
+        var wsAuth = request.headers.get('Authorization') || '';
+        var wsToken = wsAuth.startsWith('Bearer ') ? wsAuth.slice(7) : '';
+        var wsSession = await dialerValidateSession(env, wsToken);
+        if (!wsSession) throw new Error('未登录');
+        var wsDate = url.searchParams.get('date') || '';
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(wsDate)) throw new Error('date 格式应为 YYYY-MM-DD');
+        var wsRow = await fetchWorkRow(env, wsSession.account_id, wsDate);
+        return new Response(JSON.stringify(wsRow || { date: wsDate, rounds: 0, wechat_count: 0, transfer_ts: 0 }), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       } catch (e) {
@@ -735,22 +765,46 @@ export default {
       }
     }
 
-    // POST /api/dialer/rounds/record — 完成一轮：云端计数+1（今日封顶5），更新时间戳
-    if (path === '/api/dialer/rounds/record' && request.method === 'POST') {
+    // POST /api/dialer/work-stats/rounds — 完成一轮：+1（今日封顶5），更新时间戳
+    if (path === '/api/dialer/work-stats/rounds' && request.method === 'POST') {
       try {
-        var rrAuth = request.headers.get('Authorization') || '';
-        var rrToken = rrAuth.startsWith('Bearer ') ? rrAuth.slice(7) : '';
-        var rrSession = await dialerValidateSession(env, rrToken);
-        if (!rrSession) throw new Error('未登录');
-        var rrBody = await request.json();
-        var rrDate = (rrBody.date || '').trim();
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(rrDate)) throw new Error('date 格式应为 YYYY-MM-DD');
-        var rrRaw = await env.DATA_KV.get('rounds:' + rrDate);
-        var rrInfo = rrRaw ? JSON.parse(rrRaw) : { date: rrDate, count: 0, transferTs: 0 };
-        rrInfo.count = Math.min(5, (rrInfo.count || 0) + 1);
-        rrInfo.transferTs = Date.now();
-        await env.DATA_KV.put('rounds:' + rrDate, JSON.stringify(rrInfo));
-        return new Response(JSON.stringify(rrInfo), {
+        var wrAuth = request.headers.get('Authorization') || '';
+        var wrToken = wrAuth.startsWith('Bearer ') ? wrAuth.slice(7) : '';
+        var wrSession = await dialerValidateSession(env, wrToken);
+        if (!wrSession) throw new Error('未登录');
+        var wrBody = await request.json();
+        var wrDate = (wrBody.date || '').trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(wrDate)) throw new Error('date 格式应为 YYYY-MM-DD');
+        var wrRow = await fetchWorkRow(env, wrSession.account_id, wrDate) || { rounds: 0, wechat_count: 0, transfer_ts: 0 };
+        wrRow.rounds = Math.min(5, (wrRow.rounds || 0) + 1);
+        wrRow.transfer_ts = Date.now();
+        await upsertWorkRow(env, wrSession.account_id, wrDate, wrRow);
+        return new Response(JSON.stringify(wrRow), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: e.message === '未登录' ? 401 : 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
+    // POST /api/dialer/work-stats/wechat — 手动增减通过微信数量 delta: +1 / -1
+    if (path === '/api/dialer/work-stats/wechat' && request.method === 'POST') {
+      try {
+        var wcAuth = request.headers.get('Authorization') || '';
+        var wcToken = wcAuth.startsWith('Bearer ') ? wcAuth.slice(7) : '';
+        var wcSession = await dialerValidateSession(env, wcToken);
+        if (!wcSession) throw new Error('未登录');
+        var wcBody = await request.json();
+        var wcDate = (wcBody.date || '').trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(wcDate)) throw new Error('date 格式应为 YYYY-MM-DD');
+        var delta = parseInt(wcBody.delta, 10) || 0;
+        var wcRow = await fetchWorkRow(env, wcSession.account_id, wcDate) || { rounds: 0, wechat_count: 0, transfer_ts: 0 };
+        wcRow.wechat_count = Math.max(0, (wcRow.wechat_count || 0) + delta);
+        await upsertWorkRow(env, wcSession.account_id, wcDate, wcRow);
+        return new Response(JSON.stringify(wcRow), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       } catch (e) {

@@ -9651,7 +9651,7 @@ function updateAutoDialBtn() {
     }
 
     // ========== Progress Drawer（左上角圆饼图 → 拉出工作进度面板） ==========
-    var WECHAT_COUNT_K = 'bhp_wechat_count'; // 今日通过微信数量（手动计数）
+    var WECHAT_COUNT_K = 'bhp_wechat_count'; // 今日通过微信数量（手动计数，云端同步）
     function getWechatCount() {
       try {
         var raw = localStorage.getItem(WECHAT_COUNT_K);
@@ -9659,9 +9659,28 @@ function updateAutoDialBtn() {
       } catch (e) {}
       return 0;
     }
-    function setWechatCount(n) {
-      try { localStorage.setItem(WECHAT_COUNT_K, JSON.stringify({ date: todayLocalStr(), count: Math.max(0, n) })); } catch (e) {}
+    function applyWechatCount(n) {
+      try { localStorage.setItem(WECHAT_COUNT_K, JSON.stringify({ date: todayLocalStr(), count: Math.max(0, n || 0) })); } catch (e) {}
+    }
+    // 手动 +/−：先乐观更新本地，再同步 Supabase（按账号），以云端为准
+    function adjustWechatCount(delta) {
+      var today = todayLocalStr();
+      applyWechatCount(getWechatCount() + delta);
       renderDrawer();
+      var token = getSessionToken();
+      if (!token) return;
+      fetch('/api/dialer/work-stats/wechat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ date: today, delta: delta })
+      }).then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res && res.wechat_count !== undefined) {
+            applyWechatCount(res.wechat_count);
+            renderDrawer();
+          }
+        })
+        .catch(function() {});
     }
     function renderDrawer() {
       var total = importedClients.length;
@@ -9687,6 +9706,7 @@ function updateAutoDialBtn() {
       stats.addEventListener('click', function(e) {
         e.stopPropagation();
         renderDrawer();
+        fetchWorkStats(); // 打开时拉取云端最新工作数据
         overlay.classList.add('active');
       });
       overlay.addEventListener('click', function(e) {
@@ -9696,8 +9716,13 @@ function updateAutoDialBtn() {
       if (closeBtn) closeBtn.addEventListener('click', function() { overlay.classList.remove('active'); });
       var minusBtn = document.getElementById('drawerWechatMinus');
       var plusBtn = document.getElementById('drawerWechatPlus');
-      if (minusBtn) minusBtn.addEventListener('click', function() { setWechatCount(getWechatCount() - 1); });
-      if (plusBtn) plusBtn.addEventListener('click', function() { setWechatCount(getWechatCount() + 1); });
+      if (minusBtn) minusBtn.addEventListener('click', function() { adjustWechatCount(-1); });
+      if (plusBtn) plusBtn.addEventListener('click', function() { adjustWechatCount(1); });
+      // 实时同步：每 60 秒拉取一次云端工作数据（页面可见时）
+      setInterval(function() {
+        if (document.hidden) return;
+        fetchWorkStats();
+      }, 60000);
     }
 
     // Dynamic reminder overlay
@@ -9735,34 +9760,36 @@ function updateAutoDialBtn() {
       info.count = Math.min(5, (info.count || 0) + 1); // 今日轮数最多 5 轮（微信每日添加上限），大批次分批操作也能正确累计
       info.transferTs = Date.now();
       saveRoundInfo(info); // 先乐观更新本地，弹窗立即显示
-      // 同步到云端（跨设备共享）；若云端计数更高（其他设备刚加过），以云端为准
+      // 同步到 Supabase（按账号）；云端计数更高（其他设备刚加过）时以云端为准
       var token = getSessionToken();
       if (!token) return;
-      fetch('/api/dialer/rounds/record', {
+      fetch('/api/dialer/work-stats/rounds', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ date: today })
       }).then(function(r) { return r.json(); })
         .then(function(res) {
-          if (res && res.count !== undefined) {
-            saveRoundInfo({ date: today, count: res.count, transferTs: res.transferTs || Date.now() });
+          if (res && res.rounds !== undefined) {
+            saveRoundInfo({ date: today, count: res.rounds, transferTs: res.transfer_ts || Date.now() });
+            applyWechatCount(res.wechat_count);
             renderRoundInfo();
             renderDrawer();
           }
         })
         .catch(function() {});
     }
-    // 拉取云端今日轮数（跨设备同步），成功后覆盖本地缓存
-    function fetchRoundInfo() {
+    // 拉取云端工作数据（Supabase，按账号+日期），成功后覆盖本地缓存
+    function fetchWorkStats() {
       var today = todayLocalStr();
       var token = getSessionToken();
       if (!token) return;
-      fetch('/api/dialer/rounds?date=' + encodeURIComponent(today), {
+      fetch('/api/dialer/work-stats?date=' + encodeURIComponent(today), {
         headers: { 'Authorization': 'Bearer ' + token }
       }).then(function(r) { return r.json(); })
         .then(function(res) {
-          if (res && res.count !== undefined) {
-            saveRoundInfo({ date: today, count: res.count, transferTs: res.transferTs || 0 });
+          if (res && res.rounds !== undefined) {
+            saveRoundInfo({ date: today, count: res.rounds, transferTs: res.transfer_ts || 0 });
+            applyWechatCount(res.wechat_count);
             renderRoundInfo();
             renderDrawer();
           }
@@ -9942,7 +9969,7 @@ function updateAutoDialBtn() {
       document.getElementById('lockScreenOverlay').classList.add('auth-hidden');
       // Load dynamic configs
       loadReminderConfig();
-      fetchRoundInfo(); // 拉取云端今日轮数（跨设备同步）
+      fetchWorkStats(); // 拉取云端工作数据（Supabase，按账号，实时同步）
     }
 
     function showAuthScreen() {
@@ -10243,7 +10270,7 @@ function updateAutoDialBtn() {
             document.getElementById('lockScreenOverlay').classList.add('auth-hidden');
             renderDialCards();
             loadReminderConfig(); // 解锁后重新拉取微信运营提醒配置（否则弹窗显示默认条目）
-            fetchRoundInfo(); // 解锁后拉取云端今日轮数（跨设备同步）
+            fetchWorkStats(); // 解锁后拉取云端工作数据（Supabase，按账号，实时同步）
           } else {
             var errMsg = res.error || 'PIN 不正确';
             // Parse LOCKOUT:seconds:message prefix from server
