@@ -10,8 +10,9 @@ subrequest = 1000
 # 邮件备份配置（Resend）
 # 发送者必须是 Resend 已验证域名的邮箱；目前用官方测试地址 onboarding@resend.dev，
 # 验证自己的域名后可改为 backup@你的域名.com
+# 注意：变量名用 BHP_FROM_EMAIL（避免与 Cloudflare 后台同名变量冲突，后台变量优先于 wrangler.toml）
 [vars]
-BACKUP_FROM_EMAIL = "onboarding@resend.dev"
+BHP_FROM_EMAIL = "onboarding@resend.dev"
 BACKUP_TARGET_EMAIL = "zy28341215@gmail.com"
 
 [[kv_namespaces]]

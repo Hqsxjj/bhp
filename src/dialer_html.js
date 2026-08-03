@@ -9273,8 +9273,9 @@ function updateAutoDialBtn() {
           var fromEmail = document.getElementById('dbBackupFromEmail').value.trim();
           var backupEmail = document.getElementById('dbBackupEmail').value.trim();
           var status = document.getElementById('dbEmailConfigStatus');
-          // Key 与发送者邮箱可留空：已配置 Worker 环境变量（RESEND_API_KEY / BACKUP_FROM_EMAIL）时无需填写
+          // Key 与发送者邮箱可留空：已配置 Worker 环境变量（RESEND_API_KEY / BHP_FROM_EMAIL）时无需填写
           if (!key && !fromEmail && !_backupHasKey) { status.textContent = '请填写发送者邮箱或 Resend API Key（或已在 Worker 环境变量配置）'; status.style.color = '#e74c3c'; return; }
+          if (key && key.indexOf('re_') !== 0) { status.textContent = 'Resend API Key 格式不正确（应为 re_ 开头）'; status.style.color = '#e74c3c'; return; }
           saveConfigBtn.disabled = true; saveConfigBtn.textContent = '保存中...';
           var token = getSessionToken();
           fetch('/api/dialer/stats/email-config', {

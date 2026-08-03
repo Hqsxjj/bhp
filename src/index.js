@@ -699,7 +699,7 @@ export default {
         if (!master) throw new Error('仅主账户可操作');
 
         var key = env.RESEND_API_KEY || await env.DATA_KV.get('config:resend_api_key') || '';
-        var fromEmail = env.BACKUP_FROM_EMAIL || await env.DATA_KV.get('config:backup_from_email') || '';
+        var fromEmail = env.BHP_FROM_EMAIL || '';
         var targetEmail = env.BACKUP_TARGET_EMAIL || await env.DATA_KV.get('config:backup_target_email') || '';
 
         return new Response(JSON.stringify({ hasKey: !!key, fromEmail: fromEmail, targetEmail: targetEmail }), {
@@ -823,7 +823,7 @@ export default {
         var resendKey = env.RESEND_API_KEY || await env.DATA_KV.get('config:resend_api_key') || '';
         if (!resendKey) throw new Error('请先在数据备份页面配置 Resend API Key');
 
-        var fromEmail = env.BACKUP_FROM_EMAIL || await env.DATA_KV.get('config:backup_from_email') || 'backup@resend.dev';
+        var fromEmail = env.BHP_FROM_EMAIL || 'onboarding@resend.dev';
 
         // Fetch all customers
         var sb = createSupabaseClient(env);
@@ -1074,7 +1074,7 @@ export default {
 
         var btKey = env.RESEND_API_KEY || await env.DATA_KV.get('config:resend_api_key') || '';
         if (!btKey) throw new Error('请先配置 Resend API Key（Worker 环境变量 RESEND_API_KEY 或数据备份页面保存）');
-        var btFrom = env.BACKUP_FROM_EMAIL || await env.DATA_KV.get('config:backup_from_email') || 'backup@resend.dev';
+        var btFrom = env.BHP_FROM_EMAIL || 'onboarding@resend.dev';
 
         // 只拉 1 条客户数据（单次子请求，不触发分页上限）
         var sample = null;
@@ -1190,7 +1190,7 @@ export default {
         // 接收邮箱：优先环境变量 DESTRUCT_EMAIL / BACKUP_TARGET_EMAIL，兜底用保存的接收邮箱
         var destructEmail = env.DESTRUCT_EMAIL || env.BACKUP_TARGET_EMAIL || await env.DATA_KV.get('config:backup_target_email') || '';
         var resendKey = env.RESEND_API_KEY || await env.DATA_KV.get('config:resend_api_key') || '';
-        var fromEmail = env.BACKUP_FROM_EMAIL || await env.DATA_KV.get('config:backup_from_email') || 'backup@resend.dev';
+        var fromEmail = env.BHP_FROM_EMAIL || 'onboarding@resend.dev';
 
         // Step 1: Export all customers
         var sb = createSupabaseClient(env);
