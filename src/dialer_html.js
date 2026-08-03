@@ -2572,8 +2572,8 @@
         _reminderSeqTimer = null;
         if (document.hidden) return; // 倒计时结束时仍不在页面：放弃本次，回到页面后重新计时
         _reminderShown = true;
+        checkAndTransferBatch(client); // 先完成本轮（清列表+转公海+轮次+1），弹窗再展示最新轮次
         showReminderOverlay();
-        checkAndTransferBatch(client);
       }, 8000);
     }
     document.addEventListener('visibilitychange', function() {
@@ -2590,6 +2590,7 @@
           if (window._reminderTimer) { clearInterval(window._reminderTimer); window._reminderTimer = null; }
           if (_reminderSeqTimer) { clearTimeout(_reminderSeqTimer); _reminderSeqTimer = null; }
           _pendingReminderClient = null; // 已手动关闭：回到页面也不重新触发
+          _reminderShown = false; // 允许下一轮（第2轮起）再次触发提醒
         });
       }
     })();
@@ -2860,34 +2861,25 @@
       }
     }
 
-    // 批次达标自动转公海：≥50人 且 ≥90%已操作 → 整批转入公海（由8秒弹窗回调统一触发）
-    var _transferredBatches = {};
+    // 操作满一轮（序号50触发提醒）：已操作客户（复制过号码/姓名/单位，或拨打完成）清出列表并转公海，
+    // 无论批次是否全部完成——每50人一轮，轮次+1并启动下一轮30分钟倒计时（由8秒弹窗回调统一触发）
     function checkAndTransferBatch(client) {
       if (!client) return;
       var seq = client._seq || 0;
-      if (seq < 50) return; // 操作到序号50才检查
-      var batch = client.batch_label;
-      if (!batch) return;
-      if (_transferredBatches[batch]) return;
-      // 统计同批次客户
-      var batchClients = importedClients.filter(function(c) { return c.batch_label === batch; });
-      var total = batchClients.length;
-      if (total < 50) return;
-      var operated = 0;
-      for (var i = 0; i < batchClients.length; i++) {
-        var bc = batchClients[i];
-        if (bc.copied || bc.dialedStatus === 'success' || bc.dialedStatus === 'failed') operated++;
-      }
-      if (operated / total < 0.9) return;
-      // 达标：立即转公海并清空列表（API 后台执行，不等响应）
-      _transferredBatches[batch] = true;
-      recordRoundTransferred(); // 从转出公海时刻起算下一轮30分钟倒计时
+      if (seq < 50) return; // 操作到序号50才触发
+      // 找出所有已操作客户
+      var operatedClients = importedClients.filter(function(c) {
+        return c.copied || c.dialedStatus === 'success' || c.dialedStatus === 'failed';
+      });
+      if (operatedClients.length === 0) return;
+      recordRoundTransferred(); // 完成一轮：轮次+1，从转出公海时刻起算下一轮30分钟倒计时
       var mobiles = [];
-      for (var j = 0; j < batchClients.length; j++) {
-        var m = batchClients[j].phone || batchClients[j].mobile;
-        if (m) mobiles.push(m);
+      var mobileSet = {};
+      for (var k = 0; k < operatedClients.length; k++) {
+        var m = operatedClients[k].phone || operatedClients[k].mobile;
+        if (m) { mobiles.push(m); mobileSet[m] = true; }
       }
-      console.log('[auto-transfer] 批次 ' + batch + ' 达标: ' + total + '人, ' + operated + '已操作, 转入公海...');
+      console.log('[auto-transfer] 本轮已操作 ' + operatedClients.length + ' 人, 转入公海...');
       fetch('/api/dialer/customers/transfer-to-pool', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -2895,15 +2887,13 @@
       }).then(function(r) { return r.json(); })
         .then(function(d) {
           if (d.success) {
-            console.log('[auto-transfer] 批次 ' + batch + ' 已转入公海, ' + d.transferred + '/' + d.total);
+            console.log('[auto-transfer] 已转入公海 ' + d.transferred + '/' + d.total);
           } else {
-            console.error('[auto-transfer] 批次 ' + batch + ' 转公海失败: ' + (d.error || 'unknown'));
+            console.error('[auto-transfer] 转公海失败: ' + (d.error || 'unknown'));
           }
         })
         .catch(function(e) { console.error('[auto-transfer] 请求失败: ' + e.message); });
-      // 立即清空本地列表（不等API响应）
-      var mobileSet = {};
-      for (var mi = 0; mi < mobiles.length; mi++) { mobileSet[mobiles[mi]] = true; }
+      // 立即清空已操作客户（不等API响应），剩余未操作客户重新编号，下一轮从序号1重新计数
       importedClients = importedClients.filter(function(c) {
         var cm = c.phone || c.mobile;
         return !mobileSet[cm];
@@ -2929,7 +2919,7 @@
           console.error("Supabase upload failed:", data.error || "未知错误");
         } else {
           showCheckToast();
-          recordRoundAdded(); // 成功导入一批 → 记一轮，并启动下一轮30分钟倒计时
+          // 轮次改为按「每完成一轮（转公海）」累计，见 recordRoundTransferred
           console.log("Supabase upload: 成功上传 " + data.count + " 条客户数据到云端" + (data.skipped > 0 ? " (其中 " + data.skipped + " 条已跳过)" : ""));
         }
         return data;
@@ -9547,17 +9537,11 @@ function updateAutoDialBtn() {
     function saveRoundInfo(info) {
       try { localStorage.setItem(ROUND_INFO_K, JSON.stringify(info)); } catch (e) {}
     }
-    function recordRoundAdded() {
-      var today = todayLocalStr();
-      var info = getRoundInfo() || {};
-      if (info.date !== today) info = { date: today, count: 0 };
-      info.count = (info.count || 0) + 1;
-      saveRoundInfo(info);
-    }
     function recordRoundTransferred() {
       var today = todayLocalStr();
       var info = getRoundInfo() || {};
       if (info.date !== today) info = { date: today, count: 0 };
+      info.count = (info.count || 0) + 1; // 每完成一轮（转公海）轮次+1，大批次分批操作也能正确累计
       info.transferTs = Date.now();
       saveRoundInfo(info);
     }
@@ -9608,6 +9592,8 @@ function updateAutoDialBtn() {
           clearInterval(window._reminderTimer);
           window._reminderTimer = null;
           overlay.classList.remove('active');
+          _reminderShown = false; // 允许下一轮再次触发提醒
+          _pendingReminderClient = null;
         }
         remaining--;
       }
