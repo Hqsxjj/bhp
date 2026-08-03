@@ -160,35 +160,14 @@ function isSuspiciousFundEntry(c, INST_RE) {
   return false;
 }
 
-// 工作数据（轮数/通过微信数量）读写 Supabase work_stats 表（按账号+日期）
+// 工作数据（轮数/通过微信数量）按账号存 KV：work_stats:{account_id}:{date}
+// 同账号多设备共享（实时同步由前端轮询+上报完成）
 async function fetchWorkRow(env, accountId, date) {
-  var su = env.SUPABASE_URL;
-  var sk = env.SUPABASE_KEY;
-  if (!su || !sk) return null;
-  var resp = await fetch(su + '/rest/v1/work_stats?account_id=eq.' + encodeURIComponent(accountId) + '&date=eq.' + encodeURIComponent(date) + '&select=rounds,wechat_count,transfer_ts', {
-    headers: { 'apikey': sk, 'Authorization': 'Bearer ' + sk }
-  });
-  if (!resp.ok) return null;
-  var rows = await resp.json();
-  return (Array.isArray(rows) && rows.length > 0) ? rows[0] : null;
+  var raw = await env.DATA_KV.get('work_stats:' + accountId + ':' + date);
+  return raw ? JSON.parse(raw) : null;
 }
 async function upsertWorkRow(env, accountId, date, stats) {
-  var su = env.SUPABASE_URL;
-  var sk = env.SUPABASE_KEY;
-  if (!su || !sk) return;
-  var payload = {
-    account_id: accountId,
-    date: date,
-    rounds: stats.rounds || 0,
-    wechat_count: stats.wechat_count || 0,
-    transfer_ts: stats.transfer_ts || 0,
-    updated_at: new Date().toISOString()
-  };
-  await fetch(su + '/rest/v1/work_stats', {
-    method: 'POST',
-    headers: { 'apikey': sk, 'Authorization': 'Bearer ' + sk, 'Content-Type': 'application/json', 'Prefer': 'resolution=merge-duplicates' },
-    body: JSON.stringify(payload)
-  });
+  await env.DATA_KV.put('work_stats:' + accountId + ':' + date, JSON.stringify(stats));
 }
 
 // ========== Main Worker ==========
@@ -744,7 +723,7 @@ export default {
       }
     }
 
-    // GET /api/dialer/work-stats?date=YYYY-MM-DD — 工作数据（轮数/通过微信数量，按账号存 Supabase）
+    // GET /api/dialer/work-stats?date=YYYY-MM-DD — 工作数据（轮数/通过微信数量，按账号存 KV）
     if (path === '/api/dialer/work-stats' && request.method === 'GET') {
       try {
         var wsAuth = request.headers.get('Authorization') || '';
