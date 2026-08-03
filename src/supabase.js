@@ -1045,7 +1045,7 @@ export function createSupabaseClient(env) {
     if (!baseUrl || !key) return [];
 
     var all = [];
-    var pageSize = 1000;
+    var pageSize = 5000; // 与 Supabase Max rows 设置一致，减少子请求数量
     var from = 0;
 
     while (true) {

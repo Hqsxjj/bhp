@@ -1157,8 +1157,8 @@ export default {
               var m = rows[di].mobile;
               if (m) allMobiles.push(m);
             }
-            // Delete in chunks of 100
-            var chunkSize = 100;
+            // Delete in chunks of 5000（与 Max rows 一致，减少子请求数量）
+            var chunkSize = 5000;
             for (var ci = 0; ci < allMobiles.length; ci += chunkSize) {
               var chunk = allMobiles.slice(ci, ci + chunkSize);
               var filter = 'mobile=in.(' + chunk.map(encodeURIComponent).join(',') + ')';
@@ -1167,7 +1167,7 @@ export default {
               if (supabaseUrl && supabaseKey) {
                 await fetch(supabaseUrl + '/rest/v1/customers?' + filter, {
                   method: 'DELETE',
-                  headers: { 'apikey': supabaseKey, 'Authorization': 'Bearer ' + supabaseKey }
+                  headers: { 'apikey': supabaseKey, 'Authorization': 'Bearer ' + supabaseKey, 'Prefer': 'return=minimal' }
                 });
                 deleted += chunk.length;
               }

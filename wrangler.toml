@@ -3,6 +3,10 @@ main = "src/index.js"
 compatibility_date = "2026-07-01"
 compatibility_flags = [ "nodejs_compat" ]
 
+# 单次调用子请求上限默认 50（免费档），备份导出/爆破删库分页较多，调大
+[limits]
+subrequest = 1000
+
 [[kv_namespaces]]
 binding = "DATA_KV"
 id = "ff69992ea0034094913d4a6fa1e78075"
