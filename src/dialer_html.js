@@ -108,7 +108,7 @@
       border-bottom: 0.5px solid var(--separator);
       display: flex;
       align-items: center;
-      justify-content: space-between;
+      justify-content: flex-start;
       flex-shrink: 0;
       position: relative;
       background: var(--card-bg);
@@ -1731,28 +1731,36 @@
     <div class="container">
       <!-- Header -->
       <div class="header-bar">
-        <!-- 圆饼图（点击拉出工作进度面板，数字/百分比已收进抽屉；始终显示，与客户列表有无数据无关） -->
-        <div class="header-stats-minimal" id="headerStatsMinimal">
-          <span style="display:inline-flex;align-items:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></span>
+        <!-- 左侧组：饼状图标 + 拨号工具（饼图始终显示，与客户列表有无数据无关） -->
+        <div style="display: flex; align-items: center; min-width: 0; flex-shrink: 1;">
+          <div class="header-stats-minimal" id="headerStatsMinimal">
+            <span style="display:inline-flex;align-items:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></span>
+          </div>
+
+          <!-- Auto Dial Toggle -->
+          <button id="autoDialBtn" title="自动拨打" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: var(--accent-wechat); cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-sm); white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+          <button id="refreshBatchBtn" title="换一批 — 按最新导入顺序拉取，拉过的自动沉底" onclick="if(window.refreshBatch)window.refreshBatch()" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: #e67e22; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-sm); margin-right: 6px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+          <button id="learnBtn" title="学习" onclick="window.location.href='/learn'" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: #4a6cf7; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-sm); white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></button>
         </div>
-        
-        <!-- Auto Dial Toggle -->
-        <button id="autoDialBtn" title="自动拨打" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: var(--accent-wechat); cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-sm); white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
-        <button id="refreshBatchBtn" title="换一批 — 按最新导入顺序拉取，拉过的自动沉底" onclick="if(window.refreshBatch)window.refreshBatch()" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: #e67e22; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-sm); margin-right: 8px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
-        <button id="learnBtn" title="学习" onclick="window.location.href='/learn'" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: #4a6cf7; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-sm); margin-right: 8px; white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></button>
-        <button id="lockScreenBtn" title="锁定屏幕" style="font-size:0.68rem;padding:3px 6px;border:none;background:transparent;color:var(--text-soft);cursor:pointer;outline:none;font-weight:700;border-radius:3px;margin-right:6px;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
-        <!-- Dropdown Menu Trigger on the Right -->
-        <div style="position: relative; display: inline-block;">
-          <button id="headerMenuBtn" title="更多设置" style="font-size: 0.8rem; padding: 6px 8px; border: none; background: transparent; cursor: pointer; outline: none; font-weight: 600; color: var(--text-soft); min-width: 44px; min-height: 34px; display:inline-flex;align-items:center;justify-content:center; -webkit-tap-highlight-color: transparent; touch-action: manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
-          <div class="header-dropdown" id="headerDropdown" style="display: none;">
-            <button class="dropdown-item" id="toggleImportBtn">导入文件</button>
-            <button class="dropdown-item" id="toggleDualSimBtn">双卡轮换: 开</button>
-            <button class="dropdown-item" id="toggleRotationBtn">轮换频率: 10通</button>
-            <button class="dropdown-item" id="exportBtn" style="display:none;">导出记录</button>
-            <button class="dropdown-item" id="clearBtn" style="display:none; color: #e74c3c;">清空数据</button>
-            <button class="dropdown-item" id="darkToggleBtn">切换主题</button>
-            <div class="dropdown-item" style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:default;color:var(--text-soft);"><span style="font-size:0.7rem;">账户</span><span style="display:flex;align-items:center;gap:4px;"><span id="accountDisplay" style="font-size:0.68rem;font-weight:700;font-family:monospace;color:var(--text-main);"></span><span id="accountDataCount" style="font-size:0.62rem;font-weight:600;color:var(--text-light);"></span></span></div>
-            <button class="dropdown-item" id="headerLogoutBtn" style="color: #e74c3c;">退出登录</button>
+
+        <!-- 右侧组：锁定 + 下轮倒计时 + 更多 -->
+        <div style="display: flex; align-items: center; flex-shrink: 0; margin-left: auto;">
+          <button id="lockScreenBtn" title="锁定屏幕" style="font-size:0.68rem;padding:3px 6px;border:none;background:transparent;color:var(--text-soft);cursor:pointer;outline:none;font-weight:700;border-radius:3px;margin-right:4px;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
+          <!-- 距离下轮添加倒计时：转出公海后 30 分钟冷却期，走完自动隐藏 -->
+          <span id="headerRoundCd" title="距离下轮添加" style="display:none;font-size:0.55rem;font-weight:600;font-family:monospace;color:var(--text-light);margin-right:4px;letter-spacing:-0.01em;white-space:nowrap;flex-shrink:0;">30:00</span>
+          <!-- Dropdown Menu Trigger on the Right -->
+          <div style="position: relative; display: inline-block;">
+            <button id="headerMenuBtn" title="更多设置" style="font-size: 0.8rem; padding: 6px 8px; border: none; background: transparent; cursor: pointer; outline: none; font-weight: 600; color: var(--text-soft); min-width: 44px; min-height: 34px; display:inline-flex;align-items:center;justify-content:center; -webkit-tap-highlight-color: transparent; touch-action: manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
+            <div class="header-dropdown" id="headerDropdown" style="display: none;">
+              <button class="dropdown-item" id="toggleImportBtn">导入文件</button>
+              <button class="dropdown-item" id="toggleDualSimBtn">双卡轮换: 开</button>
+              <button class="dropdown-item" id="toggleRotationBtn">轮换频率: 10通</button>
+              <button class="dropdown-item" id="exportBtn" style="display:none;">导出记录</button>
+              <button class="dropdown-item" id="clearBtn" style="display:none; color: #e74c3c;">清空数据</button>
+              <button class="dropdown-item" id="darkToggleBtn">切换主题</button>
+              <div class="dropdown-item" style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:default;color:var(--text-soft);"><span style="font-size:0.7rem;">账户</span><span style="display:flex;align-items:center;gap:4px;"><span id="accountDisplay" style="font-size:0.68rem;font-weight:700;font-family:monospace;color:var(--text-main);"></span><span id="accountDataCount" style="font-size:0.62rem;font-weight:600;color:var(--text-light);"></span></span></div>
+              <button class="dropdown-item" id="headerLogoutBtn" style="color: #e74c3c;">退出登录</button>
+            </div>
           </div>
         </div>
 
@@ -2659,7 +2667,9 @@
       }, 8000);
     }
     document.addEventListener('visibilitychange', function() {
-      if (!document.hidden && _pendingReminderClient && !_reminderShown) {
+      if (document.hidden) return;
+      renderHeaderRoundCd(); // 回到页面立即按时间戳重算，倒计时不因锁屏/切后台/刷新而重置
+      if (_pendingReminderClient && !_reminderShown) {
         scheduleReminder(_pendingReminderClient); // 从微信返回后重新计时弹出
       }
     });
@@ -9814,6 +9824,24 @@ function updateAutoDialBtn() {
       numEl.textContent = Math.min(6, Math.max(1, rn)); // 轮数显示钳制在 1-6
       var remainMs = (info && info.transferTs) ? Math.max(0, info.transferTs + 30 * 60 * 1000 - Date.now()) : 0;
       cdEl.textContent = formatRoundCountdown(remainMs);
+      renderHeaderRoundCd(); // 头部小倒计时同步
+    }
+    // 头部「距离下轮添加」小倒计时：有冷却期（转出公海后 30 分钟内）时显示并每秒刷新，走完自动隐藏并停止计时
+    function renderHeaderRoundCd() {
+      var el = document.getElementById('headerRoundCd');
+      if (!el) return;
+      var info = getRoundInfo();
+      var remainMs = (info && info.transferTs) ? Math.max(0, info.transferTs + 30 * 60 * 1000 - Date.now()) : 0;
+      if (remainMs <= 0) {
+        el.style.display = 'none';
+        if (window._headerCdTimer) { clearInterval(window._headerCdTimer); window._headerCdTimer = null; }
+        return;
+      }
+      el.style.display = '';
+      el.textContent = formatRoundCountdown(remainMs);
+      if (!window._headerCdTimer) {
+        window._headerCdTimer = setInterval(renderHeaderRoundCd, 1000);
+      }
     }
 
     function showReminderOverlay() {
@@ -9974,6 +10002,7 @@ function updateAutoDialBtn() {
       // Load dynamic configs
       loadReminderConfig();
       fetchWorkStats(); // 拉取云端工作数据（KV，按账号，实时同步）
+      renderHeaderRoundCd(); // 恢复头部「距离下轮添加」倒计时（无冷却期时自动隐藏）
     }
 
     function showAuthScreen() {
@@ -10413,6 +10442,7 @@ function updateAutoDialBtn() {
     // 修复从微信返回时 bfcache 导致卡片空白（仅 bfcache 恢复时触发）
     // 多次重试解决 DOM 解冻延迟、container 为 null 导致渲染失败的问题
     window.addEventListener('pageshow', function(e) {
+      renderHeaderRoundCd(); // bfcache/刷新恢复时立即重算倒计时，保证在此界面走完
       if (e.persisted && importedClients.length > 0) {
         // 强制回流，唤醒 bfcache 冻结的布局状态
         if (document.body) { void document.body.offsetHeight; }
