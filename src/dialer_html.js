@@ -9734,7 +9734,40 @@ function updateAutoDialBtn() {
       if (info.date !== today) info = { date: today, count: 0 };
       info.count = Math.min(5, (info.count || 0) + 1); // 今日轮数最多 5 轮（微信每日添加上限），大批次分批操作也能正确累计
       info.transferTs = Date.now();
-      saveRoundInfo(info);
+      saveRoundInfo(info); // 先乐观更新本地，弹窗立即显示
+      // 同步到云端（跨设备共享）；若云端计数更高（其他设备刚加过），以云端为准
+      var token = getSessionToken();
+      if (!token) return;
+      fetch('/api/dialer/rounds/record', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+        body: JSON.stringify({ date: today })
+      }).then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res && res.count !== undefined) {
+            saveRoundInfo({ date: today, count: res.count, transferTs: res.transferTs || Date.now() });
+            renderRoundInfo();
+            renderDrawer();
+          }
+        })
+        .catch(function() {});
+    }
+    // 拉取云端今日轮数（跨设备同步），成功后覆盖本地缓存
+    function fetchRoundInfo() {
+      var today = todayLocalStr();
+      var token = getSessionToken();
+      if (!token) return;
+      fetch('/api/dialer/rounds?date=' + encodeURIComponent(today), {
+        headers: { 'Authorization': 'Bearer ' + token }
+      }).then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res && res.count !== undefined) {
+            saveRoundInfo({ date: today, count: res.count, transferTs: res.transferTs || 0 });
+            renderRoundInfo();
+            renderDrawer();
+          }
+        })
+        .catch(function() {});
     }
     function formatRoundCountdown(ms) {
       var totalSec = Math.ceil(ms / 1000);
@@ -9909,6 +9942,7 @@ function updateAutoDialBtn() {
       document.getElementById('lockScreenOverlay').classList.add('auth-hidden');
       // Load dynamic configs
       loadReminderConfig();
+      fetchRoundInfo(); // 拉取云端今日轮数（跨设备同步）
     }
 
     function showAuthScreen() {
@@ -10209,6 +10243,7 @@ function updateAutoDialBtn() {
             document.getElementById('lockScreenOverlay').classList.add('auth-hidden');
             renderDialCards();
             loadReminderConfig(); // 解锁后重新拉取微信运营提醒配置（否则弹窗显示默认条目）
+            fetchRoundInfo(); // 解锁后拉取云端今日轮数（跨设备同步）
           } else {
             var errMsg = res.error || 'PIN 不正确';
             // Parse LOCKOUT:seconds:message prefix from server

@@ -713,6 +713,54 @@ export default {
       }
     }
 
+    // GET /api/dialer/rounds?date=YYYY-MM-DD — 今日轮次（跨设备同步，云端为准）
+    if (path === '/api/dialer/rounds' && request.method === 'GET') {
+      try {
+        var rdAuth = request.headers.get('Authorization') || '';
+        var rdToken = rdAuth.startsWith('Bearer ') ? rdAuth.slice(7) : '';
+        var rdSession = await dialerValidateSession(env, rdToken);
+        if (!rdSession) throw new Error('未登录');
+        var rdDate = url.searchParams.get('date') || '';
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(rdDate)) throw new Error('date 格式应为 YYYY-MM-DD');
+        var rdRaw = await env.DATA_KV.get('rounds:' + rdDate);
+        var rdInfo = rdRaw ? JSON.parse(rdRaw) : { date: rdDate, count: 0, transferTs: 0 };
+        return new Response(JSON.stringify(rdInfo), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: e.message === '未登录' ? 401 : 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
+    // POST /api/dialer/rounds/record — 完成一轮：云端计数+1（今日封顶5），更新时间戳
+    if (path === '/api/dialer/rounds/record' && request.method === 'POST') {
+      try {
+        var rrAuth = request.headers.get('Authorization') || '';
+        var rrToken = rrAuth.startsWith('Bearer ') ? rrAuth.slice(7) : '';
+        var rrSession = await dialerValidateSession(env, rrToken);
+        if (!rrSession) throw new Error('未登录');
+        var rrBody = await request.json();
+        var rrDate = (rrBody.date || '').trim();
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(rrDate)) throw new Error('date 格式应为 YYYY-MM-DD');
+        var rrRaw = await env.DATA_KV.get('rounds:' + rrDate);
+        var rrInfo = rrRaw ? JSON.parse(rrRaw) : { date: rrDate, count: 0, transferTs: 0 };
+        rrInfo.count = Math.min(5, (rrInfo.count || 0) + 1);
+        rrInfo.transferTs = Date.now();
+        await env.DATA_KV.put('rounds:' + rrDate, JSON.stringify(rrInfo));
+        return new Response(JSON.stringify(rrInfo), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: e.message === '未登录' ? 401 : 400,
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
     // ==================== Content Config API ====================
 
     // GET /api/dialer/config?key=reminder|learn — 获取自定义内容配置（公开接口）
