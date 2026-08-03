@@ -1731,8 +1731,8 @@
     <div class="container">
       <!-- Header -->
       <div class="header-bar">
-        <!-- 圆饼图（点击拉出工作进度面板，数字/百分比已收进抽屉） -->
-        <div class="header-stats-minimal" id="headerStatsMinimal" style="display: none;">
+        <!-- 圆饼图（点击拉出工作进度面板，数字/百分比已收进抽屉；始终显示，与客户列表有无数据无关） -->
+        <div class="header-stats-minimal" id="headerStatsMinimal">
           <span style="display:inline-flex;align-items:center;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg></span>
         </div>
         
@@ -3013,10 +3013,7 @@
 
         function updateDashboardVisibility(hasData) {
       var flexStyle = hasData ? 'flex' : 'none';
-      var minimalStats = document.getElementById('headerStatsMinimal');
-      if (minimalStats) {
-        minimalStats.style.display = hasData ? 'flex' : 'none';
-      }
+      // 圆饼图（工作记录抽屉入口）始终显示，不随客户列表有无数据隐藏
       document.getElementById('controlBar').style.display = 'none';
 
       var expBtn = document.getElementById('exportBtn');
