@@ -1635,7 +1635,7 @@
       </div>
       <div style="height:0.5px;background:var(--card-border);margin:4px 0;"></div>
       <div class="drawer-stat-row">
-        <span>通过微信数量（今日）</span>
+        <span>添加动作数量（今日）</span>
         <span style="display:inline-flex;align-items:center;gap:8px;">
           <button class="drawer-step-btn" id="drawerWechatMinus" title="减1">−</button>
           <span class="drawer-stat-value" id="drawerWechatVal" style="min-width:48px;text-align:center;font-size:1.2rem;font-weight:700;">0</span>
@@ -1643,11 +1643,11 @@
         </span>
       </div>
       <div class="drawer-stat-row">
-        <span>通过微信数量（本周）</span>
+        <span>添加动作数量（本周）</span>
         <span class="drawer-stat-value" id="drawerWeekWechatVal">0</span>
       </div>
       <div class="drawer-stat-row">
-        <span>通过微信数量（本月）</span>
+        <span>添加动作数量（本月）</span>
         <span class="drawer-stat-value" id="drawerMonthWechatVal">0</span>
       </div>
     </div>
