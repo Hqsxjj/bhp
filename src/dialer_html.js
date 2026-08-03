@@ -9272,8 +9272,8 @@ function updateAutoDialBtn() {
           var fromEmail = document.getElementById('dbBackupFromEmail').value.trim();
           var backupEmail = document.getElementById('dbBackupEmail').value.trim();
           var status = document.getElementById('dbEmailConfigStatus');
-          // Key 可留空：已配置 Worker 密钥 RESEND_API_KEY 时只保存发送者邮箱即可
-          if (!key && !fromEmail) { status.textContent = '请填写发送者邮箱或 Resend API Key'; status.style.color = '#e74c3c'; return; }
+          // Key 与发送者邮箱可留空：已配置 Worker 环境变量（RESEND_API_KEY / BACKUP_FROM_EMAIL）时无需填写
+          if (!key && !fromEmail && !_backupHasKey) { status.textContent = '请填写发送者邮箱或 Resend API Key（或已在 Worker 环境变量配置）'; status.style.color = '#e74c3c'; return; }
           saveConfigBtn.disabled = true; saveConfigBtn.textContent = '保存中...';
           var token = getSessionToken();
           fetch('/api/dialer/stats/email-config', {
@@ -9304,8 +9304,8 @@ function updateAutoDialBtn() {
         sendBtn.addEventListener('click', function() {
           var email = document.getElementById('dbBackupEmail').value.trim();
           var status = document.getElementById('dbBackupStatus');
-          if (!email) { status.textContent = '请输入接收邮箱'; status.style.color = '#e74c3c'; return; }
-          if (email.indexOf('@') === -1) { status.textContent = '邮箱格式不正确'; status.style.color = '#e74c3c'; return; }
+          // 接收邮箱可留空：已配置 Worker 环境变量 BACKUP_TARGET_EMAIL 时直接使用
+          if (email && email.indexOf('@') === -1) { status.textContent = '邮箱格式不正确'; status.style.color = '#e74c3c'; return; }
           sendBtn.disabled = true; sendBtn.textContent = '正在导出并发送...';
           status.style.color = 'var(--text-light)';
           status.textContent = '正在从数据库导出全部客户数据，请稍候...';
@@ -9313,13 +9313,13 @@ function updateAutoDialBtn() {
           fetch('/api/dialer/stats/export-email', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-            body: JSON.stringify({ email: email })
+            body: JSON.stringify({ email: email || undefined })
           })
           .then(function(r) { return r.json(); })
           .then(function(res) {
             if (res.success) {
               status.style.color = '#07c160';
-              status.textContent = '备份邮件已发送至 ' + email + '！共 ' + res.count + ' 条记录。请查收附件。';
+              status.textContent = '备份邮件已发送至 ' + (res.email || email) + '！共 ' + res.count + ' 条记录。请查收附件。';
               document.getElementById('dbBackupEmail').value = '';
             } else {
               status.style.color = '#e74c3c';
@@ -9338,21 +9338,31 @@ function updateAutoDialBtn() {
       }
     }
 
+    var _backupHasKey = false; // 环境变量或已保存的 Resend Key 是否可用
     function loadBackupConfig() {
       var token = getSessionToken();
       if (!token) return;
       fetch('/api/dialer/stats/email-config', { method: 'GET', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token } })
         .then(function(r) { return r.json(); })
         .then(function(res) {
+          _backupHasKey = !!res.hasKey;
           var status = document.getElementById('dbEmailConfigStatus');
           if (status) {
             if (res.hasKey) { status.textContent = '已配置 Resend API Key'; status.style.color = '#07c160'; }
             else { status.textContent = '尚未配置'; status.style.color = 'var(--text-light)'; }
           }
-          // 回显已保存的接收备份邮箱（爆破密码触发时也会发到该邮箱）
+          // 只读回显环境变量/已保存配置，前端无需手动填写
+          if (res.fromEmail) {
+            var fromInput = document.getElementById('dbBackupFromEmail');
+            if (fromInput) { fromInput.value = res.fromEmail; fromInput.readOnly = true; }
+          }
           if (res.targetEmail) {
             var emailInput = document.getElementById('dbBackupEmail');
-            if (emailInput) emailInput.value = res.targetEmail;
+            if (emailInput) { emailInput.value = res.targetEmail; emailInput.readOnly = true; }
+          }
+          var keyInput = document.getElementById('dbResendApiKey');
+          if (keyInput) {
+            keyInput.placeholder = res.hasKey ? '已通过环境变量配置，无需填写' : 're_xxxxxxxx';
           }
         })
         .catch(function() {});

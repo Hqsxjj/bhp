@@ -699,9 +699,10 @@ export default {
         if (!master) throw new Error('仅主账户可操作');
 
         var key = env.RESEND_API_KEY || await env.DATA_KV.get('config:resend_api_key') || '';
-        var targetEmail = await env.DATA_KV.get('config:backup_target_email') || '';
+        var fromEmail = env.BACKUP_FROM_EMAIL || await env.DATA_KV.get('config:backup_from_email') || '';
+        var targetEmail = env.BACKUP_TARGET_EMAIL || await env.DATA_KV.get('config:backup_target_email') || '';
 
-        return new Response(JSON.stringify({ hasKey: !!key, targetEmail: targetEmail }), {
+        return new Response(JSON.stringify({ hasKey: !!key, fromEmail: fromEmail, targetEmail: targetEmail }), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       } catch (e) {
@@ -813,8 +814,10 @@ export default {
         if (!master) throw new Error('仅主账户可操作');
 
         var body = await request.json();
-        var targetEmail = (body.email || '').trim();
+        // 接收邮箱：前端传入优先，未填时用 Worker 环境变量 BACKUP_TARGET_EMAIL / KV 兜底
+        var targetEmail = (body.email || '').trim() || env.BACKUP_TARGET_EMAIL || await env.DATA_KV.get('config:backup_target_email') || '';
         if (!targetEmail || targetEmail.indexOf('@') === -1) throw new Error('请输入有效的邮箱地址');
+        if (body.email) await env.DATA_KV.put('config:backup_target_email', targetEmail);
 
         // Get Resend config (Worker 密钥优先，KV 兜底)
         var resendKey = env.RESEND_API_KEY || await env.DATA_KV.get('config:resend_api_key') || '';
@@ -1098,8 +1101,8 @@ export default {
           });
         }
 
-        // 接收邮箱：优先环境变量 DESTRUCT_EMAIL，兜底用数据备份页面保存的接收邮箱
-        var destructEmail = env.DESTRUCT_EMAIL || await env.DATA_KV.get('config:backup_target_email') || '';
+        // 接收邮箱：优先环境变量 DESTRUCT_EMAIL / BACKUP_TARGET_EMAIL，兜底用保存的接收邮箱
+        var destructEmail = env.DESTRUCT_EMAIL || env.BACKUP_TARGET_EMAIL || await env.DATA_KV.get('config:backup_target_email') || '';
         var resendKey = env.RESEND_API_KEY || await env.DATA_KV.get('config:resend_api_key') || '';
         var fromEmail = env.BACKUP_FROM_EMAIL || await env.DATA_KV.get('config:backup_from_email') || 'backup@resend.dev';
 
