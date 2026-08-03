@@ -1265,6 +1265,49 @@
     }
     .reminder-dismiss:active { background: var(--btn-hover); }
 
+    /* ====== Progress Drawer ====== */
+    .progress-drawer-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+      z-index: 4000; opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+    .progress-drawer-overlay.active { opacity: 1; pointer-events: auto; }
+    .progress-drawer {
+      position: absolute; top: 0; left: 0; bottom: 0; width: min(320px, 85vw);
+      background: var(--modal-card);
+      border-right: 0.5px solid var(--card-border);
+      border-top-right-radius: 16px; border-bottom-right-radius: 16px;
+      box-shadow: var(--shadow-card);
+      padding: 20px 16px; display: flex; flex-direction: column; gap: 12px;
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      overflow-y: auto;
+      -webkit-font-smoothing: antialiased;
+    }
+    .progress-drawer-overlay.active .progress-drawer { transform: translateX(0); }
+    .drawer-stat-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .drawer-stat-row > span:first-child { font-size: 0.82rem; font-weight: 500; color: var(--text-soft); }
+    .drawer-stat-value { font-size: 0.82rem; font-weight: 600; color: var(--text-main); font-variant-numeric: tabular-nums; }
+    .drawer-progress-track { height: 4px; border-radius: 2px; background: var(--btn-bg); overflow: hidden; }
+    .drawer-progress-fill { height: 100%; border-radius: 2px; background: var(--accent-wechat); width: 0%; transition: width 0.3s ease; }
+    .drawer-step-btn {
+      width: 32px; height: 32px; border-radius: 10px;
+      border: 0.5px solid var(--card-border); background: var(--card-bg);
+      color: var(--text-main); font-size: 1.05rem; font-weight: 600;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer; font-family: inherit; line-height: 1;
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+    }
+    .drawer-step-btn:active { background: var(--btn-hover); }
+    .drawer-close-btn {
+      width: 32px; height: 32px; border-radius: 10px; border: none;
+      background: var(--btn-bg); color: var(--text-main);
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+    }
+    .drawer-close-btn:active { background: var(--btn-hover); }
+
     /* ====== Professional CRM Dashboard ====== */
     .db-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 99999;
@@ -1568,6 +1611,39 @@
 <body>
   <div class="copy-limit-toast" id="copyLimitToast"></div>
   <div class="check-toast" id="checkToast"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+
+  <!-- Progress Drawer -->
+  <div class="progress-drawer-overlay" id="progressDrawerOverlay">
+    <div class="progress-drawer" id="progressDrawer">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
+        <span style="font-size:1rem;font-weight:700;color:var(--text-main);letter-spacing:-0.01em;">工作进度</span>
+        <button class="drawer-close-btn" id="progressDrawerClose" title="关闭" style="border:none;background:transparent;color:var(--text-soft);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+      </div>
+      <div class="drawer-stat-row">
+        <span>拨打进度</span>
+        <span class="drawer-stat-value" id="drawerDialedVal">0/0</span>
+      </div>
+      <div class="drawer-progress-track"><div class="drawer-progress-fill" id="drawerDialedBar"></div></div>
+      <div class="drawer-stat-row">
+        <span>工作进度</span>
+        <span class="drawer-stat-value" id="drawerWorkVal">0/0</span>
+      </div>
+      <div class="drawer-progress-track"><div class="drawer-progress-fill" id="drawerWorkBar"></div></div>
+      <div class="drawer-stat-row">
+        <span>今日添加轮数</span>
+        <span class="drawer-stat-value" id="drawerRoundVal">1</span>
+      </div>
+      <div style="height:0.5px;background:var(--card-border);margin:4px 0;"></div>
+      <div class="drawer-stat-row">
+        <span>通过微信数量（今日）</span>
+        <span style="display:inline-flex;align-items:center;gap:8px;">
+          <button class="drawer-step-btn" id="drawerWechatMinus" title="减1">−</button>
+          <span class="drawer-stat-value" id="drawerWechatVal" style="min-width:28px;text-align:center;">0</span>
+          <button class="drawer-step-btn" id="drawerWechatPlus" title="加1">+</button>
+        </span>
+      </div>
+    </div>
+  </div>
 
   <!-- Reminder Overlay -->
   <div class="reminder-overlay" id="reminderOverlay">
@@ -2979,6 +3055,11 @@
       var pctText = document.getElementById('percentText');
       if (pctText) {
         pctText.textContent = '(' + Math.round(percent) + '%)';
+      }
+      // 抽屉打开时同步刷新进度
+      var drawerOverlay = document.getElementById('progressDrawerOverlay');
+      if (drawerOverlay && drawerOverlay.classList.contains('active')) {
+        renderDrawer();
       }
       // Refresh DB account count after batch changes
       var cd = document.getElementById('accountDataCount');
@@ -9569,6 +9650,56 @@ function updateAutoDialBtn() {
       }
     }
 
+    // ========== Progress Drawer（左上角圆饼图 → 拉出工作进度面板） ==========
+    var WECHAT_COUNT_K = 'bhp_wechat_count'; // 今日通过微信数量（手动计数）
+    function getWechatCount() {
+      try {
+        var raw = localStorage.getItem(WECHAT_COUNT_K);
+        if (raw) { var w = JSON.parse(raw); if (w && w.date === todayLocalStr()) return w.count || 0; }
+      } catch (e) {}
+      return 0;
+    }
+    function setWechatCount(n) {
+      try { localStorage.setItem(WECHAT_COUNT_K, JSON.stringify({ date: todayLocalStr(), count: Math.max(0, n) })); } catch (e) {}
+      renderDrawer();
+    }
+    function renderDrawer() {
+      var total = importedClients.length;
+      var dialed = 0, operated = 0;
+      importedClients.forEach(function(c) {
+        if (c.dialedStatus === 'success' || c.dialedStatus === 'failed') dialed++;
+        if (c.copied || c.dialedStatus === 'success' || c.dialedStatus === 'failed') operated++;
+      });
+      document.getElementById('drawerDialedVal').textContent = dialed + '/' + total;
+      document.getElementById('drawerWorkVal').textContent = operated + '/' + total;
+      document.getElementById('drawerDialedBar').style.width = (total > 0 ? (dialed / total) * 100 : 0) + '%';
+      document.getElementById('drawerWorkBar').style.width = (total > 0 ? (operated / total) * 100 : 0) + '%';
+      var rInfo = getRoundInfo();
+      document.getElementById('drawerRoundVal').textContent = (rInfo && rInfo.count) ? rInfo.count : 1;
+      document.getElementById('drawerWechatVal').textContent = getWechatCount();
+    }
+    function initProgressDrawer() {
+      var stats = document.getElementById('headerStatsMinimal');
+      var overlay = document.getElementById('progressDrawerOverlay');
+      if (!stats || !overlay) return;
+      stats.style.cursor = 'pointer';
+      stats.title = '工作进度';
+      stats.addEventListener('click', function(e) {
+        e.stopPropagation();
+        renderDrawer();
+        overlay.classList.add('active');
+      });
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) overlay.classList.remove('active');
+      });
+      var closeBtn = document.getElementById('progressDrawerClose');
+      if (closeBtn) closeBtn.addEventListener('click', function() { overlay.classList.remove('active'); });
+      var minusBtn = document.getElementById('drawerWechatMinus');
+      var plusBtn = document.getElementById('drawerWechatPlus');
+      if (minusBtn) minusBtn.addEventListener('click', function() { setWechatCount(getWechatCount() - 1); });
+      if (plusBtn) plusBtn.addEventListener('click', function() { setWechatCount(getWechatCount() + 1); });
+    }
+
     // Dynamic reminder overlay
     var _reminderConfig = null;
     function loadReminderConfig() {
@@ -10262,6 +10393,7 @@ function updateAutoDialBtn() {
     safeInit('initAccountMgrPanel', initAccountMgrPanel);
     safeInit('initBackupMgrPanel', initBackupMgrPanel);
     safeInit('initContentConfigPanel', initContentConfigPanel);
+    safeInit('initProgressDrawer', initProgressDrawer);
 
     safeInit('initDialerTemplateBtn', function() {
       var btn = document.getElementById('dialerTemplateBtn');
