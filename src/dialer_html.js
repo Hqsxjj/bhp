@@ -1292,9 +1292,9 @@
     .drawer-progress-track { height: 4px; border-radius: 2px; background: var(--btn-bg); overflow: hidden; }
     .drawer-progress-fill { height: 100%; border-radius: 2px; background: var(--accent-wechat); width: 0%; transition: width 0.3s ease; }
     .drawer-step-btn {
-      width: 32px; height: 32px; border-radius: 10px;
+      width: 36px; height: 36px; border-radius: 10px;
       border: 0.5px solid var(--card-border); background: var(--card-bg);
-      color: var(--text-main); font-size: 1.05rem; font-weight: 600;
+      color: var(--text-main); font-size: 1.2rem; font-weight: 600;
       display: inline-flex; align-items: center; justify-content: center;
       cursor: pointer; font-family: inherit; line-height: 1;
       -webkit-tap-highlight-color: transparent; touch-action: manipulation;
@@ -1638,7 +1638,7 @@
         <span>通过微信数量（今日）</span>
         <span style="display:inline-flex;align-items:center;gap:8px;">
           <button class="drawer-step-btn" id="drawerWechatMinus" title="减1">−</button>
-          <span class="drawer-stat-value" id="drawerWechatVal" style="min-width:28px;text-align:center;">0</span>
+          <span class="drawer-stat-value" id="drawerWechatVal" style="min-width:48px;text-align:center;font-size:1.2rem;font-weight:700;">0</span>
           <button class="drawer-step-btn" id="drawerWechatPlus" title="加1">+</button>
         </span>
       </div>
@@ -9662,25 +9662,19 @@ function updateAutoDialBtn() {
     function applyWechatCount(n) {
       try { localStorage.setItem(WECHAT_COUNT_K, JSON.stringify({ date: todayLocalStr(), count: Math.max(0, n || 0) })); } catch (e) {}
     }
-    // 手动 +/−：先乐观更新本地，再同步 Supabase（按账号），以云端为准
+    // 手动 +/−：本地立即更新显示（不卡顿），异步同步云端（绝对值写入，最后一次点击为准）
     function adjustWechatCount(delta) {
       var today = todayLocalStr();
-      applyWechatCount(getWechatCount() + delta);
+      var target = Math.max(0, getWechatCount() + delta);
+      applyWechatCount(target);
       renderDrawer();
       var token = getSessionToken();
       if (!token) return;
       fetch('/api/dialer/work-stats/wechat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ date: today, delta: delta })
-      }).then(function(r) { return r.json(); })
-        .then(function(res) {
-          if (res && res.wechat_count !== undefined) {
-            applyWechatCount(res.wechat_count);
-            renderDrawer();
-          }
-        })
-        .catch(function() {});
+        body: JSON.stringify({ date: today, value: target })
+      }).catch(function() {});
     }
     function renderDrawer() {
       var total = importedClients.length;
@@ -9694,7 +9688,8 @@ function updateAutoDialBtn() {
       document.getElementById('drawerDialedBar').style.width = (total > 0 ? (dialed / total) * 100 : 0) + '%';
       document.getElementById('drawerWorkBar').style.width = (total > 0 ? (operated / total) * 100 : 0) + '%';
       var rInfo = getRoundInfo();
-      document.getElementById('drawerRoundVal').textContent = (rInfo && rInfo.count) ? rInfo.count : 1;
+      var rv = (rInfo && rInfo.count) ? rInfo.count : 1;
+      document.getElementById('drawerRoundVal').textContent = Math.min(6, Math.max(1, rv)); // 轮数显示钳制在 1-6
       document.getElementById('drawerWechatVal').textContent = getWechatCount();
     }
     function initProgressDrawer() {
@@ -9757,7 +9752,7 @@ function updateAutoDialBtn() {
       var today = todayLocalStr();
       var info = getRoundInfo() || {};
       if (info.date !== today) info = { date: today, count: 0 };
-      info.count = Math.min(5, (info.count || 0) + 1); // 今日轮数最多 5 轮（微信每日添加上限），大批次分批操作也能正确累计
+      info.count = Math.min(6, (info.count || 0) + 1); // 今日轮数最多 6 轮（微信每日添加上限），大批次分批操作也能正确累计
       info.transferTs = Date.now();
       saveRoundInfo(info); // 先乐观更新本地，弹窗立即显示
       // 同步到云端 KV（按账号）；云端计数更高（其他设备刚加过）时以云端为准
@@ -9807,7 +9802,8 @@ function updateAutoDialBtn() {
       var cdEl = document.getElementById('reminderRoundCd');
       if (!numEl || !cdEl) return;
       var info = getRoundInfo();
-      numEl.textContent = (info && info.count) ? info.count : 1;
+      var rn = (info && info.count) ? info.count : 1;
+      numEl.textContent = Math.min(6, Math.max(1, rn)); // 轮数显示钳制在 1-6
       var remainMs = (info && info.transferTs) ? Math.max(0, info.transferTs + 30 * 60 * 1000 - Date.now()) : 0;
       cdEl.textContent = formatRoundCountdown(remainMs);
     }

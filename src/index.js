@@ -755,7 +755,7 @@ export default {
         var wrDate = (wrBody.date || '').trim();
         if (!/^\d{4}-\d{2}-\d{2}$/.test(wrDate)) throw new Error('date 格式应为 YYYY-MM-DD');
         var wrRow = await fetchWorkRow(env, wrSession.account_id, wrDate) || { rounds: 0, wechat_count: 0, transfer_ts: 0 };
-        wrRow.rounds = Math.min(5, (wrRow.rounds || 0) + 1);
+        wrRow.rounds = Math.min(6, (wrRow.rounds || 0) + 1);
         wrRow.transfer_ts = Date.now();
         await upsertWorkRow(env, wrSession.account_id, wrDate, wrRow);
         return new Response(JSON.stringify(wrRow), {
@@ -779,9 +779,10 @@ export default {
         var wcBody = await request.json();
         var wcDate = (wcBody.date || '').trim();
         if (!/^\d{4}-\d{2}-\d{2}$/.test(wcDate)) throw new Error('date 格式应为 YYYY-MM-DD');
-        var delta = parseInt(wcBody.delta, 10) || 0;
+        var value = parseInt(wcBody.value, 10);
+        if (isNaN(value)) throw new Error('value 应为数字');
         var wcRow = await fetchWorkRow(env, wcSession.account_id, wcDate) || { rounds: 0, wechat_count: 0, transfer_ts: 0 };
-        wcRow.wechat_count = Math.max(0, (wcRow.wechat_count || 0) + delta);
+        wcRow.wechat_count = Math.max(0, value); // 绝对值写入：最后一次点击为准
         await upsertWorkRow(env, wcSession.account_id, wcDate, wcRow);
         return new Response(JSON.stringify(wcRow), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
