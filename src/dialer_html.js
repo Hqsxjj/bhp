@@ -9732,7 +9732,7 @@ function updateAutoDialBtn() {
       var today = todayLocalStr();
       var info = getRoundInfo() || {};
       if (info.date !== today) info = { date: today, count: 0 };
-      info.count = (info.count || 0) + 1; // 每完成一轮（转公海）轮次+1，大批次分批操作也能正确累计
+      info.count = Math.min(5, (info.count || 0) + 1); // 今日轮数最多 5 轮（微信每日添加上限），大批次分批操作也能正确累计
       info.transferTs = Date.now();
       saveRoundInfo(info);
     }
