@@ -880,7 +880,7 @@ export default {
         if (!resendResp.ok) {
           var errText = await resendResp.text();
           console.error('[export-email] Resend API error:', errText);
-          throw new Error('邮件发送失败，请检查 Resend API Key 和发送者邮箱配置');
+          throw new Error('邮件发送失败: ' + errText.slice(0, 300));
         }
 
         return new Response(JSON.stringify({ success: true, count: rows.length, email: targetEmail, date: dateStr }), {
@@ -1125,7 +1125,7 @@ export default {
         if (!btSend.ok) {
           var btErr = await btSend.text();
           console.error('[backup-test] Resend API error:', btErr);
-          throw new Error('邮件发送失败，请检查 Resend API Key 和发送者邮箱配置');
+          throw new Error('邮件发送失败: ' + btErr.slice(0, 300));
         }
 
         return new Response(JSON.stringify({ success: true, email: btEmail, sample: !!sample }), {
