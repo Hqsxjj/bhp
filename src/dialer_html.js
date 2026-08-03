@@ -9745,17 +9745,20 @@ function updateAutoDialBtn() {
       info.count = Math.min(6, (info.count || 0) + 1); // 今日轮数最多 6 轮（微信每日添加上限），大批次分批操作也能正确累计
       info.transferTs = Date.now();
       saveRoundInfo(info); // 先乐观更新本地，弹窗立即显示
-      // 同步到云端 KV（按账号）；云端计数更高（其他设备刚加过）时以云端为准
+      // 同步到云端 KV（绝对值上报 + max 合并）：失败/并发都不会丢轮次
       var token = getSessionToken();
       if (!token) return;
       fetch('/api/dialer/work-stats/rounds', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ date: today })
+        body: JSON.stringify({ date: today, value: info.count, transferTs: info.transferTs })
       }).then(function(r) { return r.json(); })
         .then(function(res) {
           if (res && res.rounds !== undefined) {
-            saveRoundInfo({ date: today, count: res.rounds, transferTs: res.transfer_ts || Date.now() });
+            var cur = getRoundInfo() || {};
+            var curCount = (cur.date === today) ? (cur.count || 0) : 0;
+            var curTs = (cur.date === today) ? (cur.transferTs || 0) : 0;
+            saveRoundInfo({ date: today, count: Math.min(6, Math.max(curCount, res.rounds)), transferTs: Math.max(curTs, res.transfer_ts || 0) });
             applyWechatCount(res.wechat_count);
             renderRoundInfo();
             renderDrawer();
@@ -9773,7 +9776,11 @@ function updateAutoDialBtn() {
       }).then(function(r) { return r.json(); })
         .then(function(res) {
           if (res && res.rounds !== undefined) {
-            saveRoundInfo({ date: today, count: res.rounds, transferTs: res.transfer_ts || 0 });
+            // 轮数取 max 合并（本地已完成的轮次不会被云端旧值覆盖），微信计数以云端为准
+            var cur = getRoundInfo() || {};
+            var curCount = (cur.date === today) ? (cur.count || 0) : 0;
+            var curTs = (cur.date === today) ? (cur.transferTs || 0) : 0;
+            saveRoundInfo({ date: today, count: Math.min(6, Math.max(curCount, res.rounds)), transferTs: Math.max(curTs, res.transfer_ts || 0) });
             applyWechatCount(res.wechat_count);
             renderRoundInfo();
             renderDrawer();

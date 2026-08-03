@@ -754,9 +754,13 @@ export default {
         var wrBody = await request.json();
         var wrDate = (wrBody.date || '').trim();
         if (!/^\d{4}-\d{2}-\d{2}$/.test(wrDate)) throw new Error('date 格式应为 YYYY-MM-DD');
+        var value = parseInt(wrBody.value, 10);
+        if (isNaN(value)) throw new Error('value 应为数字');
         var wrRow = await fetchWorkRow(env, wrSession.account_id, wrDate) || { rounds: 0, wechat_count: 0, transfer_ts: 0 };
-        wrRow.rounds = Math.min(6, (wrRow.rounds || 0) + 1);
-        wrRow.transfer_ts = Date.now();
+        // 取 max(云端, 上报值) 封顶 6：并发上报/失败重试都不会丢轮次
+        wrRow.rounds = Math.min(6, Math.max(wrRow.rounds || 0, value));
+        var inTs = parseInt(wrBody.transferTs, 10) || Date.now();
+        wrRow.transfer_ts = Math.max(wrRow.transfer_ts || 0, inTs); // 保留最近一次转公海时刻
         await upsertWorkRow(env, wrSession.account_id, wrDate, wrRow);
         return new Response(JSON.stringify(wrRow), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
