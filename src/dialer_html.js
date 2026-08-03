@@ -1625,7 +1625,7 @@
       </div>
       <div class="drawer-progress-track"><div class="drawer-progress-fill" id="drawerDialedBar"></div></div>
       <div class="drawer-stat-row">
-        <span>工作进度</span>
+        <span>添加次数</span>
         <span class="drawer-stat-value" id="drawerWorkVal">0/0</span>
       </div>
       <div class="drawer-progress-track"><div class="drawer-progress-fill" id="drawerWorkBar"></div></div>
@@ -9707,7 +9707,7 @@ function updateAutoDialBtn() {
       var overlay = document.getElementById('progressDrawerOverlay');
       if (!stats || !overlay) return;
       stats.style.cursor = 'pointer';
-      stats.title = '工作进度';
+      stats.title = '添加动作';
       stats.addEventListener('click', function(e) {
         e.stopPropagation();
         renderDrawer();
