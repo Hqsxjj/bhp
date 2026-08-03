@@ -6261,11 +6261,11 @@
             if (clientComp) recordTimeline(clientComp.phone || clientComp.mobile, 'copy_company');
 
             var oldText = b.textContent;
-            if (oldText === '已复制') return;
-            b.textContent = '已复制';
+            if (oldText === '已复制，正在打开微信...') return;
+            b.textContent = '已复制，正在打开微信...';
             var oldColor = b.style.color;
             b.style.color = 'var(--accent-wechat)';
-            
+
             if (clientComp) {
               clientComp.copied = true;
               saveState();
@@ -6273,9 +6273,13 @@
             }
 
             setTimeout(function() {
+              jumpToWechat(); // 与复制号码一致：复制单位后直接跳转微信
+            }, 100);
+
+            setTimeout(function() {
               b.textContent = company;
               b.style.color = oldColor;
-            }, 1000);
+            }, 1500);
           });
         });
 
