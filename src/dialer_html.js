@@ -1642,6 +1642,14 @@
           <button class="drawer-step-btn" id="drawerWechatPlus" title="加1">+</button>
         </span>
       </div>
+      <div class="drawer-stat-row">
+        <span>通过微信数量（本周）</span>
+        <span class="drawer-stat-value" id="drawerWeekWechatVal">0</span>
+      </div>
+      <div class="drawer-stat-row">
+        <span>通过微信数量（本月）</span>
+        <span class="drawer-stat-value" id="drawerMonthWechatVal">0</span>
+      </div>
     </div>
   </div>
 
@@ -9640,6 +9648,8 @@ function updateAutoDialBtn() {
 
     // ========== Progress Drawer（左上角圆饼图 → 拉出工作进度面板） ==========
     var WECHAT_COUNT_K = 'bhp_wechat_count'; // 今日通过微信数量（手动计数，云端同步）
+    var _weekWechat = 0;  // 本周通过微信（云端累计）
+    var _monthWechat = 0; // 本月通过微信（云端累计）
     function getWechatCount() {
       try {
         var raw = localStorage.getItem(WECHAT_COUNT_K);
@@ -9662,7 +9672,15 @@ function updateAutoDialBtn() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
         body: JSON.stringify({ date: today, value: target })
-      }).catch(function() {});
+      }).then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res && res.week_count !== undefined) {
+            _weekWechat = res.week_count || 0;
+            _monthWechat = res.month_count || 0;
+            renderDrawer();
+          }
+        })
+        .catch(function() {});
     }
     function renderDrawer() {
       var total = importedClients.length;
@@ -9681,6 +9699,8 @@ function updateAutoDialBtn() {
       var rv = (rInfo && rInfo.count) ? rInfo.count : 1;
       document.getElementById('drawerRoundVal').textContent = Math.min(6, Math.max(1, rv)); // 轮数显示钳制在 1-6
       document.getElementById('drawerWechatVal').textContent = getWechatCount();
+      document.getElementById('drawerWeekWechatVal').textContent = _weekWechat;
+      document.getElementById('drawerMonthWechatVal').textContent = _monthWechat;
     }
     function initProgressDrawer() {
       var stats = document.getElementById('headerStatsMinimal');
@@ -9782,6 +9802,8 @@ function updateAutoDialBtn() {
             var curTs = (cur.date === today) ? (cur.transferTs || 0) : 0;
             saveRoundInfo({ date: today, count: Math.min(6, Math.max(curCount, res.rounds)), transferTs: Math.max(curTs, res.transfer_ts || 0) });
             applyWechatCount(res.wechat_count);
+            _weekWechat = res.week_count || 0;
+            _monthWechat = res.month_count || 0;
             renderRoundInfo();
             renderDrawer();
           }

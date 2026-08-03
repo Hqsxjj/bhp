@@ -169,6 +169,34 @@ async function fetchWorkRow(env, accountId, date) {
 async function upsertWorkRow(env, accountId, date, stats) {
   await env.DATA_KV.put('work_stats:' + accountId + ':' + date, JSON.stringify(stats));
 }
+// 日历日期运算（以日期字符串为基准，不涉及时区）
+function addDays(dateStr, n) {
+  var d = new Date(dateStr + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() + n);
+  return d.toISOString().slice(0, 10);
+}
+// 汇总 [startDate, endDate] 区间每天的 wechat_count
+async function sumWechatRange(env, accountId, startDate, endDate) {
+  var total = 0;
+  var cur = startDate;
+  while (cur <= endDate) {
+    var row = await fetchWorkRow(env, accountId, cur);
+    if (row) total += (row.wechat_count || 0);
+    if (cur === endDate) break;
+    cur = addDays(cur, 1);
+  }
+  return total;
+}
+// 计算本周（周一起）与本月累计通过微信数量
+async function weekMonthCounts(env, accountId, dateStr) {
+  var d = new Date(dateStr + 'T00:00:00Z');
+  var mondayOffset = (d.getUTCDay() + 6) % 7; // 周一 = 0
+  var weekStart = addDays(dateStr, -mondayOffset);
+  var monthStart = dateStr.slice(0, 8) + '01';
+  var week = await sumWechatRange(env, accountId, weekStart, dateStr);
+  var month = await sumWechatRange(env, accountId, monthStart, dateStr);
+  return { week_count: week, month_count: month };
+}
 
 // ========== Main Worker ==========
 
@@ -733,7 +761,11 @@ export default {
         var wsDate = url.searchParams.get('date') || '';
         if (!/^\d{4}-\d{2}-\d{2}$/.test(wsDate)) throw new Error('date 格式应为 YYYY-MM-DD');
         var wsRow = await fetchWorkRow(env, wsSession.account_id, wsDate);
-        return new Response(JSON.stringify(wsRow || { date: wsDate, rounds: 0, wechat_count: 0, transfer_ts: 0 }), {
+        var wm = await weekMonthCounts(env, wsSession.account_id, wsDate);
+        var wsResp = wsRow || { date: wsDate, rounds: 0, wechat_count: 0, transfer_ts: 0 };
+        wsResp.week_count = wm.week_count;
+        wsResp.month_count = wm.month_count;
+        return new Response(JSON.stringify(wsResp), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       } catch (e) {
@@ -788,6 +820,9 @@ export default {
         var wcRow = await fetchWorkRow(env, wcSession.account_id, wcDate) || { rounds: 0, wechat_count: 0, transfer_ts: 0 };
         wcRow.wechat_count = Math.max(0, value); // 绝对值写入：最后一次点击为准
         await upsertWorkRow(env, wcSession.account_id, wcDate, wcRow);
+        var wcWm = await weekMonthCounts(env, wcSession.account_id, wcDate);
+        wcRow.week_count = wcWm.week_count;
+        wcRow.month_count = wcWm.month_count;
         return new Response(JSON.stringify(wcRow), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
