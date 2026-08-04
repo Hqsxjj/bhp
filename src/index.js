@@ -580,6 +580,22 @@ export default {
 
     // ==================== Stats API ====================
 
+    // GET /api/dialer/accounts — 账号列表（所有已登录账号可用，用于数据分配目标选择；不含统计数据）
+    if (path === '/api/dialer/accounts' && request.method === 'GET') {
+      try {
+        var accList = await dialerGetAccounts(env);
+        return new Response(JSON.stringify({ success: true, accounts: accList.map(function(a) {
+          return { account_id: a.account_id, account_name: a.account_name, label: a.label, is_master: a.is_master !== false, active: a.active !== false };
+        }) }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ success: false, error: e.message }), {
+          status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
     if (path === '/api/dialer/stats/accounts' && request.method === 'GET') {
       try {
         var authHeader = request.headers.get('Authorization') || '';
@@ -1725,18 +1741,14 @@ export default {
         if (!mobiles || !Array.isArray(mobiles) || mobiles.length === 0) throw new Error('请选择要分配的客户');
         if (!target_account_id) throw new Error('请选择目标子账户');
 
+        // 所有已登录账号都可分配（2026-08-04 放开主账户限制）
         var _accounts = await dialerGetAccounts(env);
-        var _masterFound = false;
-        for (var _aj = 0; _aj < _accounts.length; _aj++) {
-          if (_accounts[_aj].account_id === _dialerAccountId && _accounts[_aj].is_master !== false) { _masterFound = true; break; }
-        }
-        if (!_masterFound) throw new Error('仅主账户可分配客户');
-
         var _targetFound = false;
         for (var _ak = 0; _ak < _accounts.length; _ak++) {
           if (_accounts[_ak].account_id === target_account_id) { _targetFound = true; break; }
         }
-        if (!_targetFound) throw new Error('目标子账户不存在');
+        if (!_targetFound) throw new Error('目标账号不存在');
+        if (target_account_id === _dialerAccountId) throw new Error('不能分配给当前账号自己');
 
         var supabaseUrl2 = env.SUPABASE_URL;
         var supabaseKey2 = env.SUPABASE_KEY;
@@ -1748,7 +1760,7 @@ export default {
         for (var _sb = 0; _sb < mobiles.length; _sb += selBatchSize) {
           var selChunk = mobiles.slice(_sb, _sb + selBatchSize);
           var selInFilter = selChunk.map(function(m) { return encodeURIComponent(m); }).join(',');
-          var checkUrl = supabaseUrl2 + '/rest/v1/customers?select=mobile&mobile=in.(' + selInFilter + ')&limit=' + selBatchSize;
+          var checkUrl = supabaseUrl2 + '/rest/v1/customers?select=mobile&mobile=in.(' + selInFilter + ')&account_id=eq.' + encodeURIComponent(_dialerAccountId) + '&limit=' + selBatchSize;
           var checkResp = await fetch(checkUrl, { headers: { 'apikey': supabaseKey2, 'Authorization': 'Bearer ' + supabaseKey2 } });
           if (checkResp.ok) {
             var rows2 = await checkResp.json();

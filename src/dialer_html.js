@@ -8194,22 +8194,37 @@ function updateAutoDialBtn() {
               });
             }
           }
-          // Populate reassign dropdown
-          var reassignSel = document.getElementById('crmReassignSel');
-          var reassignGroup = document.getElementById('crmReassignGroup');
-          if (reassignSel && reassignGroup) {
-            reassignSel.innerHTML = '<option value="">选择子账户</option>';
-            res.stats.forEach(function(s) {
-              if (!s.is_master && s.active) {
-                var name = s.account_name || s.label || s.account_id.slice(0, 10);
-                reassignSel.innerHTML += '<option value="' + s.account_id + '">' + name + '</option>';
-              }
-            });
-            reassignGroup.style.display = _viewAccountId ? 'none' : 'flex';
-          }
         })
         .catch(function() {
           list.textContent = '加载失败';
+        });
+    }
+
+    // 分配目标下拉：所有已登录账号可用（排除自己，主账号标[主]），非主账号也能分配数据给其他账号
+    function populateReassignSel() {
+      var reassignSel = document.getElementById('crmReassignSel');
+      var reassignGroup = document.getElementById('crmReassignGroup');
+      if (!reassignSel || !reassignGroup) return;
+      var myId = getSessionAccountId();
+      fetch('/api/dialer/accounts')
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (!res || !res.accounts || res.accounts.length === 0) {
+            reassignGroup.style.display = 'none';
+            return;
+          }
+          reassignSel.innerHTML = '<option value="">选择账号</option>';
+          res.accounts.forEach(function(s) {
+            if (!s.active || s.account_id === myId) return;
+            var name = s.account_name || s.label || s.account_id.slice(0, 10);
+            if (s.is_master) name += ' [主]';
+            reassignSel.innerHTML += '<option value="' + s.account_id + '">' + name + '</option>';
+          });
+          // 查看其他账号数据时隐藏分配（仅主账号有此视图）
+          reassignGroup.style.display = _viewAccountId ? 'none' : 'flex';
+        })
+        .catch(function() {
+          reassignGroup.style.display = 'none';
         });
     }
 
@@ -8219,6 +8234,7 @@ function updateAutoDialBtn() {
       // Reset view account and load stats for master
       _viewAccountId = '';
       loadAccountStats();
+      populateReassignSel(); // 所有账号都渲染分配目标（非主账号也会显示）
       var si=document.getElementById('dbSearch'); if(si)si.value='';
       var cf=document.getElementById('dbCatFilter'); if(cf)cf.value='';
       var bf=document.getElementById('dbBatchFilter'); if(bf)bf.value='';
@@ -9251,7 +9267,7 @@ function updateAutoDialBtn() {
         });
       }
 
-      // Reassign selected customers to sub-account (master only)
+      // Reassign selected customers to another account (all accounts)
       var reassignBtn = document.getElementById('crmReassignBtn');
       if (reassignBtn) {
         reassignBtn.addEventListener('click', function() {
