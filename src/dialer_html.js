@@ -1253,10 +1253,13 @@
       padding: 3px 10px; white-space: nowrap; flex-shrink: 0;
     }
     .reminder-countdown.urgent { color: #e05060; background: rgba(224,80,96,0.1); }
-    /* 头部倒计时胶囊呼吸红光：多层发散光晕（近强远弱，峰值 30px）强弱循环+底色微亮，一闪一闪 */
+    /* 头部倒计时胶囊心跳式红闪：每周期双连闪——大光晕+扩散光环+整体放大，最夸张档 */
     @keyframes roundCdPulse {
-      0%, 100% { box-shadow: 0 0 4px rgba(255, 59, 48, 0.45); background: #ff3b30; }
-      50% { box-shadow: 0 0 6px rgba(255, 59, 48, 0.95), 0 0 16px rgba(255, 59, 48, 0.75), 0 0 30px rgba(255, 59, 48, 0.45); background: #ff6659; }
+      0%   { box-shadow: 0 0 4px rgba(255, 59, 48, 0.45), 0 0 0 0 rgba(255, 59, 48, 0.5); background: #ff3b30; transform: scale(1); }
+      30%  { box-shadow: 0 0 10px rgba(255, 59, 48, 1), 0 0 26px rgba(255, 59, 48, 0.85), 0 0 46px rgba(255, 59, 48, 0.5), 0 0 0 10px rgba(255, 59, 48, 0.35); background: #ff6659; transform: scale(1.18); }
+      48%  { box-shadow: 0 0 6px rgba(255, 59, 48, 0.7), 0 0 16px rgba(255, 59, 48, 0.6), 0 0 28px rgba(255, 59, 48, 0.35), 0 0 0 0 rgba(255, 59, 48, 0); background: #ff5548; transform: scale(1); }
+      68%  { box-shadow: 0 0 10px rgba(255, 59, 48, 0.95), 0 0 24px rgba(255, 59, 48, 0.8), 0 0 42px rgba(255, 59, 48, 0.45), 0 0 0 8px rgba(255, 59, 48, 0.3); background: #ff6659; transform: scale(1.14); }
+      100% { box-shadow: 0 0 4px rgba(255, 59, 48, 0.45), 0 0 0 0 rgba(255, 59, 48, 0); background: #ff3b30; transform: scale(1); }
     }
     .reminder-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
     .reminder-item {
@@ -1767,7 +1770,7 @@
         <button id="learnBtn" title="学习" onclick="window.location.href='/learn'" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: #4a6cf7; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-sm); white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></button>
         <button id="lockScreenBtn" title="锁定屏幕" style="font-size:0.68rem;padding:3px 6px;border:none;background:transparent;color:var(--text-soft);cursor:pointer;outline:none;font-weight:700;border-radius:3px;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
         <!-- 距离下轮添加倒计时：转出公海后 45-60 分钟冷却期（每轮随机），走完自动隐藏（鲜艳红底+白字胶囊，最醒目） -->
-        <span id="headerRoundCd" title="距离下轮添加" style="display:none;font-size:0.55rem;font-weight:700;font-family:monospace;color:#fff;letter-spacing:-0.01em;white-space:nowrap;flex-shrink:0;border-radius:var(--radius-capsule);padding:2px 7px;line-height:1.1;background:#ff3b30;animation:roundCdPulse 1.4s ease-in-out infinite;">30:00</span>
+        <span id="headerRoundCd" title="距离下轮添加" style="display:none;font-size:0.55rem;font-weight:700;font-family:monospace;color:#fff;letter-spacing:-0.01em;white-space:nowrap;flex-shrink:0;border-radius:var(--radius-capsule);padding:2px 7px;line-height:1.1;background:#ff3b30;animation:roundCdPulse 1.8s ease-in-out infinite;">30:00</span>
         <!-- Dropdown Menu Trigger on the Right -->
         <div style="position: relative; display: inline-block;">
           <button id="headerMenuBtn" title="更多设置" style="font-size: 0.8rem; padding: 6px 8px; border: none; background: transparent; cursor: pointer; outline: none; font-weight: 600; color: var(--text-soft); min-width: 44px; min-height: 34px; display:inline-flex;align-items:center;justify-content:center; -webkit-tap-highlight-color: transparent; touch-action: manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
