@@ -2676,7 +2676,12 @@
         _reminderSeqTimer = null;
         if (document.hidden) return; // 倒计时结束时仍不在页面：放弃本次，回到页面后重新计时
         _reminderShown = true;
-        checkAndTransferBatch(client); // 先完成本轮（清列表+转公海+轮次+1），弹窗再展示最新轮次
+        try {
+          checkAndTransferBatch(client); // 先完成本轮（清列表+转公海+轮次+1），弹窗再展示最新轮次
+        } catch (e) {
+          // 任何异常都不能中断主链路：否则 _reminderShown 卡死，后续轮次永远不再触发
+          console.error('[round] checkAndTransferBatch failed:', e);
+        }
         showReminderOverlay();
       }, 8000);
     }
@@ -2976,7 +2981,11 @@
         return c.copied || c.dialedStatus === 'success' || c.dialedStatus === 'failed';
       });
       if (operatedClients.length === 0) return;
-      recordRoundTransferred(); // 完成一轮：轮次+1，从转出公海时刻起算下一轮30分钟倒计时
+      try {
+        recordRoundTransferred(); // 完成一轮：轮次+1，从转出公海时刻起算下一轮30分钟倒计时
+      } catch (e) {
+        console.error('[round] recordRoundTransferred failed:', e); // 轮次记录失败不阻断清列表
+      }
       var mobiles = [];
       var mobileSet = {};
       for (var k = 0; k < operatedClients.length; k++) {
@@ -3003,7 +3012,11 @@
         return !mobileSet[cm];
       });
       saveState();
-      renderDialCards();
+      try {
+        renderDialCards();
+      } catch (e) {
+        console.error('[round] render after transfer failed:', e); // 渲染异常不阻断本轮完成
+      }
     }
 
     function uploadCustomersToSupabase(customers, batchLabel) {
