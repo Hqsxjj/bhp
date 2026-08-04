@@ -8188,9 +8188,7 @@ function updateAutoDialBtn() {
                 DB.page = 1;
                 DB.selectedIds = {};
                 dbFetch();
-                // Show reassign only when viewing own data
-                var reassignGroup = document.getElementById('crmReassignGroup');
-                if (reassignGroup) reassignGroup.style.display = _viewAccountId ? 'none' : 'flex';
+                // 分配选项在任意视图都显示：切换子账号视图后仍可把当前视图数据分配给其他账号
               });
             }
           }
@@ -8220,8 +8218,8 @@ function updateAutoDialBtn() {
             if (s.is_master) name += ' [主]';
             reassignSel.innerHTML += '<option value="' + s.account_id + '">' + name + '</option>';
           });
-          // 查看其他账号数据时隐藏分配（仅主账号有此视图）
-          reassignGroup.style.display = _viewAccountId ? 'none' : 'flex';
+          // 任意视图都显示分配（主账号切换子账号视图后仍可分配当前视图数据）
+          reassignGroup.style.display = 'flex';
         })
         .catch(function() {
           reassignGroup.style.display = 'none';
