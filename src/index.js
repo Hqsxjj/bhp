@@ -762,7 +762,7 @@ export default {
         if (!/^\d{4}-\d{2}-\d{2}$/.test(wsDate)) throw new Error('date 格式应为 YYYY-MM-DD');
         var wsRow = await fetchWorkRow(env, wsSession.account_id, wsDate);
         var wm = await weekMonthCounts(env, wsSession.account_id, wsDate);
-        var wsResp = wsRow || { date: wsDate, rounds: 0, wechat_count: 0, transfer_ts: 0 };
+        var wsResp = wsRow || { date: wsDate, rounds: 0, wechat_count: 0, transfer_ts: 0, cooldown_ms: 0 };
         wsResp.week_count = wm.week_count;
         wsResp.month_count = wm.month_count;
         return new Response(JSON.stringify(wsResp), {
@@ -788,11 +788,15 @@ export default {
         if (!/^\d{4}-\d{2}-\d{2}$/.test(wrDate)) throw new Error('date 格式应为 YYYY-MM-DD');
         var value = parseInt(wrBody.value, 10);
         if (isNaN(value)) throw new Error('value 应为数字');
-        var wrRow = await fetchWorkRow(env, wrSession.account_id, wrDate) || { rounds: 0, wechat_count: 0, transfer_ts: 0 };
+        var wrRow = await fetchWorkRow(env, wrSession.account_id, wrDate) || { rounds: 0, wechat_count: 0, transfer_ts: 0, cooldown_ms: 0 };
         // 取 max(云端, 上报值) 封顶 6：并发上报/失败重试都不会丢轮次
         wrRow.rounds = Math.min(6, Math.max(wrRow.rounds || 0, value));
         var inTs = parseInt(wrBody.transferTs, 10) || Date.now();
-        wrRow.transfer_ts = Math.max(wrRow.transfer_ts || 0, inTs); // 保留最近一次转公海时刻
+        // 冷却时长（每轮随机 45-60 分钟）只随最新一次转公海时刻更新，旧时刻重试不覆盖
+        if (inTs >= (wrRow.transfer_ts || 0)) {
+          wrRow.transfer_ts = inTs;
+          wrRow.cooldown_ms = parseInt(wrBody.cooldownMs, 10) || 0;
+        }
         await upsertWorkRow(env, wrSession.account_id, wrDate, wrRow);
         return new Response(JSON.stringify(wrRow), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }

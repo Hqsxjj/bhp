@@ -1761,8 +1761,8 @@
         <button id="refreshBatchBtn" title="换一批 — 按最新导入顺序拉取，拉过的自动沉底" onclick="if(window.refreshBatch)window.refreshBatch()" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: #e67e22; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-sm); white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
         <button id="learnBtn" title="学习" onclick="window.location.href='/learn'" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: #4a6cf7; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-sm); white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></button>
         <button id="lockScreenBtn" title="锁定屏幕" style="font-size:0.68rem;padding:3px 6px;border:none;background:transparent;color:var(--text-soft);cursor:pointer;outline:none;font-weight:700;border-radius:3px;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
-        <!-- 距离下轮添加倒计时：转出公海后 30 分钟冷却期，走完自动隐藏（醒目红胶囊：红字+红描边+淡红底） -->
-        <span id="headerRoundCd" title="距离下轮添加" style="display:none;font-size:0.55rem;font-weight:700;font-family:monospace;color:#e05060;letter-spacing:-0.01em;white-space:nowrap;flex-shrink:0;border:0.5px solid rgba(224,80,96,0.5);border-radius:var(--radius-capsule);padding:1px 6px;line-height:1.1;background:rgba(224,80,96,0.12);">30:00</span>
+        <!-- 距离下轮添加倒计时：转出公海后 45-60 分钟冷却期（每轮随机），走完自动隐藏（鲜艳红底+白字胶囊，最醒目） -->
+        <span id="headerRoundCd" title="距离下轮添加" style="display:none;font-size:0.55rem;font-weight:700;font-family:monospace;color:#fff;letter-spacing:-0.01em;white-space:nowrap;flex-shrink:0;border-radius:var(--radius-capsule);padding:2px 7px;line-height:1.1;background:#ff3b30;box-shadow:0 0 5px rgba(255,59,48,0.55);">30:00</span>
         <!-- Dropdown Menu Trigger on the Right -->
         <div style="position: relative; display: inline-block;">
           <button id="headerMenuBtn" title="更多设置" style="font-size: 0.8rem; padding: 6px 8px; border: none; background: transparent; cursor: pointer; outline: none; font-weight: 600; color: var(--text-soft); min-width: 44px; min-height: 34px; display:inline-flex;align-items:center;justify-content:center; -webkit-tap-highlight-color: transparent; touch-action: manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
@@ -2973,7 +2973,7 @@
     }
 
     // 操作满一轮（序号50触发提醒）：已操作客户（复制过号码/姓名/单位，或拨打完成）清出列表并转公海，
-    // 无论批次是否全部完成——每50人一轮，轮次+1并启动下一轮30分钟倒计时（由8秒弹窗回调统一触发）
+    // 无论批次是否全部完成——每50人一轮，轮次+1并启动下一轮45-60分钟倒计时（由8秒弹窗回调统一触发）
     function checkAndTransferBatch(client) {
       if (!client) return; // 触发时 scheduleReminder 已校验序号≥50，此处不重复校验（避免8秒内列表重排误判）
       // 找出所有已操作客户
@@ -2982,7 +2982,7 @@
       });
       if (operatedClients.length === 0) return;
       try {
-        recordRoundTransferred(); // 完成一轮：轮次+1，从转出公海时刻起算下一轮30分钟倒计时
+        recordRoundTransferred(); // 完成一轮：轮次+1，从转出公海时刻起算下一轮45-60分钟随机倒计时
       } catch (e) {
         console.error('[round] recordRoundTransferred failed:', e); // 轮次记录失败不阻断清列表
       }
@@ -9777,7 +9777,7 @@ function updateAutoDialBtn() {
         }).catch(function() {});
     }
 
-    // 轮次统计：每成功导入一批客户记一轮（按本地日期），下一轮倒计时从转出公海时刻起算30分钟（防微信频繁）
+    // 轮次统计：每成功导入一批客户记一轮（按本地日期），下一轮倒计时从转出公海时刻起算（每轮随机 45-60 分钟，防微信频繁）
     var ROUND_INFO_K = 'bhp_round_info';
     function todayLocalStr() {
       var d = new Date();
@@ -9798,6 +9798,7 @@ function updateAutoDialBtn() {
       var info = getRoundInfo() || {};
       if (info.date !== today) info = { date: today, count: 0 };
       info.count = Math.min(6, (info.count || 0) + 1); // 今日轮数最多 6 轮（微信每日添加上限），大批次分批操作也能正确累计
+      info.cooldownMs = 45 * 60 * 1000 + Math.floor(Math.random() * 15 * 60 * 1000); // 每轮冷却 45-60 分钟随机（防微信频繁）
       info.transferTs = Date.now();
       saveRoundInfo(info); // 先乐观更新本地，弹窗立即显示
       // 同步到云端 KV（绝对值上报 + max 合并）：失败/并发都不会丢轮次
@@ -9806,14 +9807,17 @@ function updateAutoDialBtn() {
       fetch('/api/dialer/work-stats/rounds', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ date: today, value: info.count, transferTs: info.transferTs })
+        body: JSON.stringify({ date: today, value: info.count, transferTs: info.transferTs, cooldownMs: info.cooldownMs })
       }).then(function(r) { return r.json(); })
         .then(function(res) {
           if (res && res.rounds !== undefined) {
             var cur = getRoundInfo() || {};
             var curCount = (cur.date === today) ? (cur.count || 0) : 0;
             var curTs = (cur.date === today) ? (cur.transferTs || 0) : 0;
-            saveRoundInfo({ date: today, count: Math.min(6, Math.max(curCount, res.rounds)), transferTs: Math.max(curTs, res.transfer_ts || 0) });
+            var cloudTs = res.transfer_ts || 0;
+            // 冷却时长跟随最新一次转公海时刻：云端 ts 更新时取云端，否则保留本地随机值
+            var cd = (cloudTs >= curTs && res.cooldown_ms) ? res.cooldown_ms : (cur.cooldownMs || 0);
+            saveRoundInfo({ date: today, count: Math.min(6, Math.max(curCount, res.rounds)), transferTs: Math.max(curTs, cloudTs), cooldownMs: cd });
             applyWechatCount(res.wechat_count);
             renderRoundInfo();
             renderDrawer();
@@ -9835,7 +9839,10 @@ function updateAutoDialBtn() {
             var cur = getRoundInfo() || {};
             var curCount = (cur.date === today) ? (cur.count || 0) : 0;
             var curTs = (cur.date === today) ? (cur.transferTs || 0) : 0;
-            saveRoundInfo({ date: today, count: Math.min(6, Math.max(curCount, res.rounds)), transferTs: Math.max(curTs, res.transfer_ts || 0) });
+            var cloudTs = res.transfer_ts || 0;
+            // 冷却时长跟随最新一次转公海时刻：云端 ts 更新时取云端，否则保留本地随机值
+            var cd = (cloudTs >= curTs && res.cooldown_ms) ? res.cooldown_ms : (cur.cooldownMs || 0);
+            saveRoundInfo({ date: today, count: Math.min(6, Math.max(curCount, res.rounds)), transferTs: Math.max(curTs, cloudTs), cooldownMs: cd });
             applyWechatCount(res.wechat_count);
             _weekWechat = res.week_count || 0;
             _monthWechat = res.month_count || 0;
@@ -9851,6 +9858,10 @@ function updateAutoDialBtn() {
       var s = totalSec % 60;
       return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
     }
+    // 本轮冷却时长：每轮随机 45-60 分钟；旧数据（无 cooldownMs）兜底 30 分钟
+    function getRoundCooldownMs(info) {
+      return (info && info.cooldownMs) ? info.cooldownMs : 30 * 60 * 1000;
+    }
     function renderRoundInfo() {
       var numEl = document.getElementById('reminderRoundNum');
       var cdEl = document.getElementById('reminderRoundCd');
@@ -9858,16 +9869,16 @@ function updateAutoDialBtn() {
       var info = getRoundInfo();
       var rn = (info && info.count) ? info.count : 1;
       numEl.textContent = Math.min(6, Math.max(1, rn)); // 轮数显示钳制在 1-6
-      var remainMs = (info && info.transferTs) ? Math.max(0, info.transferTs + 30 * 60 * 1000 - Date.now()) : 0;
+      var remainMs = (info && info.transferTs) ? Math.max(0, info.transferTs + getRoundCooldownMs(info) - Date.now()) : 0;
       cdEl.textContent = formatRoundCountdown(remainMs);
       renderHeaderRoundCd(); // 头部小倒计时同步
     }
-    // 头部「距离下轮添加」小倒计时：有冷却期（转出公海后 30 分钟内）时显示并每秒刷新，走完自动隐藏并停止计时
+    // 头部「距离下轮添加」小倒计时：有冷却期（转出公海后 45-60 分钟内）时显示并每秒刷新，走完自动隐藏并停止计时
     function renderHeaderRoundCd() {
       var el = document.getElementById('headerRoundCd');
       if (!el) return;
       var info = getRoundInfo();
-      var remainMs = (info && info.transferTs) ? Math.max(0, info.transferTs + 30 * 60 * 1000 - Date.now()) : 0;
+      var remainMs = (info && info.transferTs) ? Math.max(0, info.transferTs + getRoundCooldownMs(info) - Date.now()) : 0;
       if (remainMs <= 0) {
         el.style.display = 'none';
         if (window._headerCdTimer) { clearInterval(window._headerCdTimer); window._headerCdTimer = null; }
@@ -9899,7 +9910,10 @@ function updateAutoDialBtn() {
         listEl.innerHTML = itemsHtml;
       }
       overlay.classList.add('active');
-      var total = 1800; // 30 分钟
+      // 弹窗倒计时显示本轮真实剩余冷却（45-60 分钟随机，弹窗在转公海后立即弹出，即整段冷却）
+      var info = getRoundInfo();
+      var remainMs = (info && info.transferTs) ? Math.max(0, info.transferTs + getRoundCooldownMs(info) - Date.now()) : 0;
+      var total = Math.max(30, Math.ceil(remainMs / 1000));
       var remaining = total;
       function updateCountdown() {
         renderRoundInfo(); // 每秒刷新轮次倒计时
