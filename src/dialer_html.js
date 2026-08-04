@@ -6188,6 +6188,7 @@
           var cardClass = 'xls-dial-card';
           if (c.phone_copied) cardClass += ' copied-card';
           if (c.company_copied) cardClass += ' copied-company';
+          if (c.fund_copied) cardClass += ' copied-card'; // 复制过公积金：卡片浅绿光晕提醒
           var phoneVal = c.phone || c.mobile || '';
           if (c.dialedStatus === 'success') {
             badgeHtml = '<span class="xls-dial-badge xls-dial-badge-success">已接通 (' + (c.duration || '00:00') + ')</span>';
@@ -6222,7 +6223,7 @@
             '<div class="client-card-tags" style="margin-top: 2px;">' +
               (c.company ? '<span class="client-card-tag client-card-tag-company" data-company="' + esc(c.company) + '" data-idx="' + i + '" title="点击复制单位名称">' + esc(c.company) + '</span>' : '') +
               (displayBatchLabel(c.batch_label) ? '<span class="client-card-tag" style="background:rgba(74,108,247,0.08);color:#4a6cf7;font-weight:700;" title="导入批次">' + esc(c.batch_label) + '</span>' : '') +
-              (c.fund ? '<span class="client-card-tag crm-fund-tag" style="background:rgba(255,152,0,0.08);color:#f57c00;font-weight:700;" title="公积金">公积金: ' + esc(c.fund) + '</span>' : '') +
+              (c.fund ? '<span class="client-card-tag crm-fund-tag" data-fund="' + esc(c.fund) + '" data-idx="' + i + '" title="点击复制公积金基数" style="background:rgba(255,152,0,0.08);color:#f57c00;font-weight:700;cursor:pointer;">公积金: ' + esc(c.fund) + '</span>' : '') +
               (function() {
                 var customHtml = '';
                 if (c.custom && typeof c.custom === 'object') {
@@ -6398,6 +6399,35 @@
               b.textContent = company;
               b.style.color = oldColor;
             }, 1500);
+          });
+        });
+
+        // Wire up fund click copy（复制格式：公积金基数24170，不跳微信）
+        container.querySelectorAll('.crm-fund-tag').forEach(function(b) {
+          b.addEventListener('click', function(e) {
+            e.stopPropagation();
+            var fund = b.dataset.fund;
+            var idx = parseInt(b.dataset.idx);
+            var client = (idx >= 0) ? importedClients[idx] : null;
+            copyTextToClipboard('公积金基数' + fund);
+            if (client) recordTimeline(client.phone || client.mobile, 'copy_fund');
+            var oldText = b.textContent;
+            if (oldText.indexOf('已复制') === 0) return;
+            b.textContent = '已复制';
+            var oldColor = b.style.color;
+            b.style.color = 'var(--accent-wechat)';
+            if (client) {
+              client.copied = true;
+              client.fund_copied = true; // 复制过公积金：卡片持久浅绿光晕提醒
+              saveState();
+              scheduleReminder(client);
+            }
+            var cardEl = b.closest('.xls-dial-card');
+            if (cardEl) cardEl.classList.add('copied-card');
+            setTimeout(function() {
+              b.textContent = oldText;
+              b.style.color = oldColor;
+            }, 1000);
           });
         });
 
