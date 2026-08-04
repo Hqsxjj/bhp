@@ -33,3 +33,6 @@ npm-debug.log*
 
 # Local development
 worker-local.db
+
+# No-dependency project (empty lockfile noise)
+package-lock.json
