@@ -9177,9 +9177,10 @@ function updateAutoDialBtn() {
  });
  });
 
- // AI 公积金修正
+ // AI 公积金修正（仅主账号：后端 /api/admin/ai-correct-fund 同样仅主账号，子账号直接隐藏按钮）
  var aiFundBtn = document.getElementById('dbAiCorrectFundBtn');
  if (aiFundBtn) {
+ if (!isSessionMaster()) { aiFundBtn.style.display = 'none'; }
  aiFundBtn.addEventListener('click', function() {
  if (!confirm('即将使用 AI 扫描所有客户记录，检查公积金、单位、备注字段是否存错了位置。\\n\\n' +
  'AI 将逐条判断：\\n' +
