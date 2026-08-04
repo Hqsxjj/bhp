@@ -475,25 +475,16 @@
     body.dark-mode .xls-dial-card.dialed {
       background: rgba(255, 255, 255, 0.03);
     }
-    @keyframes card-glow-flash {
-      0% { opacity: 1; }
-      100% { opacity: 0; }
+    /* 复制过号码的客户卡片：持久变色提醒（微信绿底 + 绿描边 + 柔光），放 dialed 之后保证优先 */
+    .xls-dial-card.copied-card {
+      border-color: rgba(7, 193, 96, 0.5);
+      background: rgba(7, 193, 96, 0.06);
+      box-shadow: 0 0 0 0.5px rgba(7, 193, 96, 0.35), 0 0 12px rgba(7, 193, 96, 0.14);
     }
-    @keyframes card-glow-shadow {
-      0% { box-shadow: 0 0 0 1px rgba(7, 193, 96, 0.6), 0 0 22px rgba(7, 193, 96, 0.35); }
-      100% { box-shadow: 0 0 0 0.5px rgba(7, 193, 96, 0), 0 0 0 rgba(7, 193, 96, 0); }
-    }
-    .xls-dial-card.copy-flash {
-      animation: card-glow-flash 1.1s ease-out, card-glow-shadow 1.1s ease-out;
-    }
-    .xls-dial-card.copy-flash::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: inherit;
-      pointer-events: none;
-      background: radial-gradient(circle, rgba(7, 193, 96, 0.22), rgba(7, 193, 96, 0.07) 55%, rgba(7, 193, 96, 0) 78%);
-      opacity: 0;
+    body.dark-mode .xls-dial-card.copied-card {
+      border-color: rgba(7, 193, 96, 0.55);
+      background: rgba(7, 193, 96, 0.1);
+      box-shadow: 0 0 0 0.5px rgba(7, 193, 96, 0.45), 0 0 14px rgba(7, 193, 96, 0.22);
     }
     .xls-dial-badge {
       font-size: 0.65rem;
@@ -6178,6 +6169,7 @@
 
           var badgeHtml = '<span class="xls-dial-badge xls-dial-badge-todo">待拨打</span>';
           var cardClass = 'xls-dial-card';
+          if (c.phone_copied) cardClass += ' copied-card';
           var phoneVal = c.phone || c.mobile || '';
           if (c.dialedStatus === 'success') {
             badgeHtml = '<span class="xls-dial-badge xls-dial-badge-success">已接通 (' + (c.duration || '00:00') + ')</span>';
@@ -6292,16 +6284,13 @@
             var client = importedClients[idx];
             if (client) {
               client.copied = true;
+              client.phone_copied = true; // 复制过号码：卡片持久变色提醒
               saveState();
               scheduleReminder(client);
             }
             b.classList.add('copied');
             var card = document.getElementById('xdc_' + idx);
-            if (card) {
-              card.classList.remove('copy-flash');
-              void card.offsetWidth; // 强制 reflow，保证连续复制时动画重新触发
-              card.classList.add('copy-flash');
-            }
+            if (card) card.classList.add('copied-card');
 
             setTimeout(function() {
               jumpToWechat();
@@ -6788,6 +6777,7 @@ function updateAutoDialBtn() {
 
  if (client) {
  client.copied = true;
+ client.phone_copied = true; // 复制过号码：卡片持久变色提醒
  saveState();
  }
 
@@ -6795,6 +6785,7 @@ function updateAutoDialBtn() {
 
  var card = document.getElementById('xdc_' + currentCallIdx);
  if (card) {
+ card.classList.add('copied-card');
  var cardPhoneBtn = card.querySelector('.client-phone-btn');
  if (cardPhoneBtn) {
  cardPhoneBtn.classList.add('copied');
