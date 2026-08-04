@@ -475,13 +475,22 @@
     body.dark-mode .xls-dial-card.dialed {
       background: rgba(255, 255, 255, 0.03);
     }
-    /* 复制过号码的客户卡片：持久变色提醒（微信绿底 + 绿描边 + 柔光），放 dialed 之后保证优先 */
+    /* 复制过号码的客户卡片：浅浅的绿色光晕（不动背景，仅描边+柔光），放 dialed 之后保证优先 */
     .xls-dial-card.copied-card {
+      border-color: rgba(7, 193, 96, 0.28);
+      box-shadow: 0 0 0 0.5px rgba(7, 193, 96, 0.22), 0 0 10px rgba(7, 193, 96, 0.1);
+    }
+    body.dark-mode .xls-dial-card.copied-card {
+      border-color: rgba(7, 193, 96, 0.35);
+      box-shadow: 0 0 0 0.5px rgba(7, 193, 96, 0.3), 0 0 12px rgba(7, 193, 96, 0.16);
+    }
+    /* 复制过单位名称的客户卡片：强提醒（微信绿底 + 绿描边 + 柔光），定义在后覆盖浅光晕 */
+    .xls-dial-card.copied-company {
       border-color: rgba(7, 193, 96, 0.5);
       background: rgba(7, 193, 96, 0.06);
       box-shadow: 0 0 0 0.5px rgba(7, 193, 96, 0.35), 0 0 12px rgba(7, 193, 96, 0.14);
     }
-    body.dark-mode .xls-dial-card.copied-card {
+    body.dark-mode .xls-dial-card.copied-company {
       border-color: rgba(7, 193, 96, 0.55);
       background: rgba(7, 193, 96, 0.1);
       box-shadow: 0 0 0 0.5px rgba(7, 193, 96, 0.45), 0 0 14px rgba(7, 193, 96, 0.22);
@@ -6170,6 +6179,7 @@
           var badgeHtml = '<span class="xls-dial-badge xls-dial-badge-todo">待拨打</span>';
           var cardClass = 'xls-dial-card';
           if (c.phone_copied) cardClass += ' copied-card';
+          if (c.company_copied) cardClass += ' copied-company';
           var phoneVal = c.phone || c.mobile || '';
           if (c.dialedStatus === 'success') {
             badgeHtml = '<span class="xls-dial-badge xls-dial-badge-success">已接通 (' + (c.duration || '00:00') + ')</span>';
@@ -6366,9 +6376,11 @@
 
             if (clientComp) {
               clientComp.copied = true;
+              clientComp.company_copied = true; // 复制过单位名称：卡片强提醒（绿底）
               saveState();
               scheduleReminder(clientComp);
             }
+            if (cardEl) cardEl.classList.add('copied-company');
 
             setTimeout(function() {
               jumpToWechat(); // 与复制号码一致：复制单位后直接跳转微信
