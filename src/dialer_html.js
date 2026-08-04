@@ -475,6 +475,14 @@
     body.dark-mode .xls-dial-card.dialed {
       background: rgba(255, 255, 255, 0.03);
     }
+    .xls-dial-card.copied-card {
+      border-color: rgba(7, 193, 96, 0.5);
+      box-shadow: 0 0 0 0.5px rgba(7, 193, 96, 0.4), 0 0 14px rgba(7, 193, 96, 0.2);
+    }
+    body.dark-mode .xls-dial-card.copied-card {
+      border-color: rgba(7, 193, 96, 0.6);
+      box-shadow: 0 0 0 0.5px rgba(7, 193, 96, 0.55), 0 0 16px rgba(7, 193, 96, 0.3);
+    }
     .xls-dial-badge {
       font-size: 0.65rem;
       font-weight: 600;
@@ -6145,6 +6153,7 @@
 
           var badgeHtml = '<span class="xls-dial-badge xls-dial-badge-todo">待拨打</span>';
           var cardClass = 'xls-dial-card';
+          if (c.copied) cardClass += ' copied-card';
           var phoneVal = c.phone || c.mobile || '';
           if (c.dialedStatus === 'success') {
             badgeHtml = '<span class="xls-dial-badge xls-dial-badge-success">已接通 (' + (c.duration || '00:00') + ')</span>';
@@ -6263,6 +6272,8 @@
               scheduleReminder(client);
             }
             b.classList.add('copied');
+            var card = document.getElementById('xdc_' + idx);
+            if (card) card.classList.add('copied-card');
 
             setTimeout(function() {
               jumpToWechat();
@@ -6300,6 +6311,7 @@
 
             var card = document.getElementById('xdc_' + idx);
             if (card) {
+              card.classList.add('copied-card');
               var phoneBtn = card.querySelector('.client-phone-btn');
               if (phoneBtn) {
                 phoneBtn.classList.add('copied');
@@ -6340,6 +6352,13 @@
               clientComp.copied = true;
               saveState();
               scheduleReminder(clientComp);
+            }
+            if (cardEl) {
+              cardEl.classList.add('copied-card');
+              var phoneBtn = cardEl.querySelector('.client-phone-btn');
+              if (phoneBtn) {
+                phoneBtn.classList.add('copied');
+              }
             }
 
             setTimeout(function() {
