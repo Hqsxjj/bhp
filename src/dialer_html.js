@@ -475,13 +475,25 @@
     body.dark-mode .xls-dial-card.dialed {
       background: rgba(255, 255, 255, 0.03);
     }
-    .xls-dial-card.copied-card {
-      border-color: rgba(7, 193, 96, 0.5);
-      box-shadow: 0 0 0 0.5px rgba(7, 193, 96, 0.4), 0 0 14px rgba(7, 193, 96, 0.2);
+    @keyframes card-glow-flash {
+      0% { opacity: 1; }
+      100% { opacity: 0; }
     }
-    body.dark-mode .xls-dial-card.copied-card {
-      border-color: rgba(7, 193, 96, 0.6);
-      box-shadow: 0 0 0 0.5px rgba(7, 193, 96, 0.55), 0 0 16px rgba(7, 193, 96, 0.3);
+    @keyframes card-glow-shadow {
+      0% { box-shadow: 0 0 0 1px rgba(7, 193, 96, 0.6), 0 0 22px rgba(7, 193, 96, 0.35); }
+      100% { box-shadow: 0 0 0 0.5px rgba(7, 193, 96, 0), 0 0 0 rgba(7, 193, 96, 0); }
+    }
+    .xls-dial-card.copy-flash {
+      animation: card-glow-flash 1.1s ease-out, card-glow-shadow 1.1s ease-out;
+    }
+    .xls-dial-card.copy-flash::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      pointer-events: none;
+      background: radial-gradient(circle, rgba(7, 193, 96, 0.22), rgba(7, 193, 96, 0.07) 55%, rgba(7, 193, 96, 0) 78%);
+      opacity: 0;
     }
     .xls-dial-badge {
       font-size: 0.65rem;
@@ -6153,7 +6165,6 @@
 
           var badgeHtml = '<span class="xls-dial-badge xls-dial-badge-todo">待拨打</span>';
           var cardClass = 'xls-dial-card';
-          if (c.copied) cardClass += ' copied-card';
           var phoneVal = c.phone || c.mobile || '';
           if (c.dialedStatus === 'success') {
             badgeHtml = '<span class="xls-dial-badge xls-dial-badge-success">已接通 (' + (c.duration || '00:00') + ')</span>';
@@ -6273,7 +6284,11 @@
             }
             b.classList.add('copied');
             var card = document.getElementById('xdc_' + idx);
-            if (card) card.classList.add('copied-card');
+            if (card) {
+              card.classList.remove('copy-flash');
+              void card.offsetWidth; // 强制 reflow，保证连续复制时动画重新触发
+              card.classList.add('copy-flash');
+            }
 
             setTimeout(function() {
               jumpToWechat();
@@ -6311,7 +6326,6 @@
 
             var card = document.getElementById('xdc_' + idx);
             if (card) {
-              card.classList.add('copied-card');
               var phoneBtn = card.querySelector('.client-phone-btn');
               if (phoneBtn) {
                 phoneBtn.classList.add('copied');
@@ -6352,13 +6366,6 @@
               clientComp.copied = true;
               saveState();
               scheduleReminder(clientComp);
-            }
-            if (cardEl) {
-              cardEl.classList.add('copied-card');
-              var phoneBtn = cardEl.querySelector('.client-phone-btn');
-              if (phoneBtn) {
-                phoneBtn.classList.add('copied');
-              }
             }
 
             setTimeout(function() {
