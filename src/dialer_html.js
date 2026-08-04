@@ -3641,13 +3641,12 @@
         return;
       }
 
-      importedClients = parsedCustomers;
-      saveState();
-      updateDashboardVisibility(true);
-      renderDialCards();
-
-      // Auto-upload to Supabase
-      uploadCustomersToSupabase(parsedCustomers, batchLabel);
+      // 识别成功的客户不再展示在列表，直接上传数据库，成功后提示上传数量
+      uploadCustomersToSupabase(parsedCustomers, batchLabel).then(function(data) {
+        if (data && data.success) {
+          showCopyLimitToast('上传成功 ' + data.count + ' 条客户' + ((data.skipped > 0) ? '，已跳过 ' + data.skipped + ' 条' : ''));
+        }
+      });
 
       resetAIImporterUI();
     }
@@ -3668,13 +3667,12 @@
           c.note = '';
         }
       }
-      importedClients = tempImportData;
-      saveState();
-      updateDashboardVisibility(true);
-      renderDialCards();
-
-      // Auto-upload to Supabase
-      uploadCustomersToSupabase(tempImportData, batchLabel);
+      // 识别成功的客户不再展示在列表，直接上传数据库，成功后提示上传数量
+      uploadCustomersToSupabase(tempImportData, batchLabel).then(function(data) {
+        if (data && data.success) {
+          showCopyLimitToast('上传成功 ' + data.count + ' 条客户' + ((data.skipped > 0) ? '，已跳过 ' + data.skipped + ' 条' : ''));
+        }
+      });
 
       resetAIImporterUI();
     }
