@@ -1253,10 +1253,10 @@
       padding: 3px 10px; white-space: nowrap; flex-shrink: 0;
     }
     .reminder-countdown.urgent { color: #e05060; background: rgba(224,80,96,0.1); }
-    /* 头部倒计时胶囊呼吸红光：光晕强弱循环+底色微亮，一闪一闪 */
+    /* 头部倒计时胶囊呼吸红光：多层发散光晕（近强远弱，峰值 30px）强弱循环+底色微亮，一闪一闪 */
     @keyframes roundCdPulse {
-      0%, 100% { box-shadow: 0 0 3px rgba(255, 59, 48, 0.35); background: #ff3b30; }
-      50% { box-shadow: 0 0 14px rgba(255, 59, 48, 0.95); background: #ff5548; }
+      0%, 100% { box-shadow: 0 0 4px rgba(255, 59, 48, 0.45); background: #ff3b30; }
+      50% { box-shadow: 0 0 6px rgba(255, 59, 48, 0.95), 0 0 16px rgba(255, 59, 48, 0.75), 0 0 30px rgba(255, 59, 48, 0.45); background: #ff6659; }
     }
     .reminder-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
     .reminder-item {
