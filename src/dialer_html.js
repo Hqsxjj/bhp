@@ -1338,6 +1338,11 @@
     }
     .cooldown-dismiss:active { background: var(--btn-hover); }
 
+    /* 换一批加载中：图标旋转+变淡，避免静默加载让用户以为没点动 */
+    #refreshBatchBtn.loading { opacity: 0.55; }
+    #refreshBatchBtn.loading svg { animation: refreshSpin 1s linear infinite; }
+    @keyframes refreshSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
     /* ====== Progress Drawer ====== */
     .progress-drawer-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.45);
@@ -8369,19 +8374,31 @@ function updateAutoDialBtn() {
       if (!btn || btn.disabled) return;
 
       // 冷却期（转出公海后 45-60 分钟随机）未走完：弹出防频繁提醒（仅提醒不拦截），
-      // 点「知道了」后继续换批，且本次会话内不再重复提醒
+      // 点「知道了」后立即继续本次换批（直接进拉取逻辑，不再重走入口守卫，避免被静默拦截）
       var _cdInfo = getRoundInfo();
       var _cdRemainMs = (_cdInfo && _cdInfo.transferTs) ? Math.max(0, _cdInfo.transferTs + getRoundCooldownMs(_cdInfo) - Date.now()) : 0;
       if (_cdRemainMs > 0 && !window._cooldownConfirmed) {
-        showCooldownReminder(_cdRemainMs, function() {
+        var shown = showCooldownReminder(_cdRemainMs, function() {
           window._cooldownConfirmed = true;
-          window.refreshBatch();
+          doRefreshBatch(); // 直接继续拉取，不再重走入口守卫
         });
+        if (!shown) { // 弹窗元素缺失等异常情况：仅提醒不拦截，直接放行本次换批
+          window._cooldownConfirmed = true;
+          doRefreshBatch();
+        }
         return;
       }
 
-      // 静默加载：按钮保持原样，仅禁用防止重复点击
+      doRefreshBatch();
+    };
+
+    // 实际换批拉取：入口守卫通过后执行；加载中图标旋转+变淡，给用户明确反馈
+    function doRefreshBatch() {
+      var btn = document.getElementById('refreshBatchBtn');
+      if (!btn || btn.disabled) return;
       btn.disabled = true;
+      btn.classList.add('loading');
+      function finishPull() { btn.classList.remove('loading'); btn.disabled = false; }
 
       var retryCount = 0;
       var maxRetries = 5;
@@ -8418,12 +8435,12 @@ function updateAutoDialBtn() {
             }
 
             if (res.locked) {
-              btn.disabled = false;
+              finishPull();
               alert('服务器繁忙，请稍后再试');
               return;
             }
 
-                btn.disabled = false;
+                finishPull();
 
                 if (res.error) { alert('加载失败: ' + res.error); return; }
 
@@ -8471,7 +8488,7 @@ function updateAutoDialBtn() {
               })
               .catch(function(err) {
                 clearTimeout(timeoutId);
-                btn.disabled = false;
+                finishPull();
                 if (err.name === 'AbortError') {
                   alert('请求超时，请检查网络后重试');
                 } else {
@@ -8479,15 +8496,14 @@ function updateAutoDialBtn() {
                 }
               });
         } catch (syncErr) {
-          btn.disabled = false;
+          finishPull();
           alert('操作失败: ' + syncErr.message);
         }
 
       }
 
       doPull();
-
-          };
+    }
 
     function initCustViewer(){
       var ov=document.getElementById('dbOverlay'); if(!ov)return;
@@ -10035,7 +10051,7 @@ function updateAutoDialBtn() {
     function showCooldownReminder(remainMs, onDismiss) {
       var overlay = document.getElementById('cooldownOverlay');
       var remainEl = document.getElementById('cooldownRemain');
-      if (!overlay || !remainEl) return;
+      if (!overlay || !remainEl) return false; // 弹窗不可用时告知调用方（仅提醒不拦截，直接放行）
       window._cooldownDismissCb = onDismiss || null;
       remainEl.textContent = formatRoundCountdown(remainMs);
       overlay.classList.add('active');
@@ -10051,6 +10067,7 @@ function updateAutoDialBtn() {
           overlay.classList.remove('active');
         }
       }, 1000);
+      return true;
     }
 
     function showReminderOverlay() {
