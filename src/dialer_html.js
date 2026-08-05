@@ -1337,8 +1337,9 @@
     .drawer-close-btn:active { background: var(--btn-hover); }
     .drawer-slogan {
       margin: 0; padding-top: 2px;
-      font-size: 0.92rem; font-weight: 600; color: var(--text-soft);
+      font-size: 1.05rem; font-weight: 600; color: var(--text-soft);
       letter-spacing: -0.01em; line-height: 1.6;
+      text-align: right; margin-right: -8px;
     }
 
     /* ====== Professional CRM Dashboard ====== */
