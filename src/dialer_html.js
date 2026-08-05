@@ -2507,6 +2507,20 @@
     function getSessionAccountId() { return localStorage.getItem(SESS_AID_K) || ''; }
     function isSessionMaster() { return localStorage.getItem(SESS_MASTER_K) === '1'; }
     function getSessionLabel() { return localStorage.getItem(SESS_LABEL_K) || ''; }
+    // 设备标识：每台设备（浏览器）持久化一个 ID，冷却倒计时按设备各走各的（两台手机互不影响）
+    var DEVICE_ID_K = 'bhp_device_id';
+    function getDeviceId() {
+      try {
+        var id = localStorage.getItem(DEVICE_ID_K);
+        if (!id) {
+          id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : ('dev_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10));
+          localStorage.setItem(DEVICE_ID_K, id);
+        }
+        return id;
+      } catch (e) {
+        return 'dev_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
+      }
+    }
 
     function saveSession(acct) {
       localStorage.setItem(SESS_TOKEN_K, acct.session_token || '');
@@ -9959,7 +9973,7 @@ function updateAutoDialBtn() {
       fetch('/api/dialer/work-stats/rounds', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ date: today, value: info.count, transferTs: info.transferTs, cooldownMs: info.cooldownMs })
+        body: JSON.stringify({ date: today, value: info.count, transferTs: info.transferTs, cooldownMs: info.cooldownMs, device_id: getDeviceId() })
       }).then(function(r) { return r.json(); })
         .then(function(res) {
           if (res && res.rounds !== undefined) {
@@ -9982,7 +9996,7 @@ function updateAutoDialBtn() {
       var today = todayLocalStr();
       var token = getSessionToken();
       if (!token) return;
-      fetch('/api/dialer/work-stats?date=' + encodeURIComponent(today), {
+      fetch('/api/dialer/work-stats?date=' + encodeURIComponent(today) + '&device_id=' + encodeURIComponent(getDeviceId()), {
         headers: { 'Authorization': 'Bearer ' + token }
       }).then(function(r) { return r.json(); })
         .then(function(res) {

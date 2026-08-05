@@ -169,6 +169,21 @@ async function fetchWorkRow(env, accountId, date) {
 async function upsertWorkRow(env, accountId, date, stats) {
   await env.DATA_KV.put('work_stats:' + accountId + ':' + date, JSON.stringify(stats));
 }
+// 设备级冷却倒计时（每台设备各自走 45-60 分钟）：与账号级轮次统计分开存，互不覆盖
+function cooldownKey(accountId, date, deviceId) {
+  return 'work_stats_cd:' + accountId + ':' + date + ':' + deviceId;
+}
+async function fetchCooldownRow(env, accountId, date, deviceId) {
+  var raw = await env.DATA_KV.get(cooldownKey(accountId, date, deviceId));
+  return raw ? JSON.parse(raw) : null;
+}
+async function upsertCooldownRow(env, accountId, date, deviceId, row) {
+  await env.DATA_KV.put(cooldownKey(accountId, date, deviceId), JSON.stringify(row));
+}
+// device_id 只允许安全字符，防止拼接进 KV key
+function validDeviceId(id) {
+  return typeof id === 'string' && /^[A-Za-z0-9_-]{4,64}$/.test(id);
+}
 // 日历日期运算（以日期字符串为基准，不涉及时区）
 function addDays(dateStr, n) {
   var d = new Date(dateStr + 'T00:00:00Z');
@@ -767,7 +782,8 @@ export default {
       }
     }
 
-    // GET /api/dialer/work-stats?date=YYYY-MM-DD — 工作数据（轮数/通过微信数量，按账号存 KV）
+    // GET /api/dialer/work-stats?date=YYYY-MM-DD&device_id=xxx — 工作数据（轮数/通过微信数量按账号存 KV，
+    // 冷却倒计时按设备存，各设备各走各的；旧版账号级 transfer_ts 在设备键不存在时回退兼容一次）
     if (path === '/api/dialer/work-stats' && request.method === 'GET') {
       try {
         var wsAuth = request.headers.get('Authorization') || '';
@@ -776,9 +792,17 @@ export default {
         if (!wsSession) throw new Error('未登录');
         var wsDate = url.searchParams.get('date') || '';
         if (!/^\d{4}-\d{2}-\d{2}$/.test(wsDate)) throw new Error('date 格式应为 YYYY-MM-DD');
+        var wsDeviceId = url.searchParams.get('device_id') || '';
         var wsRow = await fetchWorkRow(env, wsSession.account_id, wsDate);
         var wm = await weekMonthCounts(env, wsSession.account_id, wsDate);
-        var wsResp = wsRow || { date: wsDate, rounds: 0, wechat_count: 0, transfer_ts: 0, cooldown_ms: 0 };
+        var wsResp = wsRow || { date: wsDate, rounds: 0, wechat_count: 0 };
+        // 设备级冷却：本设备键优先；无设备键时回退旧版账号级 transfer_ts/cooldown_ms（升级过渡期用一次）
+        var wsCd = null;
+        if (validDeviceId(wsDeviceId)) {
+          wsCd = await fetchCooldownRow(env, wsSession.account_id, wsDate, wsDeviceId);
+        }
+        wsResp.transfer_ts = (wsCd && wsCd.transfer_ts) || (wsRow && wsRow.transfer_ts) || 0;
+        wsResp.cooldown_ms = (wsCd && wsCd.cooldown_ms) || (wsRow && wsRow.cooldown_ms) || 0;
         wsResp.week_count = wm.week_count;
         wsResp.month_count = wm.month_count;
         return new Response(JSON.stringify(wsResp), {
@@ -792,7 +816,7 @@ export default {
       }
     }
 
-    // POST /api/dialer/work-stats/rounds — 完成一轮：+1（今日封顶5），更新时间戳
+    // POST /api/dialer/work-stats/rounds — 完成一轮：+1（今日封顶6，账号级），冷却倒计时写设备键（设备级）
     if (path === '/api/dialer/work-stats/rounds' && request.method === 'POST') {
       try {
         var wrAuth = request.headers.get('Authorization') || '';
@@ -804,17 +828,35 @@ export default {
         if (!/^\d{4}-\d{2}-\d{2}$/.test(wrDate)) throw new Error('date 格式应为 YYYY-MM-DD');
         var value = parseInt(wrBody.value, 10);
         if (isNaN(value)) throw new Error('value 应为数字');
-        var wrRow = await fetchWorkRow(env, wrSession.account_id, wrDate) || { rounds: 0, wechat_count: 0, transfer_ts: 0, cooldown_ms: 0 };
+        var inTs = parseInt(wrBody.transferTs, 10) || Date.now();
+        var wrRow = await fetchWorkRow(env, wrSession.account_id, wrDate) || { rounds: 0, wechat_count: 0 };
         // 取 max(云端, 上报值) 封顶 6：并发上报/失败重试都不会丢轮次
         wrRow.rounds = Math.min(6, Math.max(wrRow.rounds || 0, value));
-        var inTs = parseInt(wrBody.transferTs, 10) || Date.now();
-        // 冷却时长（每轮随机 45-60 分钟）只随最新一次转公海时刻更新，旧时刻重试不覆盖
-        if (inTs >= (wrRow.transfer_ts || 0)) {
+        var wrDeviceId = (wrBody.device_id || '').trim();
+        // 冷却倒计时：设备级键写本设备最新转出时刻（旧时刻重试不覆盖）；旧版账号级字段顺带清掉，避免其他设备继承
+        if (validDeviceId(wrDeviceId)) {
+          var wrCd = await fetchCooldownRow(env, wrSession.account_id, wrDate, wrDeviceId) || { transfer_ts: 0, cooldown_ms: 0 };
+          if (inTs >= (wrCd.transfer_ts || 0)) {
+            wrCd.transfer_ts = inTs;
+            wrCd.cooldown_ms = parseInt(wrBody.cooldownMs, 10) || 0;
+          }
+          await upsertCooldownRow(env, wrSession.account_id, wrDate, wrDeviceId, wrCd);
+          if (wrRow.transfer_ts) { wrRow.transfer_ts = 0; wrRow.cooldown_ms = 0; }
+        } else if (inTs >= (wrRow.transfer_ts || 0)) {
+          // 旧版客户端（无 device_id）：维持账号级行为
           wrRow.transfer_ts = inTs;
           wrRow.cooldown_ms = parseInt(wrBody.cooldownMs, 10) || 0;
         }
         await upsertWorkRow(env, wrSession.account_id, wrDate, wrRow);
-        return new Response(JSON.stringify(wrRow), {
+        // 响应带本设备冷却值（设备键优先，旧客户端回退账号级），客户端合并以云端为准
+        var wrResp = {
+          date: wrDate,
+          rounds: wrRow.rounds,
+          wechat_count: wrRow.wechat_count || 0,
+          transfer_ts: (wrCd && wrCd.transfer_ts) || (wrRow.transfer_ts || 0),
+          cooldown_ms: (wrCd && wrCd.cooldown_ms) || (wrRow.cooldown_ms || 0)
+        };
+        return new Response(JSON.stringify(wrResp), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       } catch (e) {
