@@ -1337,9 +1337,9 @@
     .drawer-close-btn:active { background: var(--btn-hover); }
     .drawer-slogan {
       margin: 0; padding-top: 2px;
-      font-size: 1.05rem; font-weight: 600; color: var(--text-soft);
-      letter-spacing: -0.01em; line-height: 1.6;
-      text-align: right; margin-right: -8px;
+      font-size: min(1.8rem, calc(8.5vw - 3.2px)); /* 每行10个全角字符，正好铺满抽屉左右内边距 */
+      font-weight: 600; color: var(--text-soft);
+      letter-spacing: -0.01em; line-height: 1.5;
     }
 
     /* ====== Professional CRM Dashboard ====== */
