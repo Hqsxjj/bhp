@@ -9945,19 +9945,37 @@ function updateAutoDialBtn() {
 
     // 轮次统计：每成功导入一批客户记一轮（按本地日期），下一轮倒计时从转出公海时刻起算（每轮随机 45-60 分钟，防微信频繁）
     var ROUND_INFO_K = 'bhp_round_info';
+    // 冷却信息按「当前账号+本设备」维度隔离：同一台手机上切换账号时，各账号各走各的倒计时，
+    // 避免新账号继承上个账号的冷却期（设备天然由 localStorage 隔离，服务端键已含账号+设备）
+    function roundInfoKey() {
+      return ROUND_INFO_K + ':' + (getSessionAccountId() || 'anon');
+    }
     function todayLocalStr() {
       var d = new Date();
       return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     }
     function getRoundInfo() {
       try {
-        var raw = localStorage.getItem(ROUND_INFO_K);
+        var key = roundInfoKey();
+        var raw = localStorage.getItem(key);
+        if (!raw) {
+          // 旧版无账号维度全局键：一次性迁移到当前账号分键并删除，防止切账号后串号
+          var legacy = localStorage.getItem(ROUND_INFO_K);
+          if (legacy) {
+            localStorage.setItem(key, legacy);
+            localStorage.removeItem(ROUND_INFO_K);
+            raw = legacy;
+          }
+        }
         if (raw) return JSON.parse(raw);
       } catch (e) {}
       return null;
     }
     function saveRoundInfo(info) {
-      try { localStorage.setItem(ROUND_INFO_K, JSON.stringify(info)); } catch (e) {}
+      try {
+        localStorage.setItem(roundInfoKey(), JSON.stringify(info));
+        localStorage.removeItem(ROUND_INFO_K); // 写入账号分键后清掉旧全局键
+      } catch (e) {}
     }
     function recordRoundTransferred() {
       var today = todayLocalStr();
