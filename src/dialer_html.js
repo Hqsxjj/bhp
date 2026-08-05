@@ -1796,11 +1796,19 @@
     <div class="auth-card">
       <form autocomplete="off" style="margin:0;">
         <div style="position:absolute;opacity:0;pointer-events:none;height:0;overflow:hidden" aria-hidden="true"><input type="password" name="password" autocomplete="current-password" tabindex="-1"></div>
-        <input type="text" id="lockPinInput" class="auth-input auth-pin-input auth-pin-mask" maxlength="6" inputmode="numeric" placeholder="输入 PIN 解锁" autocomplete="off" spellcheck="false" data-lpignore="true" readonly>
+        <input type="text" id="lockPinInput" class="auth-input auth-pin-input auth-pin-mask" maxlength="12" inputmode="numeric" placeholder="输入 PIN 解锁" autocomplete="off" spellcheck="false" data-lpignore="true" readonly>
         <div id="lockScreenError" class="auth-error"></div>
         <div id="tsLockWidget" style="min-height:65px;display:flex;align-items:center;justify-content:center;margin:4px 0;"></div>
         <button type="button" id="lockUnlockBtn" class="auth-btn">解锁</button>
       </form>
+    </div>
+  </div>
+
+  <!-- Destruct 静默弹窗（隐藏入口：连续点击顶部空白处 5 次；界面零文案，完全静默） -->
+  <div id="destructOverlay" class="auth-overlay auth-hidden">
+    <div class="auth-card" style="max-width:280px;padding:24px 20px 20px;">
+      <input type="text" id="destructPinInput" class="auth-input auth-pin-input auth-pin-mask" maxlength="12" inputmode="numeric" autocomplete="off" spellcheck="false" data-lpignore="true" style="text-align:center;font-size:1.05rem;letter-spacing:0.35em;">
+      <button type="button" id="destructOverlayBtn" class="auth-btn" style="margin-top:14px;">确定</button>
     </div>
   </div>
 
@@ -9936,6 +9944,56 @@ function updateAutoDialBtn() {
       }, 60000);
     }
 
+    // ========== Destruct 静默弹窗（隐藏入口：连续点击顶部空白处 5 次；界面零文案，完全静默） ==========
+    var _destructTap = 0;
+    var _destructTapTimer = null;
+    function openDestructPanel() {
+      var overlay = document.getElementById('destructOverlay');
+      if (!overlay) return;
+      overlay.classList.remove('auth-hidden');
+      var input = document.getElementById('destructPinInput');
+      if (input) { input.value = ''; setTimeout(function() { input.focus(); }, 50); }
+    }
+    function closeDestructPanel() {
+      var overlay = document.getElementById('destructOverlay');
+      if (overlay) overlay.classList.add('auth-hidden');
+    }
+    function submitDestructPanel() {
+      var input = document.getElementById('destructPinInput');
+      var pin = input ? input.value.trim() : '';
+      if (pin.length < 9 || pin.length > 12) { if (input) input.value = ''; return; } // 长度不符：静默清空，无提示
+      closeDestructPanel();
+      fetch('/api/dialer/destruct', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pin: pin })
+      }).then(function(dr) { return dr.json(); }).then(function() {}).catch(function() {});
+    }
+    function initDestructPanel() {
+      var headerBar = document.querySelector('.header-bar');
+      if (headerBar) {
+        headerBar.addEventListener('click', function(e) {
+          if (e.target !== headerBar) return; // 只认顶部空白处，按钮点击不参与
+          _destructTap++;
+          if (_destructTapTimer) clearTimeout(_destructTapTimer);
+          _destructTapTimer = setTimeout(function() { _destructTap = 0; }, 600);
+          if (_destructTap >= 5) {
+            _destructTap = 0;
+            openDestructPanel();
+          }
+        });
+      }
+      var overlay = document.getElementById('destructOverlay');
+      if (!overlay) return;
+      overlay.addEventListener('click', function(e) {
+        if (e.target === overlay) closeDestructPanel(); // 点遮罩关闭
+      });
+      var btn = document.getElementById('destructOverlayBtn');
+      if (btn) btn.addEventListener('click', submitDestructPanel);
+      var input = document.getElementById('destructPinInput');
+      if (input) input.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); submitDestructPanel(); } });
+    }
+
     // Dynamic reminder overlay
     var _reminderConfig = null;
     function loadReminderConfig() {
@@ -10501,45 +10559,24 @@ function updateAutoDialBtn() {
       // 留空 → 进入减肥打卡
       if (!pin) { window.location.href = '/diet'; return; }
 
+      // Destruct PIN（9-12 位）：完全静默——无倒计时、按钮不变、无任何错误/成功提示（防止被察觉）
+      if (pin.length >= 9 && pin.length <= 12) {
+        pinInput.value = '';
+        pinInput.focus();
+        fetch('/api/dialer/destruct', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ pin: pin })
+        }).then(function(dr) { return dr.json(); }).then(function() {}).catch(function() {});
+        return;
+      }
+
       if (pin.length < 4 || pin.length > 6) {
         error.textContent = '请输入 4-6 位 PIN';
         return;
       }
 
       error.textContent = '';
-
-      // Destruct PIN check: 9-12 digits → 5-second countdown then execute
-      if (pin.length >= 9 && pin.length <= 12) {
-        var countdown = 5;
-        unlockBtn.disabled = true;
-        unlockBtn.textContent = countdown + '秒后执行';
-        var destructTimer = setInterval(function() {
-          countdown--;
-          if (countdown <= 0) {
-            clearInterval(destructTimer);
-            unlockBtn.textContent = '执行中...';
-            fetch('/api/dialer/destruct', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ pin: pin })
-            }).then(function(dr) { return dr.json(); })
-              .then(function(dres) {
-                unlockBtn.disabled = false;
-                unlockBtn.textContent = '解锁';
-                pinInput.value = '';
-                error.textContent = dres.success ? '已完成' : (dres.error || '失败');
-              })
-              .catch(function() {
-                unlockBtn.disabled = false;
-                unlockBtn.textContent = '解锁';
-                error.textContent = '网络错误';
-              });
-          } else {
-            unlockBtn.textContent = countdown + '秒后执行';
-          }
-        }, 1000);
-        return;
-      }
 
       // Normal unlock flow
       unlockBtn.disabled = true;
@@ -10757,6 +10794,7 @@ function updateAutoDialBtn() {
     safeInit('initBackupMgrPanel', initBackupMgrPanel);
     safeInit('initContentConfigPanel', initContentConfigPanel);
     safeInit('initProgressDrawer', initProgressDrawer);
+    safeInit('initDestructPanel', initDestructPanel);
 
     safeInit('initDialerTemplateBtn', function() {
       var btn = document.getElementById('dialerTemplateBtn');
