@@ -880,7 +880,14 @@ export default {
         var value = parseInt(wcBody.value, 10);
         if (isNaN(value)) throw new Error('value 应为数字');
         var wcRow = await fetchWorkRow(env, wcSession.account_id, wcDate) || { rounds: 0, wechat_count: 0, transfer_ts: 0 };
-        wcRow.wechat_count = Math.max(0, value); // 绝对值写入：最后一次点击为准
+        // LWW 防乱序：带 ts 的请求只在 ts 严格新于云端已存 ts 时才写入——快速连点时旧值请求乱序晚到也不会覆盖新值；
+        // 旧客户端不带 ts（0）视为最新直接写（兼容过渡期）
+        var wcTs = parseInt(wcBody.ts, 10) || 0;
+        var storedTs = wcRow.wechat_ts || 0;
+        if (!wcTs || wcTs > storedTs) {
+          wcRow.wechat_count = Math.max(0, value); // 绝对值写入：最后一次点击为准
+          wcRow.wechat_ts = wcTs || Date.now();
+        }
         await upsertWorkRow(env, wcSession.account_id, wcDate, wcRow);
         var wcWm = await weekMonthCounts(env, wcSession.account_id, wcDate);
         wcRow.week_count = wcWm.week_count;

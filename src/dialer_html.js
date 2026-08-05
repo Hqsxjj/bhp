@@ -9837,6 +9837,8 @@ function updateAutoDialBtn() {
     var WECHAT_COUNT_K = 'bhp_wechat_count'; // 今日通过微信数量（手动计数，云端同步）
     var _weekWechat = 0;  // 本周通过微信（云端累计）
     var _monthWechat = 0; // 本月通过微信（云端累计）
+    var _wechatWriteTs = 0; // 微信计数保护截止时刻：此前发起的云端快照视为过期（本地点击/POST 未确认时禁止回退）
+    var _wechatMonotonicTs = 0; // 点击单调时间戳：同一毫秒连点两次也不会得到相同 ts（防 LWW 失效）
     function getWechatCount() {
       try {
         var raw = localStorage.getItem(WECHAT_COUNT_K);
@@ -9855,19 +9857,22 @@ function updateAutoDialBtn() {
       renderDrawer();
       var token = getSessionToken();
       if (!token) return;
+      _wechatMonotonicTs = Math.max(Date.now(), _wechatMonotonicTs + 1); // 单调递增，防同毫秒连点 ts 相同
+      _wechatWriteTs = _wechatMonotonicTs + 8000; // 点击即开启 8 秒保护窗口：期间云端旧快照不回退本地
       fetch('/api/dialer/work-stats/wechat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
-        body: JSON.stringify({ date: today, value: target })
+        body: JSON.stringify({ date: today, value: target, ts: _wechatMonotonicTs })
       }).then(function(r) { return r.json(); })
         .then(function(res) {
           if (res && res.week_count !== undefined) {
+            _wechatWriteTs = Date.now() + 8000; // 云端已确认，刷新保护窗口（KV 读旧仍可能短暂回退）
             _weekWechat = res.week_count || 0;
             _monthWechat = res.month_count || 0;
             renderDrawer();
           }
         })
-        .catch(function() {});
+        .catch(function() { _wechatWriteTs = Infinity; }); // 同步失败：本地值为准，直到下次点击成功确认
     }
     function renderDrawer() {
       var total = importedClients.length;
@@ -9988,6 +9993,7 @@ function updateAutoDialBtn() {
       // 同步到云端 KV（绝对值上报 + max 合并）：失败/并发都不会丢轮次
       var token = getSessionToken();
       if (!token) return;
+      var getTs = Date.now(); // 快照时刻：其后发生的本地微信计数点击不会出现在此响应中
       fetch('/api/dialer/work-stats/rounds', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
@@ -10002,7 +10008,7 @@ function updateAutoDialBtn() {
             // 冷却时长跟随最新一次转公海时刻：云端 ts 更新时取云端，否则保留本地随机值
             var cd = (cloudTs >= curTs && res.cooldown_ms) ? res.cooldown_ms : (cur.cooldownMs || 0);
             saveRoundInfo({ date: today, count: Math.min(6, Math.max(curCount, res.rounds)), transferTs: Math.max(curTs, cloudTs), cooldownMs: cd });
-            applyWechatCount(res.wechat_count);
+            if (getTs >= _wechatWriteTs) applyWechatCount(res.wechat_count); // 快照不旧于本地最后一次点击才覆盖
             renderRoundInfo();
             renderDrawer();
           }
@@ -10014,12 +10020,13 @@ function updateAutoDialBtn() {
       var today = todayLocalStr();
       var token = getSessionToken();
       if (!token) return;
+      var getTs = Date.now(); // 快照时刻：其后发生的本地微信计数点击不会出现在此响应中
       fetch('/api/dialer/work-stats?date=' + encodeURIComponent(today) + '&device_id=' + encodeURIComponent(getDeviceId()), {
         headers: { 'Authorization': 'Bearer ' + token }
       }).then(function(r) { return r.json(); })
         .then(function(res) {
           if (res && res.rounds !== undefined) {
-            // 轮数取 max 合并（本地已完成的轮次不会被云端旧值覆盖），微信计数以云端为准
+            // 轮数取 max 合并（本地已完成的轮次不会被云端旧值覆盖），微信计数快照不旧于本地最后一次点击才覆盖
             var cur = getRoundInfo() || {};
             var curCount = (cur.date === today) ? (cur.count || 0) : 0;
             var curTs = (cur.date === today) ? (cur.transferTs || 0) : 0;
@@ -10027,7 +10034,7 @@ function updateAutoDialBtn() {
             // 冷却时长跟随最新一次转公海时刻：云端 ts 更新时取云端，否则保留本地随机值
             var cd = (cloudTs >= curTs && res.cooldown_ms) ? res.cooldown_ms : (cur.cooldownMs || 0);
             saveRoundInfo({ date: today, count: Math.min(6, Math.max(curCount, res.rounds)), transferTs: Math.max(curTs, cloudTs), cooldownMs: cd });
-            applyWechatCount(res.wechat_count);
+            if (getTs >= _wechatWriteTs) applyWechatCount(res.wechat_count);
             _weekWechat = res.week_count || 0;
             _monthWechat = res.month_count || 0;
             renderRoundInfo();
