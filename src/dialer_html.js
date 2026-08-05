@@ -8374,11 +8374,15 @@ function updateAutoDialBtn() {
       var btn = document.getElementById('refreshBatchBtn');
       if (!btn || btn.disabled) return;
 
-      // 冷却期（转出公海后 45-60 分钟随机）未走完：弹出防频繁提醒并拦截换批
+      // 冷却期（转出公海后 45-60 分钟随机）未走完：弹出防频繁提醒（仅提醒不拦截），
+      // 点「知道了」后继续换批，且本次会话内不再重复提醒
       var _cdInfo = getRoundInfo();
       var _cdRemainMs = (_cdInfo && _cdInfo.transferTs) ? Math.max(0, _cdInfo.transferTs + getRoundCooldownMs(_cdInfo) - Date.now()) : 0;
-      if (_cdRemainMs > 0) {
-        showCooldownReminder(_cdRemainMs);
+      if (_cdRemainMs > 0 && !window._cooldownConfirmed) {
+        showCooldownReminder(_cdRemainMs, function() {
+          window._cooldownConfirmed = true;
+          window.refreshBatch();
+        });
         return;
       }
 
@@ -9883,17 +9887,20 @@ function updateAutoDialBtn() {
       var plusBtn = document.getElementById('drawerWechatPlus');
       if (minusBtn) minusBtn.addEventListener('click', function() { adjustWechatCount(-1); });
       if (plusBtn) plusBtn.addEventListener('click', function() { adjustWechatCount(1); });
-      // 冷却期提醒弹窗：按钮关闭 + 点击遮罩关闭（关闭时停止计时）
+      // 冷却期提醒弹窗：按钮关闭 + 点击遮罩关闭（关闭时停止计时并触发确认回调继续换批）
       var cdOverlay = document.getElementById('cooldownOverlay');
       var cdDismiss = document.getElementById('cooldownDismiss');
-      if (cdOverlay) cdOverlay.addEventListener('click', function(e) {
-        if (e.target === cdOverlay) cdOverlay.classList.remove('active');
+      function closeCooldownReminder() {
+        var cb = window._cooldownDismissCb;
+        window._cooldownDismissCb = null;
         if (window._cdRemainTimer) { clearInterval(window._cdRemainTimer); window._cdRemainTimer = null; }
-      });
-      if (cdDismiss) cdDismiss.addEventListener('click', function() {
         cdOverlay.classList.remove('active');
-        if (window._cdRemainTimer) { clearInterval(window._cdRemainTimer); window._cdRemainTimer = null; }
+        if (cb) cb();
+      }
+      if (cdOverlay) cdOverlay.addEventListener('click', function(e) {
+        if (e.target === cdOverlay) closeCooldownReminder();
       });
+      if (cdDismiss) cdDismiss.addEventListener('click', closeCooldownReminder);
       // 实时同步：每 60 秒拉取一次云端工作数据（页面可见时）
       setInterval(function() {
         if (document.hidden) return;
@@ -10027,12 +10034,15 @@ function updateAutoDialBtn() {
       }
     }
 
-    // 冷却期提醒弹窗：每秒刷新剩余倒计时，走完自动关闭
+    // 冷却期提醒弹窗：每秒刷新剩余倒计时，走完自动关闭；onDismiss 在用户关闭弹窗时回调（仅提醒不拦截）
     window._cdRemainTimer = null;
-    function showCooldownReminder(remainMs) {
+    window._cooldownConfirmed = false; // 已确认过冷却期提醒：本次会话内不再弹出
+    window._cooldownDismissCb = null;
+    function showCooldownReminder(remainMs, onDismiss) {
       var overlay = document.getElementById('cooldownOverlay');
       var remainEl = document.getElementById('cooldownRemain');
       if (!overlay || !remainEl) return;
+      window._cooldownDismissCb = onDismiss || null;
       remainEl.textContent = formatRoundCountdown(remainMs);
       overlay.classList.add('active');
       if (window._cdRemainTimer) clearInterval(window._cdRemainTimer);
@@ -10043,6 +10053,7 @@ function updateAutoDialBtn() {
         if (rm <= 0) {
           clearInterval(window._cdRemainTimer);
           window._cdRemainTimer = null;
+          window._cooldownDismissCb = null; // 冷却自然走完：不触发确认回调
           overlay.classList.remove('active');
         }
       }, 1000);
