@@ -1337,7 +1337,7 @@
     .drawer-close-btn:active { background: var(--btn-hover); }
     .drawer-slogan {
       margin: 0; padding-top: 2px;
-      font-size: 0.78rem; font-weight: 500; color: var(--text-soft);
+      font-size: 0.92rem; font-weight: 600; color: var(--text-soft);
       letter-spacing: -0.01em; line-height: 1.6;
     }
 
@@ -1683,7 +1683,7 @@
         <span>通过微信数量（本月）</span>
         <span class="drawer-stat-value" id="drawerMonthWechatVal">0</span>
       </div>
-      <div style="height:0.5px;background:var(--card-border);margin:2px 0;"></div>
+      <div style="height:0.5px;background:var(--card-border);margin-top:auto;"></div>
       <p class="drawer-slogan">增加广度，多加微信。<br>保持深度，全部触达。<br>增强粘性，经常群发。</p>
     </div>
   </div>
