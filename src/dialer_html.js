@@ -1802,7 +1802,10 @@
 
       <!-- Contacts List — immediately after header, no gaps -->
       <div class="cards-content" id="cardsContainer">
-        <div style="text-align:center;padding:80px 20px;"></div>
+        <div style="text-align:center;padding:80px 20px;">
+          <div style="font-size:1rem;font-weight:600;color:var(--text-soft);letter-spacing:-0.01em;margin-bottom:10px;">暂无客户</div>
+          <div style="font-size:0.78rem;color:var(--text-light);line-height:1.7;">点击右上角菜单中的「导入文件」，<br>或粘贴文本 / 上传图片识别，开始添加客户</div>
+        </div>
       </div>
 
       <!-- Dashboard -->
@@ -1824,7 +1827,7 @@
             <span style="font-size: 0.88rem; color: var(--text-main); font-weight: 700; letter-spacing: 0.5px;">BH-AI 智能双引擎导入助手</span>
             <span style="font-size: 0.7rem; color: var(--text-light); max-width: 320px; line-height: 1.4; margin-top: -4px;">搭载启发式文字密度与特征识别算法，自动检测表头、过滤噪音，100% 本地隐私安全。</span>
             <button id="ocrTrainingDataBtn" style="background:transparent; border:0.5px solid var(--card-border); font-size:0.62rem; color:var(--text-soft); cursor:pointer; display:inline-flex; align-items:center; gap:3px; padding:2px 8px; border-radius:10px; margin-top:-2px;">训练数据 (<span id="trainingCountBadge" style="color:var(--accent-wechat);font-weight:800;">0</span>)</button>
-            <a id="dialerTemplateBtn" style="font-size:0.62rem; color:var(--accent-wechat); cursor:pointer; font-weight:700; text-decoration:underline; margin-top:-2px; white-space:nowrap;" title="下载客户导入Excel模板文件">📥 下载导入模板</a>
+            <a id="dialerTemplateBtn" style="font-size:0.62rem; color:var(--accent-wechat); cursor:pointer; font-weight:700; text-decoration:underline; margin-top:-2px; white-space:nowrap;" title="下载客户导入Excel模板文件">下载导入模板</a>
 
             
             
@@ -1867,7 +1870,6 @@
 
           <!-- 2. SCANNING STATE -->
           <div id="aiImportScanning" style="display: none; flex-direction: column; align-items: center; gap: 12px; width: 100%; padding: 10px 0;">
-            <div style="font-size: 1.6rem; animation: pulse-ring 1s infinite alternate; margin-bottom: 2px;"></div>
             <span style="font-size: 0.8rem; color: var(--text-main); font-weight: 600;" id="aiScanStatus">BH-AI 深度模型解析中...</span>
             <div style="display: flex; flex-direction: column; gap: 4px; text-align: left; font-size: 0.65rem; color: var(--text-soft); font-family: monospace; width: 100%; max-width: 260px; background: rgba(0,0,0,0.02); padding: 8px; border-radius: var(--radius-sm); border: 0.5px solid var(--card-border);">
               <div id="aiLog1" style="opacity: 0.4;">[ ] 正在读取数据流...</div>
@@ -1924,7 +1926,7 @@
 
             <!-- Mapped Pillars -->
             <div id="aiExcelMappingPills" style="display: flex; flex-wrap: wrap; gap: 4px; background: var(--btn-bg); padding: 6px; border-radius: var(--radius-sm);">
-              <div style="font-size: 0.65rem; font-weight: 600; color: var(--text-soft); width: 100%; margin-bottom: 2px;">AI 智能列映射映射关系：</div>
+              <div style="font-size: 0.65rem; font-weight: 600; color: var(--text-soft); width: 100%; margin-bottom: 2px;">AI 智能列映射关系：</div>
               <div class="client-card-tag" id="pillName" style="background: rgba(7,193,96,0.08); color: var(--accent-wechat);">姓名 → 未识别</div>
               <div class="client-card-tag" id="pillPhone" style="background: rgba(7,193,96,0.08); color: var(--accent-wechat);">电话 → 未识别</div>
               <div class="client-card-tag" id="pillCompany" style="background: rgba(74,108,247,0.08); color: #4a6cf7;">公司 → 无</div>
@@ -2208,7 +2210,7 @@
     <div class="crm-search-card">
       <div class="crm-search-grid">
         <div class="crm-search-item crm-search-item-full">
-          <span class="crm-search-label" style="width:72px;">🔍 模糊关联搜索</span>
+          <span class="crm-search-label" style="width:72px;">模糊关联搜索</span>
           <input type="text" class="crm-input" id="dbFuzzySearch" placeholder="输入姓、电话号码或单位名称，模糊匹配相似结果...">
         </div>
         <div class="crm-search-item">
@@ -2397,7 +2399,6 @@
         </tbody>
       </table>
       <div class="db-empty" id="dbEmpty" style="display:none;">
-        <div style="font-size:2.5rem;margin-bottom:12px;"></div>
         <div>暂无客户数据</div>
         <div style="font-size:0.72rem;color:#aaa;margin-top:4px;">导入客户或检查 Supabase 连接</div>
       </div>
@@ -6100,7 +6101,10 @@
       updateStats();
 
       if (importedClients.length === 0) {
-        container.innerHTML = '<div style="text-align:center;padding:80px 20px;"></div>';
+        container.innerHTML = '<div style="text-align:center;padding:80px 20px;">' +
+          '<div style="font-size:1rem;font-weight:600;color:var(--text-soft);letter-spacing:-0.01em;margin-bottom:10px;">暂无客户</div>' +
+          '<div style="font-size:0.78rem;color:var(--text-light);line-height:1.7;">点击右上角菜单中的「导入文件」，<br>或粘贴文本 / 上传图片识别，开始添加客户</div>' +
+          '</div>';
         return;
       }
 
