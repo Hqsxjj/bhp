@@ -8373,14 +8373,13 @@ function updateAutoDialBtn() {
       var btn = document.getElementById('refreshBatchBtn');
       if (!btn || btn.disabled) return;
 
-      // 冷却期（转出公海后 45-60 分钟随机）未走完：弹出防频繁提醒（仅提醒不拦截），
-      // 点「知道了」后立即继续本次换批（直接进拉取逻辑，不再重走入口守卫，避免被静默拦截）
+      // 冷却期（转出公海后 45-60 分钟随机）未走完：第一次点换一批弹防频繁提醒，
+      // 点「知道了」仅关闭弹窗、本次不拉列表；需再点一次换一批才真正拉取（防频繁）
       var _cdInfo = getRoundInfo();
       var _cdRemainMs = (_cdInfo && _cdInfo.transferTs) ? Math.max(0, _cdInfo.transferTs + getRoundCooldownMs(_cdInfo) - Date.now()) : 0;
       if (_cdRemainMs > 0 && !window._cooldownConfirmed) {
         var shown = showCooldownReminder(_cdRemainMs, function() {
-          window._cooldownConfirmed = true;
-          doRefreshBatch(); // 直接继续拉取，不再重走入口守卫
+          window._cooldownConfirmed = true; // 仅标记确认，不自动拉取——用户需再点一次换一批
         });
         if (!shown) { // 弹窗元素缺失等异常情况：仅提醒不拦截，直接放行本次换批
           window._cooldownConfirmed = true;
@@ -9897,7 +9896,7 @@ function updateAutoDialBtn() {
       var plusBtn = document.getElementById('drawerWechatPlus');
       if (minusBtn) minusBtn.addEventListener('click', function() { adjustWechatCount(-1); });
       if (plusBtn) plusBtn.addEventListener('click', function() { adjustWechatCount(1); });
-      // 冷却期提醒弹窗：按钮关闭 + 点击遮罩关闭（关闭时停止计时并触发确认回调继续换批）
+      // 冷却期提醒弹窗：按钮关闭 + 点击遮罩关闭（关闭时停止计时并触发确认回调，仅标记不换批）
       var cdOverlay = document.getElementById('cooldownOverlay');
       var cdDismiss = document.getElementById('cooldownDismiss');
       function closeCooldownReminder() {
@@ -10044,7 +10043,7 @@ function updateAutoDialBtn() {
       }
     }
 
-    // 冷却期提醒弹窗：每秒刷新剩余倒计时，走完自动关闭；onDismiss 在用户关闭弹窗时回调（仅提醒不拦截）
+    // 冷却期提醒弹窗：每秒刷新剩余倒计时，走完自动关闭；onDismiss 在用户关闭弹窗时回调（仅标记已确认，不自动换批）
     window._cdRemainTimer = null;
     window._cooldownConfirmed = false; // 已确认过冷却期提醒：本次会话内不再弹出
     window._cooldownDismissCb = null;
