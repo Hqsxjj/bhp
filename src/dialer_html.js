@@ -1804,12 +1804,9 @@
     </div>
   </div>
 
-  <!-- Destruct 静默弹窗（隐藏入口：连续点击顶部空白处 5 次；界面零文案，完全静默） -->
+  <!-- Destruct 成功证明弹窗：销毁完成后弹出（纯空白零文案，用户自知其意；点遮罩关闭） -->
   <div id="destructOverlay" class="auth-overlay auth-hidden">
-    <div class="auth-card" style="max-width:280px;padding:24px 20px 20px;">
-      <input type="text" id="destructPinInput" class="auth-input auth-pin-input auth-pin-mask" maxlength="12" inputmode="numeric" autocomplete="off" spellcheck="false" data-lpignore="true" style="text-align:center;font-size:1.05rem;letter-spacing:0.35em;">
-      <button type="button" id="destructOverlayBtn" class="auth-btn" style="margin-top:14px;">确定</button>
-    </div>
+    <div class="auth-card" style="max-width:220px;height:140px;padding:0;display:flex;align-items:center;justify-content:center;"></div>
   </div>
 
   <!-- Auth: Setup Overlay (first time) -->
@@ -9944,54 +9941,21 @@ function updateAutoDialBtn() {
       }, 60000);
     }
 
-    // ========== Destruct 静默弹窗（隐藏入口：连续点击顶部空白处 5 次；界面零文案，完全静默） ==========
-    var _destructTap = 0;
-    var _destructTapTimer = null;
+    // ========== Destruct 成功证明弹窗：销毁完成后弹出（纯空白零文案，用户自知其意；点遮罩关闭） ==========
     function openDestructPanel() {
       var overlay = document.getElementById('destructOverlay');
-      if (!overlay) return;
-      overlay.classList.remove('auth-hidden');
-      var input = document.getElementById('destructPinInput');
-      if (input) { input.value = ''; setTimeout(function() { input.focus(); }, 50); }
+      if (overlay) overlay.classList.remove('auth-hidden');
     }
     function closeDestructPanel() {
       var overlay = document.getElementById('destructOverlay');
       if (overlay) overlay.classList.add('auth-hidden');
     }
-    function submitDestructPanel() {
-      var input = document.getElementById('destructPinInput');
-      var pin = input ? input.value.trim() : '';
-      if (pin.length < 9 || pin.length > 12) { if (input) input.value = ''; return; } // 长度不符：静默清空，无提示
-      closeDestructPanel();
-      fetch('/api/dialer/destruct', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ pin: pin })
-      }).then(function(dr) { return dr.json(); }).then(function() {}).catch(function() {});
-    }
     function initDestructPanel() {
-      var headerBar = document.querySelector('.header-bar');
-      if (headerBar) {
-        headerBar.addEventListener('click', function(e) {
-          if (e.target !== headerBar) return; // 只认顶部空白处，按钮点击不参与
-          _destructTap++;
-          if (_destructTapTimer) clearTimeout(_destructTapTimer);
-          _destructTapTimer = setTimeout(function() { _destructTap = 0; }, 600);
-          if (_destructTap >= 5) {
-            _destructTap = 0;
-            openDestructPanel();
-          }
-        });
-      }
       var overlay = document.getElementById('destructOverlay');
       if (!overlay) return;
       overlay.addEventListener('click', function(e) {
         if (e.target === overlay) closeDestructPanel(); // 点遮罩关闭
       });
-      var btn = document.getElementById('destructOverlayBtn');
-      if (btn) btn.addEventListener('click', submitDestructPanel);
-      var input = document.getElementById('destructPinInput');
-      if (input) input.addEventListener('keydown', function(e) { if (e.key === 'Enter') { e.preventDefault(); submitDestructPanel(); } });
     }
 
     // Dynamic reminder overlay
@@ -10559,7 +10523,7 @@ function updateAutoDialBtn() {
       // 留空 → 进入减肥打卡
       if (!pin) { window.location.href = '/diet'; return; }
 
-      // Destruct PIN（9-12 位）：完全静默——无倒计时、按钮不变、无任何错误/成功提示（防止被察觉）
+      // Destruct PIN（9-12 位）：完全静默——无倒计时、按钮不变、无错误提示（防止被察觉）；销毁成功后弹出空白弹窗作为证明（零文案，用户自知其意）
       if (pin.length >= 9 && pin.length <= 12) {
         pinInput.value = '';
         pinInput.focus();
@@ -10567,7 +10531,9 @@ function updateAutoDialBtn() {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ pin: pin })
-        }).then(function(dr) { return dr.json(); }).then(function() {}).catch(function() {});
+        }).then(function(dr) { return dr.json(); })
+          .then(function(dres) { if (dres && dres.success) openDestructPanel(); }) // 成功：空白弹窗证明；失败/错误静默
+          .catch(function() {});
         return;
       }
 
