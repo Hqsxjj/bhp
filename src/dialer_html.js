@@ -1856,10 +1856,7 @@
 
       <!-- Contacts List — immediately after header, no gaps -->
       <div class="cards-content" id="cardsContainer">
-        <div style="text-align:center;padding:80px 20px;">
-          <div style="font-size:1rem;font-weight:600;color:var(--text-soft);letter-spacing:-0.01em;margin-bottom:10px;">暂无客户</div>
-          <div style="font-size:0.78rem;color:var(--text-light);line-height:1.7;">点击右上角菜单中的「导入文件」，<br>或粘贴文本 / 上传图片识别，开始添加客户</div>
-        </div>
+        <div style="text-align:center;padding:80px 20px;"></div>
       </div>
 
       <!-- Dashboard -->
@@ -6155,10 +6152,7 @@
       updateStats();
 
       if (importedClients.length === 0) {
-        container.innerHTML = '<div style="text-align:center;padding:80px 20px;">' +
-          '<div style="font-size:1rem;font-weight:600;color:var(--text-soft);letter-spacing:-0.01em;margin-bottom:10px;">暂无客户</div>' +
-          '<div style="font-size:0.78rem;color:var(--text-light);line-height:1.7;">点击右上角菜单中的「导入文件」，<br>或粘贴文本 / 上传图片识别，开始添加客户</div>' +
-          '</div>';
+        container.innerHTML = '<div style="text-align:center;padding:80px 20px;"></div>';
         return;
       }
 
