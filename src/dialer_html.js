@@ -1293,6 +1293,51 @@
     }
     .reminder-dismiss:active { background: var(--btn-hover); }
 
+    /* ====== Cooldown Reminder Overlay（冷却期点击换一批时弹出） ====== */
+    .cooldown-overlay {
+      position: fixed; inset: 0; background: var(--modal-bg);
+      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      z-index: 3100; opacity: 0; pointer-events: none;
+      transition: opacity 0.3s ease;
+      display: flex; align-items: center; justify-content: center;
+      padding: 16px;
+    }
+    .cooldown-overlay.active { opacity: 1; pointer-events: auto; }
+    .cooldown-card {
+      background: var(--modal-card);
+      border: 0.5px solid var(--card-border);
+      border-radius: var(--radius-ios);
+      box-shadow: var(--shadow-card);
+      width: 100%; max-width: 340px;
+      padding: 24px 20px 20px;
+      display: flex; flex-direction: column; gap: 14px;
+      transform: translateY(16px);
+      transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+      text-align: center;
+    }
+    .cooldown-overlay.active .cooldown-card { transform: translateY(0); }
+    .cooldown-title {
+      font-size: 1rem; font-weight: 700; color: var(--text-main);
+      letter-spacing: -0.01em; line-height: 1.3;
+    }
+    .cooldown-desc {
+      font-size: 0.82rem; color: var(--text-soft); line-height: 1.6;
+    }
+    .cooldown-desc b {
+      font-weight: 700; color: #e05060;
+      font-variant-numeric: tabular-nums;
+    }
+    .cooldown-dismiss {
+      align-self: stretch; padding: 10px 0; border: none;
+      background: var(--btn-bg); color: var(--text-main);
+      font-size: 0.85rem; font-weight: 600; font-family: inherit;
+      border-radius: var(--radius-sm); cursor: pointer;
+      transition: background 0.15s; letter-spacing: -0.01em;
+      -webkit-tap-highlight-color: transparent;
+      margin-top: 2px;
+    }
+    .cooldown-dismiss:active { background: var(--btn-hover); }
+
     /* ====== Progress Drawer ====== */
     .progress-drawer-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.45);
@@ -1708,6 +1753,15 @@
         <li class="reminder-item"><span class="reminder-num">5</span>有些纠结的客户主动删除他防止权重降低</li>
       </ol>
       <button class="reminder-dismiss" id="reminderDismiss" onclick="document.getElementById('reminderOverlay').classList.remove('active');if(window._reminderTimer)clearInterval(window._reminderTimer);">知道了</button>
+    </div>
+  </div>
+
+  <!-- Cooldown Reminder Overlay -->
+  <div class="cooldown-overlay" id="cooldownOverlay">
+    <div class="cooldown-card">
+      <div class="cooldown-title">防止微信频繁</div>
+      <div class="cooldown-desc">请注意防止微信频繁，多做增加权重操作。<br>距离可以换一批还有 <b id="cooldownRemain">30:00</b></div>
+      <button class="cooldown-dismiss" id="cooldownDismiss">知道了</button>
     </div>
   </div>
 
@@ -8320,6 +8374,14 @@ function updateAutoDialBtn() {
       var btn = document.getElementById('refreshBatchBtn');
       if (!btn || btn.disabled) return;
 
+      // 冷却期（转出公海后 45-60 分钟随机）未走完：弹出防频繁提醒并拦截换批
+      var _cdInfo = getRoundInfo();
+      var _cdRemainMs = (_cdInfo && _cdInfo.transferTs) ? Math.max(0, _cdInfo.transferTs + getRoundCooldownMs(_cdInfo) - Date.now()) : 0;
+      if (_cdRemainMs > 0) {
+        showCooldownReminder(_cdRemainMs);
+        return;
+      }
+
       // 静默加载：按钮保持原样，仅禁用防止重复点击
       btn.disabled = true;
 
@@ -9821,6 +9883,17 @@ function updateAutoDialBtn() {
       var plusBtn = document.getElementById('drawerWechatPlus');
       if (minusBtn) minusBtn.addEventListener('click', function() { adjustWechatCount(-1); });
       if (plusBtn) plusBtn.addEventListener('click', function() { adjustWechatCount(1); });
+      // 冷却期提醒弹窗：按钮关闭 + 点击遮罩关闭（关闭时停止计时）
+      var cdOverlay = document.getElementById('cooldownOverlay');
+      var cdDismiss = document.getElementById('cooldownDismiss');
+      if (cdOverlay) cdOverlay.addEventListener('click', function(e) {
+        if (e.target === cdOverlay) cdOverlay.classList.remove('active');
+        if (window._cdRemainTimer) { clearInterval(window._cdRemainTimer); window._cdRemainTimer = null; }
+      });
+      if (cdDismiss) cdDismiss.addEventListener('click', function() {
+        cdOverlay.classList.remove('active');
+        if (window._cdRemainTimer) { clearInterval(window._cdRemainTimer); window._cdRemainTimer = null; }
+      });
       // 实时同步：每 60 秒拉取一次云端工作数据（页面可见时）
       setInterval(function() {
         if (document.hidden) return;
@@ -9952,6 +10025,27 @@ function updateAutoDialBtn() {
       if (!window._headerCdTimer) {
         window._headerCdTimer = setInterval(renderHeaderRoundCd, 1000);
       }
+    }
+
+    // 冷却期提醒弹窗：每秒刷新剩余倒计时，走完自动关闭
+    window._cdRemainTimer = null;
+    function showCooldownReminder(remainMs) {
+      var overlay = document.getElementById('cooldownOverlay');
+      var remainEl = document.getElementById('cooldownRemain');
+      if (!overlay || !remainEl) return;
+      remainEl.textContent = formatRoundCountdown(remainMs);
+      overlay.classList.add('active');
+      if (window._cdRemainTimer) clearInterval(window._cdRemainTimer);
+      window._cdRemainTimer = setInterval(function() {
+        var info = getRoundInfo();
+        var rm = (info && info.transferTs) ? Math.max(0, info.transferTs + getRoundCooldownMs(info) - Date.now()) : 0;
+        remainEl.textContent = formatRoundCountdown(rm);
+        if (rm <= 0) {
+          clearInterval(window._cdRemainTimer);
+          window._cdRemainTimer = null;
+          overlay.classList.remove('active');
+        }
+      }, 1000);
     }
 
     function showReminderOverlay() {
