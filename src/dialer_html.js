@@ -1799,6 +1799,11 @@
     .dbm-action-btn.red { background: #ef4444; }
     .dbm-action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
     .dbm-action-btn { background: #64748b; }
+    .dbm-actionbar-count {
+      display: inline-flex; align-items: center; min-height: 44px;
+      font-size: 0.78rem; font-weight: 800; color: #4a6cf7;
+      white-space: nowrap; flex-shrink: 0;
+    }
   </style>
     }
     .db-pager { padding: 4px 10px; }
@@ -2619,10 +2624,11 @@
   <div class="dbm-filterbar" id="dbmFilterBar">
     <select id="dbmCatFilter"><option value="">全部分类</option></select>
     <select id="dbmBatchFilter"><option value="">全部批次</option></select>
-    <span class="dbm-selectall-label"><input type="checkbox" id="dbmSelectAll"> 全选</span>
+    <span class="dbm-selectall-label"><input type="checkbox" id="dbmSelectAll"> 全选 <span id="dbmSelectedCount" style="color:#4a6cf7;font-weight:800;">0</span></span>
   </div>
   <div class="dbm-list" id="dbmList"></div>
   <div class="dbm-actionbar" id="dbmActionBar">
+    <span class="dbm-actionbar-count" id="dbmActionBarCount">已选 0</span>
     <button class="dbm-action-btn green" id="dbmAddToDialBtn">添加到待拨打</button>
     <button class="dbm-action-btn orange" id="dbmMoveIntentBtn">转意向客户</button>
     <button class="dbm-action-btn blue" id="dbmMoveLeadsBtn">转线索池</button>
@@ -8529,18 +8535,39 @@ function updateAutoDialBtn() {
     window.correctOcrTextWithAI = correctOcrTextWithAI;
 
     // ==================== 手机版数据库看板（独立界面） ====================
+    // 手机版独立加载数据（不依赖桌面看板密码流程；session 已由登录/解锁保证）
+    function dbmFetch() {
+      var listEl = document.getElementById('dbmList');
+      if (listEl) listEl.innerHTML = '<div class="dbm-empty">加载中...</div>';
+      var url = '/api/dialer/customers?page=1&pageSize=5000&account_id=' + encodeURIComponent(getOrCreateAccountId());
+      fetch(url)
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          if (res.error) {
+            if (listEl) listEl.innerHTML = '<div class="dbm-empty">加载失败: ' + esc(res.error) + '</div>';
+            return;
+          }
+          DB.allData = res.data || [];
+          dbmPopulateFilters();
+          dbmRender();
+        })
+        .catch(function(err) {
+          if (listEl) listEl.innerHTML = '<div class="dbm-empty">加载失败: ' + esc(err.message) + '</div>';
+        });
+    }
+
     // 打开手机版（数据复用 DB.allData / crmFilterData / 批量操作按钮）
     function openDBMobile() {
       var ov = document.getElementById('dbMobileOverlay');
       if (!ov) return;
       ov.classList.add('active');
-      // 数据未加载时先触发桌面看板数据加载（登录鉴权在 openDBDashboard 已处理）
+      // 数据未加载或首次进入时独立加载
       if (!DB.allData || DB.allData.length === 0) {
-        openDBDashboard();
-        dbFetch();
+        dbmFetch();
+      } else {
+        dbmPopulateFilters();
+        dbmRender();
       }
-      dbmPopulateFilters();
-      dbmRender();
     }
     window.openDBMobile = openDBMobile;
 
@@ -8716,11 +8743,16 @@ function updateAutoDialBtn() {
       dbmUpdateActionBar();
     }
 
-    // 底部操作栏状态：有勾选才可用
+    // 底部操作栏状态：有勾选才可用；显示选中数量
     function dbmUpdateActionBar() {
-      var hasSel = Object.keys(DB.selectedIds).length > 0;
+      var selCount = Object.keys(DB.selectedIds).length;
+      var hasSel = selCount > 0;
       var btns = document.querySelectorAll('#dbmActionBar .dbm-action-btn');
       btns.forEach(function(b) { b.disabled = !hasSel; });
+      var countEl = document.getElementById('dbmSelectedCount');
+      if (countEl) countEl.textContent = selCount;
+      var barCount = document.getElementById('dbmActionBarCount');
+      if (barCount) barCount.textContent = '已选 ' + selCount;
       var selAll = document.getElementById('dbmSelectAll');
       if (selAll) {
         var cbs = document.querySelectorAll('#dbmList .crm-row-select');
@@ -8730,12 +8762,16 @@ function updateAutoDialBtn() {
     }
 
     // 批量操作：复用桌面版按钮的 onclick（同一套 DB.selectedIds 逻辑）
+    // 桌面逻辑结束会 dbFetch() 刷新桌面表格，这里延迟同步刷新手机版列表
     function dbmTriggerAction(desktopBtnId) {
       var desktopBtn = document.getElementById(desktopBtnId);
       if (desktopBtn && desktopBtn.onclick) {
         desktopBtn.onclick();
-        dbmRender();
-        dbmUpdateActionBar();
+        setTimeout(function() {
+          dbmRender();
+          dbmUpdateActionBar();
+          dbmPopulateFilters();
+        }, 600);
       }
     }
 
@@ -8744,7 +8780,7 @@ function updateAutoDialBtn() {
       var backBtn = document.getElementById('dbmBackBtn');
       if (backBtn) backBtn.onclick = closeDBMobile;
       var refreshBtn = document.getElementById('dbmRefreshBtn');
-      if (refreshBtn) refreshBtn.onclick = function() { dbFetch(); setTimeout(dbmRender, 300); };
+      if (refreshBtn) refreshBtn.onclick = function() { dbmFetch(); };
       var searchInput = document.getElementById('dbmSearchInput');
       if (searchInput) searchInput.oninput = function() {
         var clearBtn = document.getElementById('dbmSearchClearBtn');
@@ -8791,16 +8827,12 @@ function updateAutoDialBtn() {
         var mb = document.getElementById(pair[0]);
         if (mb) mb.onclick = function() { dbmTriggerAction(pair[1]); };
       });
-      // hash 支持 #dbm
+      // hash 支持 #dbm：直接进入手机版（数据独立加载，不需桌面密码流程）
       window.addEventListener('hashchange', function() {
-        if (window.location.hash === '#dbm') {
-          if (dbPwdSessionAuthed) openDBMobile();
-          else openDBDashboard();
-        }
+        if (window.location.hash === '#dbm') openDBMobile();
       });
       if (window.location.hash === '#dbm') {
-        if (dbPwdSessionAuthed) { setTimeout(openDBMobile, 100); }
-        else { openDBDashboard(); }
+        setTimeout(openDBMobile, 100);
       }
     }
 
