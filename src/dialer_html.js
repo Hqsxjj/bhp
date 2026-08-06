@@ -10685,18 +10685,55 @@ function updateAutoDialBtn() {
           showAppShell();
           updateAccountDisplay();
         } else {
-          error.textContent = '';
-          pinInput.value = '';
-          pinInput.focus();
+          var errMsg = res.error || '登录失败';
+          // Parse LOCKOUT:seconds:message prefix from server
+          var lm = errMsg.match(/LOCKOUT:(\d+):/);
+          if (lm) {
+            startLoginCooldown(parseInt(lm[1]));
+          } else {
+            error.textContent = errMsg;
+            pinInput.value = '';
+            pinInput.focus();
+          }
         }
       })
       .catch(function() {
-        error.textContent = '';
+        error.textContent = '网络错误，请重试';
       })
       .finally(function() {
-        loginBtn.disabled = false;
-        loginBtn.textContent = '登录';
+        if (loginBtn.textContent === '登录') {
+          loginBtn.disabled = false;
+        }
       });
+    }
+
+    // 登录失败冷却（服务端按账户名维度计数）：倒计时期间禁用按钮
+    var loginLockoutTimer = null;
+    function startLoginCooldown(seconds) {
+      var error = document.getElementById('authLoginError');
+      var loginBtn = document.getElementById('authLoginBtn');
+      var pinInput = document.getElementById('authLoginPin');
+      loginBtn.disabled = true;
+      clearInterval(loginLockoutTimer);
+      var until = Date.now() + seconds * 1000;
+      function tick() {
+        var remain = Math.ceil((until - Date.now()) / 1000);
+        if (remain <= 0) {
+          clearInterval(loginLockoutTimer);
+          loginLockoutTimer = null;
+          loginBtn.disabled = false;
+          loginBtn.textContent = '登录';
+          if (error) error.textContent = '';
+          if (pinInput) pinInput.focus();
+          return;
+        }
+        var m = Math.floor(remain / 60);
+        var s = remain % 60;
+        if (error) error.textContent = '登录失败次数过多，请 ' + (m > 0 ? m + '分' : '') + s + '秒 后重试';
+        loginBtn.textContent = m > 0 ? m + '分' + s + '秒' : s + '秒';
+      }
+      tick();
+      loginLockoutTimer = setInterval(tick, 250);
     }
 
     function showSetupOverlay() {

@@ -341,24 +341,54 @@ export default {
     if (path === '/api/dialer/auth/login' && request.method === 'POST') {
       try {
         var body = await request.json();
-        // Turnstile 人机验证 — 配置了 TURNSTILE_SECRET 时强制校验，未配置则放行
-        if (getTurnstileSecret(env) && !(await verifyTurnstile(env, body.turnstileToken, clientIP))) {
-          return new Response(JSON.stringify({ error: '人机验证失败，请刷新页面后重试' }), {
-            status: 403, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-          });
-        }
+        // 登录不做 Turnstile 校验（脚本加载失败时正常用户无法登录），改用服务端冷却防爆破：
+        // 按账户名维度 2 次→1min / 3 次→5min / 4 次+→10min，账户不存在同样计数（防枚举）
         var accountName = (body.account_name || '').trim();
         var pin = (body.pin || '').trim();
         if (!accountName || pin.length < 4) throw new Error('请输入账户名和 PIN 码');
+
+        var loginFailKey = 'dialer:login:fail:' + accountName;
+        var loginFailRaw = await env.DATA_KV.get(loginFailKey);
+        var loginFailState = loginFailRaw ? JSON.parse(loginFailRaw) : { count: 0, lastAttempt: 0 };
+        if (loginFailState.count >= 2) {
+          var lcd = loginFailState.count >= 4 ? 600 : (loginFailState.count === 3 ? 300 : 60);
+          var lelapsed = (Date.now() - loginFailState.lastAttempt) / 1000;
+          if (lelapsed < lcd) {
+            var lremain = Math.ceil(lcd - lelapsed);
+            return new Response(JSON.stringify({ success: false, error: 'LOCKOUT:' + lremain + ':请 ' + lremain + ' 秒后重试' }), {
+              status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+            });
+          }
+        }
 
         var accounts = await dialerGetAccounts(env);
         var account = null;
         for (var ai = 0; ai < accounts.length; ai++) {
           if (accounts[ai].account_name === accountName || accounts[ai].account_id === accountName) { account = accounts[ai]; break; }
         }
-        if (!account) throw new Error('账户不存在');
+        if (!account) {
+          loginFailState.count = (loginFailState.count || 0) + 1;
+          loginFailState.lastAttempt = Date.now();
+          await env.DATA_KV.put(loginFailKey, JSON.stringify(loginFailState), { expirationTtl: 1800 });
+          throw new Error('账户不存在');
+        }
         if (!account.active) throw new Error('该账户已被禁用');
-        if (account.pin_hash !== dialerHashPin(pin)) throw new Error('PIN 码错误');
+        if (account.pin_hash !== dialerHashPin(pin)) {
+          loginFailState.count = (loginFailState.count || 0) + 1;
+          loginFailState.lastAttempt = Date.now();
+          var lttl = loginFailState.count >= 4 ? 1800 : 3600;
+          await env.DATA_KV.put(loginFailKey, JSON.stringify(loginFailState), { expirationTtl: lttl });
+          var lcd2 = loginFailState.count >= 4 ? 600 : (loginFailState.count >= 3 ? 300 : (loginFailState.count >= 2 ? 60 : 0));
+          if (lcd2 > 0) {
+            return new Response(JSON.stringify({ success: false, error: 'LOCKOUT:' + lcd2 + ':PIN 码错误，请 ' + lcd2 + ' 秒后重试' }), {
+              status: 200, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+            });
+          }
+          throw new Error('PIN 码错误');
+        }
+
+        // 登录成功 — 清除失败计数
+        await env.DATA_KV.delete(loginFailKey);
 
         var accountId = account.account_id;
         var token = dialerGenToken();
