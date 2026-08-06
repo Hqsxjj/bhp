@@ -1804,6 +1804,48 @@
       font-size: 0.78rem; font-weight: 800; color: #4a6cf7;
       white-space: nowrap; flex-shrink: 0;
     }
+    /* 底部导航 */
+    .dbm-bottomnav {
+      display: flex; border-top: 0.5px solid var(--card-border);
+      background: #fff; flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom);
+    }
+    body.dark-mode .dbm-bottomnav { background: #1e293b; }
+    .dbm-nav-btn {
+      flex: 1; height: 50px; border: none; background: transparent;
+      font-size: 0.8rem; font-weight: 700; color: var(--text-light);
+      cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;
+    }
+    .dbm-nav-btn.active { color: #4a6cf7; }
+    /* 管理面板 */
+    .dbm-mgr { display: flex; flex-direction: column; }
+    .dbm-mgr-tabs {
+      display: flex; gap: 6px; padding: 8px 12px; background: #fff;
+      border-bottom: 0.5px solid var(--card-border); flex-shrink: 0;
+    }
+    body.dark-mode .dbm-mgr-tabs { background: #1e293b; }
+    .dbm-mgr-tab {
+      flex: 1; height: 36px; border: none; border-radius: 10px;
+      background: var(--btn-bg); color: var(--text-soft);
+      font-size: 0.76rem; font-weight: 700; cursor: pointer;
+      box-shadow: var(--shadow-card);
+    }
+    .dbm-mgr-tab.active { background: rgba(74,108,247,0.12); color: #4a6cf7; }
+    #dbmMgrBody { flex: 1; overflow-y: auto; padding: 12px; }
+    /* 移入的管理面板：手机化适配 */
+    #dbmMgrBody .dbm-mgr-inner { display: flex; flex-direction: column; gap: 14px; }
+    #dbmMgrBody .dbm-mgr-inner > div { background: #fff; border-radius: 14px; padding: 14px; box-shadow: var(--shadow-card); }
+    body.dark-mode #dbmMgrBody .dbm-mgr-inner > div { background: #1e293b; }
+    #dbmMgrBody .dbm-mgr-inner > div > div { font-size: 0.82rem; color: var(--text-main); font-weight: 700; }
+    #dbmMgrBody .dbm-mgr-inner input, #dbmMgrBody .dbm-mgr-inner select {
+      height: 40px; border-radius: 10px; border: none; background: var(--btn-bg);
+      font-size: 0.8rem; color: var(--text-main); outline: none; padding: 0 10px;
+    }
+    #dbmMgrBody .dbm-mgr-inner button { min-height: 40px; border-radius: 10px; border: none; font-size: 0.78rem; font-weight: 700; cursor: pointer; }
+    #dbmMgrBody .dbm-mgr-inner .btn-primary { background: #07c160; color: #fff; }
+    #dbmMgrBody .dbm-mgr-inner .btn-secondary { background: rgba(74,108,247,0.1); color: #4a6cf7; }
+    #dbmMgrBody .dbm-mgr-inner .auth-btn { background: #07c160; color: #fff; }
+    #dbmMgrBody .dbm-mgr-inner textarea { border-radius: 10px; border: none; background: var(--btn-bg); color: var(--text-main); padding: 10px; font-size: 0.78rem; outline: none; }
+    #dbmMgrBody .dbm-mgr-inner .auth-input { background: var(--btn-bg); border: none; }
   </style>
     }
     .db-pager { padding: 4px 10px; }
@@ -2634,6 +2676,20 @@
     <button class="dbm-action-btn blue" id="dbmMoveLeadsBtn">转线索池</button>
     <button class="dbm-action-btn" id="dbmMovePublicBtn">转公海</button>
     <button class="dbm-action-btn red" id="dbmBatchDeleteBtn">批量删除</button>
+  </div>
+  <!-- 管理面板容器（打开时移入桌面面板 DOM，退出时移回） -->
+  <div class="dbm-mgr" id="dbmMgr" style="display:none;flex:1;overflow-y:auto;">
+    <div class="dbm-mgr-tabs">
+      <button class="dbm-mgr-tab active" data-mgrtab="account">账户管理</button>
+      <button class="dbm-mgr-tab" data-mgrtab="backup">数据备份</button>
+      <button class="dbm-mgr-tab" data-mgrtab="content">内容配置</button>
+    </div>
+    <div id="dbmMgrBody"></div>
+  </div>
+  <!-- 底部导航 -->
+  <div class="dbm-bottomnav">
+    <button class="dbm-nav-btn active" id="dbmNavListBtn">客户列表</button>
+    <button class="dbm-nav-btn" id="dbmNavMgrBtn">管理</button>
   </div>
 </div>
   <script>
@@ -8561,6 +8617,16 @@ function updateAutoDialBtn() {
       var ov = document.getElementById('dbMobileOverlay');
       if (!ov) return;
       ov.classList.add('active');
+      // 复位到客户列表视图
+      var navListBtn = document.getElementById('dbmNavListBtn');
+      var navMgrBtn = document.getElementById('dbmNavMgrBtn');
+      if (navListBtn) navListBtn.classList.add('active');
+      if (navMgrBtn) navMgrBtn.classList.remove('active');
+      dbmCloseMgr();
+      var sb = document.querySelector('.dbm-searchbar'); if (sb) sb.style.display = '';
+      var fb = document.getElementById('dbmFilterBar'); if (fb) fb.style.display = '';
+      var ab = document.getElementById('dbmActionBar'); if (ab) ab.style.display = '';
+      var listEl = document.getElementById('dbmList'); if (listEl) listEl.style.display = '';
       // 数据未加载或首次进入时独立加载
       if (!DB.allData || DB.allData.length === 0) {
         dbmFetch();
@@ -8572,6 +8638,8 @@ function updateAutoDialBtn() {
     window.openDBMobile = openDBMobile;
 
     function closeDBMobile() {
+      // 管理面板移回桌面隐藏容器
+      dbmCloseMgr();
       var ov = document.getElementById('dbMobileOverlay');
       if (ov) ov.classList.remove('active');
     }
@@ -8775,12 +8843,137 @@ function updateAutoDialBtn() {
       }
     }
 
+    // ==================== 手机版管理面板（复用桌面面板 DOM） ====================
+    // 面板 ID 映射：手机 tab → 桌面面板元素 + 数据加载函数
+    var DBM_PANELS = [
+      { tab: 'account', panelId: 'dbAccountMgrPanel', load: function() { loadSubAccounts(); loadAccountStats(); } },
+      { tab: 'backup', panelId: 'dbBackupMgrPanel', load: function() { loadBackupConfig(); } },
+      { tab: 'content', panelId: 'dbContentConfigPanel', load: function() { loadContentConfig(); } }
+    ];
+    var _dbmActiveTab = 'account';
+
+    // 进入管理页：把当前 tab 的桌面面板移入手机容器（移动 DOM 不影响已绑定事件）
+    function dbmOpenMgr() {
+      var mgr = document.getElementById('dbmMgr');
+      var body = document.getElementById('dbmMgrBody');
+      if (!mgr || !body) return;
+      mgr.style.display = 'flex';
+      dbmShowMgrTab(_dbmActiveTab);
+    }
+
+    function dbmShowMgrTab(tabName) {
+      _dbmActiveTab = tabName;
+      var body = document.getElementById('dbmMgrBody');
+      if (!body) return;
+      var tabs = document.querySelectorAll('.dbm-mgr-tab');
+      tabs.forEach(function(t) { t.classList.toggle('active', t.getAttribute('data-mgrtab') === tabName); });
+      var entry = null;
+      for (var i = 0; i < DBM_PANELS.length; i++) {
+        if (DBM_PANELS[i].tab === tabName) { entry = DBM_PANELS[i]; break; }
+      }
+      if (!entry) return;
+      var panel = document.getElementById(entry.panelId);
+      if (!panel) return;
+      // 先关闭旧的手机面板包装（把当前面板移回桌面）
+      var oldWrap = document.getElementById('dbmPanelWrap');
+      if (oldWrap) {
+        var oldPanel = oldWrap.firstChild;
+        var ov = document.getElementById('dbOverlay');
+        if (oldPanel && ov) {
+          var dbPanel = ov.querySelector('.db-panel');
+          var pager = ov.querySelector('.crm-pager');
+          if (dbPanel && pager && pager.parentNode === dbPanel) dbPanel.insertBefore(oldPanel, pager);
+          else if (dbPanel) dbPanel.appendChild(oldPanel);
+        }
+        oldWrap.remove();
+      }
+      // 目标面板如果已在手机容器里则直接使用，否则从桌面移入
+      var wrap = document.getElementById('dbmPanelWrap');
+      if (!wrap) {
+        wrap = document.createElement('div');
+        wrap.id = 'dbmPanelWrap';
+        wrap.className = 'dbm-mgr-inner';
+        body.appendChild(wrap);
+      }
+      if (panel.parentNode !== wrap) {
+        panel.parentNode.removeChild(panel);
+        wrap.appendChild(panel);
+      }
+      // 触发数据加载
+      if (entry.load) entry.load();
+      // 主账户才显示子账户管理
+      var subs = document.getElementById('dbAccountMgrSubs');
+      if (subs) subs.style.display = isSessionMaster() ? 'block' : 'none';
+    }
+
+    // 退出管理页：把面板移回桌面原位置（dbOverlay 内），恢复列表视图
+    var _dbmPanelOrig = {}; // panelId -> 原始父节点引用（dbOverlay 内的占位）
+    function dbmCloseMgr() {
+      var mgr = document.getElementById('dbmMgr');
+      var wrap = document.getElementById('dbmPanelWrap');
+      if (wrap) {
+        var panel = wrap.firstChild;
+        if (panel) {
+          // 移回桌面 dbOverlay 内的原始位置（dbOverlay 的 db-panel 末尾）
+          var ov = document.getElementById('dbOverlay');
+          var holder = document.getElementById('db-panel-holder');
+          if (ov && ov.querySelector('.crm-tabs')) {
+            // 插入到 dbOverlay 里 pager 之后（面板原本的位置在 db-panel 内表格后）
+            var dbPanel = ov.querySelector('.db-panel');
+            var pager = ov.querySelector('.crm-pager');
+            if (dbPanel && pager && pager.parentNode === dbPanel) {
+              dbPanel.insertBefore(panel, pager);
+            } else if (dbPanel) {
+              dbPanel.appendChild(panel);
+            } else if (holder) {
+              holder.appendChild(panel);
+            }
+          } else if (holder) {
+            holder.appendChild(panel);
+          }
+        }
+        wrap.remove();
+      }
+      if (mgr) mgr.style.display = 'none';
+    }
+
     // 手机版事件绑定
     function initDBMobile() {
       var backBtn = document.getElementById('dbmBackBtn');
       if (backBtn) backBtn.onclick = closeDBMobile;
       var refreshBtn = document.getElementById('dbmRefreshBtn');
       if (refreshBtn) refreshBtn.onclick = function() { dbmFetch(); };
+      // 底部导航：客户列表 / 管理
+      var navListBtn = document.getElementById('dbmNavListBtn');
+      var navMgrBtn = document.getElementById('dbmNavMgrBtn');
+      var mgrEl = document.getElementById('dbmMgr');
+      function dbmShowListView() {
+        if (navListBtn) navListBtn.classList.add('active');
+        if (navMgrBtn) navMgrBtn.classList.remove('active');
+        if (mgrEl) mgrEl.style.display = 'none';
+        var sb = document.querySelector('.dbm-searchbar'); if (sb) sb.style.display = '';
+        var fb = document.getElementById('dbmFilterBar'); if (fb) fb.style.display = '';
+        var ab = document.getElementById('dbmActionBar'); if (ab) ab.style.display = '';
+        var listEl2 = document.getElementById('dbmList'); if (listEl2) listEl2.style.display = '';
+        dbmCloseMgr();
+        dbmRender();
+      }
+      function dbmShowMgrView() {
+        if (navListBtn) navListBtn.classList.remove('active');
+        if (navMgrBtn) navMgrBtn.classList.add('active');
+        var sb = document.querySelector('.dbm-searchbar'); if (sb) sb.style.display = 'none';
+        var fb = document.getElementById('dbmFilterBar'); if (fb) fb.style.display = 'none';
+        var ab = document.getElementById('dbmActionBar'); if (ab) ab.style.display = 'none';
+        var listEl = document.getElementById('dbmList'); if (listEl) listEl.style.display = 'none';
+        dbmOpenMgr();
+      }
+      if (navListBtn) navListBtn.onclick = dbmShowListView;
+      if (navMgrBtn) navMgrBtn.onclick = dbmShowMgrView;
+      // 管理 tab 切换
+      var mgrTabs = document.querySelectorAll('.dbm-mgr-tab');
+      mgrTabs.forEach(function(t) {
+        t.onclick = function() { dbmShowMgrTab(t.getAttribute('data-mgrtab')); };
+      });
       var searchInput = document.getElementById('dbmSearchInput');
       if (searchInput) searchInput.oninput = function() {
         var clearBtn = document.getElementById('dbmSearchClearBtn');
