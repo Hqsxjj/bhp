@@ -21,6 +21,7 @@ export const DIET_HTML = `<!DOCTYPE html>
       --red: #e05060;
       --radius: 14px;
       --radius-sm: 10px;
+      --shadow-card: 0 2px 12px rgba(0,0,0,0.06);
       --wallpaper-url: '';
     }
     body.dark {
@@ -29,6 +30,7 @@ export const DIET_HTML = `<!DOCTYPE html>
       --text: #e0d0e0;
       --text2: #b0a0b0;
       --text3: #807080;
+      --shadow-card: 0 2px 16px rgba(0,0,0,0.4);
     }
     html { height: 100%; width: 100%; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
     body { height: 100%; width: 100%; font-family: "SF Pro Display", "SF Pro Text", -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif; font-weight: 400; letter-spacing: -0.01em; line-height: 1.45; color: var(--text); }
@@ -57,7 +59,7 @@ export const DIET_HTML = `<!DOCTYPE html>
       background: rgba(255,255,255,0.5); backdrop-filter: blur(8px);
       color: #d08ae8; font-size: 0.75rem; font-weight: 600;
       padding: 4px 10px; border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.3);
+      border: none; box-shadow: var(--shadow-card);
     }
     body.dark .header .day-badge { background: rgba(255,255,255,0.1); }
     .header .lock-btn, .header .settings-btn {
@@ -65,8 +67,7 @@ export const DIET_HTML = `<!DOCTYPE html>
       background: var(--card); backdrop-filter: blur(10px);
       -webkit-backdrop-filter: blur(10px);
       border-radius: 15px; font-size: 0.72rem; cursor: pointer; font-weight: 600;
-      color: var(--text2); box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-      border: 1px solid var(--card-border);
+      color: var(--text2); box-shadow: var(--shadow-card);
       text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
     }
 
@@ -166,7 +167,7 @@ export const DIET_HTML = `<!DOCTYPE html>
     /* Calendar */
     .cal-card { margin-bottom: 14px; }
     .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .cal-head button { width: 28px; height: 28px; border: none; background: rgba(255,255,255,0.5); backdrop-filter: blur(8px); border-radius: 50%; font-size: 0.9rem; cursor: pointer; color: var(--text2); font-weight: 600; border: 1px solid var(--card-border); }
+    .cal-head button { width: 28px; height: 28px; border: none; background: rgba(255,255,255,0.5); backdrop-filter: blur(8px); border-radius: 50%; font-size: 0.9rem; cursor: pointer; color: var(--text2); font-weight: 600; box-shadow: var(--shadow-card); }
     .cal-head .cal-title { font-size: 0.9rem; font-weight: 600; color: var(--text); }
     .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.65rem; font-weight: 600; color: var(--text3); margin-bottom: 4px; }
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }

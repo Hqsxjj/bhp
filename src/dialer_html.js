@@ -158,7 +158,7 @@
     }
     .icon-btn {
       background: var(--btn-bg);
-      border: 0.5px solid var(--card-border);
+      border: none;
       color: var(--text-main);
       font-size: 0.76rem;
       font-weight: 600;
@@ -169,6 +169,7 @@
       align-items: center;
       gap: 6px;
       transition: all 0.2s;
+      box-shadow: var(--shadow-card);
     }
     .icon-btn:hover {
       background: var(--btn-hover);
@@ -224,6 +225,7 @@
       border-radius: 50%; font-size: 1rem; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       color: var(--text-soft); z-index: 10;
+      box-shadow: var(--shadow-card);
       transition: all 0.2s;
     }
     .import-close-btn:hover { background: #e81123; color: #fff; }
@@ -460,6 +462,7 @@
       border-radius: 50%;
       background: var(--accent-wechat);
       flex-shrink: 0;
+      box-shadow: var(--shadow-card);
     }
     .corner-seq span {
       font-size: 0.55rem;
@@ -502,6 +505,7 @@
       border-radius: var(--radius-xs);
       display: inline-flex;
       align-items: center;
+      box-shadow: var(--shadow-card);
     }
     .xls-dial-badge-todo {
       background: var(--btn-bg);
@@ -510,12 +514,10 @@
     .xls-dial-badge-success {
       background: rgba(7, 193, 96, 0.1);
       color: var(--accent-intent);
-      border: 0.5px solid rgba(7, 193, 96, 0.2);
     }
     .xls-dial-badge-failed {
       background: rgba(231, 76, 60, 0.1);
       color: #e74c3c;
-      border: 0.5px solid rgba(231, 76, 60, 0.2);
     }
     
 
@@ -583,6 +585,7 @@
       font-weight: 500;
       padding: 2px 10px;
       border-radius: var(--radius-xs);
+      box-shadow: var(--shadow-card);
     }
     .client-card-tag-company {
       background: rgba(7,193,96,0.08);
@@ -886,6 +889,7 @@
       margin-bottom: 14px;
       background: var(--accent-wechat-bg);
       border-radius: var(--radius-sm);
+      box-shadow: var(--shadow-card);
     }
     .auth-wc-label {
       font-size: 0.72rem;
@@ -977,7 +981,7 @@
     }
     .auth-account-item {
       padding: 10px 12px;
-      border: 0.5px solid var(--card-border);
+      border: none;
       border-radius: var(--radius-sm);
       cursor: pointer;
       font-size: 0.8rem;
@@ -986,13 +990,12 @@
       background: var(--btn-bg);
       transition: all 0.15s;
       text-align: left;
+      box-shadow: var(--shadow-card);
     }
     .auth-account-item:hover {
-      border-color: var(--accent-wechat);
       background: var(--accent-wechat-bg);
     }
     .auth-account-item.selected {
-      border-color: var(--accent-wechat);
       background: var(--accent-wechat-bg);
     }
 
@@ -1162,12 +1165,10 @@
     .xls-dial-badge-whitelist {
       background: rgba(7,193,96,0.1);
       color: var(--accent-wechat);
-      border: 0.5px solid rgba(7,193,96,0.2);
     }
     .xls-dial-badge-not-whitelist {
       background: rgba(231,76,60,0.1);
       color: #e74c3c;
-      border: 0.5px solid rgba(231,76,60,0.2);
     }
 
     /* Copy limit toast */
@@ -1251,6 +1252,7 @@
       font-size: 0.75rem; font-weight: 500; color: var(--text-light);
       background: var(--btn-bg); border-radius: var(--radius-capsule);
       padding: 3px 10px; white-space: nowrap; flex-shrink: 0;
+      box-shadow: var(--shadow-card);
     }
     .reminder-countdown.urgent { color: #e05060; background: rgba(224,80,96,0.1); }
     /* 头部倒计时胶囊心跳式红闪：每周期双连闪——大光晕+扩散光环+整体放大，最夸张档 */
@@ -1270,7 +1272,7 @@
       flex-shrink: 0; width: 20px; height: 20px; border-radius: 50%;
       background: #4a6cf7; color: #fff; font-size: 0.7rem; font-weight: 600;
       display: flex; align-items: center; justify-content: center;
-      margin-top: 1px;
+      margin-top: 1px; box-shadow: var(--shadow-card);
     }
     .reminder-round-info {
       display: flex; align-items: center; justify-content: space-between;
@@ -1288,6 +1290,7 @@
       font-size: 0.85rem; font-weight: 500; font-family: inherit;
       border-radius: var(--radius-sm); cursor: pointer;
       transition: background 0.15s; letter-spacing: -0.01em;
+      box-shadow: var(--shadow-card);
       -webkit-tap-highlight-color: transparent;
       margin-top: 2px;
     }
@@ -1333,6 +1336,7 @@
       font-size: 0.85rem; font-weight: 600; font-family: inherit;
       border-radius: var(--radius-sm); cursor: pointer;
       transition: background 0.15s; letter-spacing: -0.01em;
+      box-shadow: var(--shadow-card);
       -webkit-tap-highlight-color: transparent;
       margin-top: 2px;
     }
@@ -1371,10 +1375,11 @@
     .drawer-progress-fill { height: 100%; border-radius: 2px; background: var(--accent-wechat); width: 0%; transition: width 0.3s ease; }
     .drawer-step-btn {
       width: 36px; height: 36px; border-radius: 10px;
-      border: 0.5px solid var(--card-border); background: var(--card-bg);
+      border: none; background: var(--card-bg);
       color: var(--text-main); font-size: 1.2rem; font-weight: 600;
       display: inline-flex; align-items: center; justify-content: center;
       cursor: pointer; font-family: inherit; line-height: 1;
+      box-shadow: var(--shadow-card);
       -webkit-tap-highlight-color: transparent; touch-action: manipulation;
     }
     .drawer-step-btn:active { background: var(--btn-hover); }
@@ -1382,7 +1387,8 @@
       width: 32px; height: 32px; border-radius: 10px; border: none;
       background: var(--btn-bg); color: var(--text-main);
       display: inline-flex; align-items: center; justify-content: center;
-      cursor: pointer; -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+      cursor: pointer; box-shadow: var(--shadow-card);
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
     }
     .drawer-close-btn:active { background: var(--btn-hover); }
     .drawer-slogan {
@@ -1439,6 +1445,7 @@
     .db-close {
       width: 28px; height: 28px; border: none; background: rgba(0,0,0,0.06); border-radius: var(--radius-xs);
       font-size: 0.9rem; cursor: pointer; color: #666; display: flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow-card);
     }
     .db-close:hover { background: #e81123; color: #fff; }
     body.dark-mode .db-close { background: rgba(255,255,255,0.08); color: #cbd5e1; }
@@ -1451,24 +1458,25 @@
     }
     body.dark-mode .crm-shortcut-bar { background: #1e293b; }
     .crm-shortcut-btn {
-      padding: 5px 16px; border-radius: var(--radius-xs); border: 1px solid #e2e8f0; font-size: 0.78rem;
+      padding: 5px 16px; border-radius: var(--radius-xs); border: none; font-size: 0.78rem;
       background: #f8fafc; color: #64748b; font-weight: 600; cursor: pointer; transition: all 0.2s;
+      box-shadow: var(--shadow-card);
     }
-    .crm-shortcut-btn:hover { border-color: #ff5722; color: #ff5722; }
-    .crm-shortcut-btn.active { background: rgba(255,87,34,0.08); border-color: #ff5722; color: #ff5722; }
-    body.dark-mode .crm-shortcut-btn { background: #0f172a; border-color: #334155; color: #94a3b8; }
-    body.dark-mode .crm-shortcut-btn.active { background: rgba(255,87,34,0.15); color: #ff5722; border-color: #ff5722; }
+    .crm-shortcut-btn:hover { color: #ff5722; }
+    .crm-shortcut-btn.active { background: rgba(255,87,34,0.08); color: #ff5722; }
+    body.dark-mode .crm-shortcut-btn { background: #0f172a; color: #94a3b8; }
+    body.dark-mode .crm-shortcut-btn.active { background: rgba(255,87,34,0.15); color: #ff5722; }
     .crm-shortcut-add {
       font-size: 1.1rem; color: #ff5722; font-weight: 600; cursor: pointer; padding: 0 4px;
     }
     .crm-shortcut-toggle {
       margin-left: auto; font-size: 0.72rem; font-weight: 700; color: #64748b;
-      background: #f8fafc; border: 1px solid #e2e8f0; border-radius: var(--radius-xs);
+      background: #f8fafc; border: none; border-radius: var(--radius-xs);
       padding: 5px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
-      transition: all 0.2s; white-space: nowrap;
+      transition: all 0.2s; white-space: nowrap; box-shadow: var(--shadow-card);
     }
-    .crm-shortcut-toggle:hover { border-color: #ff5722; color: #ff5722; }
-    body.dark-mode .crm-shortcut-toggle { background: #0f172a; border-color: #334155; color: #94a3b8; }
+    .crm-shortcut-toggle:hover { color: #ff5722; }
+    body.dark-mode .crm-shortcut-toggle { background: #0f172a; color: #94a3b8; }
 
     /* CRM Search Area */
     .crm-search-card {
@@ -1506,14 +1514,15 @@
     .crm-btn-search {
       height: 32px; padding: 0 20px; border-radius: var(--radius-xs); background: #ff5722; color: #fff;
       font-size: 0.78rem; font-weight: 700; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+      box-shadow: var(--shadow-card);
     }
     .crm-btn-search:hover { background: #f4511e; }
     .crm-btn-reset {
       height: 32px; padding: 0 16px; border-radius: var(--radius-xs); background: #fff; color: #475569;
-      font-size: 0.78rem; font-weight: 700; border: 1px solid #cbd5e1; cursor: pointer;
+      font-size: 0.78rem; font-weight: 700; border: none; cursor: pointer; box-shadow: var(--shadow-card);
     }
-    .crm-btn-reset:hover { border-color: #ff5722; color: #ff5722; }
-    body.dark-mode .crm-btn-reset { background: #0f172a; border-color: #334155; color: #94a3b8; }
+    .crm-btn-reset:hover { color: #ff5722; }
+    body.dark-mode .crm-btn-reset { background: #0f172a; color: #94a3b8; }
 
     /* Action Toolbar */
     .crm-toolbar {
@@ -1523,25 +1532,25 @@
     body.dark-mode .crm-toolbar { background: #1e293b; border-color: #334155; }
     .crm-tool-btn {
       height: 30px; padding: 0 12px; border-radius: var(--radius-xs); font-size: 0.78rem; font-weight: 700;
-      background: #fff; border: 1px solid #e2e8f0; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
-      transition: all 0.2s;
+      background: #fff; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 4px;
+      transition: all 0.2s; box-shadow: var(--shadow-card);
     }
-    .crm-tool-btn:hover { border-color: #ff5722; color: #ff5722; }
-    .crm-tool-btn.primary { background: #ff5722; color: #fff; border: none; }
+    .crm-tool-btn:hover { color: #ff5722; }
+    .crm-tool-btn.primary { background: #ff5722; color: #fff; }
     .crm-tool-btn.primary:hover { background: #f4511e; }
-    .crm-tool-btn.green { border-color: #07c160; color: #07c160; background: rgba(7,193,96,0.03); }
+    .crm-tool-btn.green { color: #07c160; background: rgba(7,193,96,0.08); }
     .crm-tool-btn.green:hover { background: #07c160; color: #fff; }
-    .crm-tool-btn.blue { border-color: #4a6cf7; color: #4a6cf7; background: rgba(74,108,247,0.03); }
+    .crm-tool-btn.blue { color: #4a6cf7; background: rgba(74,108,247,0.08); }
     .crm-tool-btn.blue:hover { background: #4a6cf7; color: #fff; }
-    .crm-tool-btn.orange { border-color: #ff9800; color: #ff9800; background: rgba(255,152,0,0.03); }
+    .crm-tool-btn.orange { color: #ff9800; background: rgba(255,152,0,0.08); }
     .crm-tool-btn.orange:hover { background: #ff9800; color: #fff; }
-    .crm-tool-btn.red { border-color: #ef4444; color: #ef4444; background: rgba(239,68,68,0.03); }
+    .crm-tool-btn.red { color: #ef4444; background: rgba(239,68,68,0.08); }
     .crm-tool-btn.red:hover { background: #ef4444; color: #fff; }
-    body.dark-mode .crm-tool-btn { background: #0f172a; border-color: #334155; color: #94a3b8; }
-    body.dark-mode .crm-tool-btn.green { border-color: #07c160; color: #07c160; }
-    body.dark-mode .crm-tool-btn.blue { border-color: #4a6cf7; color: #4a6cf7; }
-    body.dark-mode .crm-tool-btn.orange { border-color: #ff9800; color: #ff9800; }
-    body.dark-mode .crm-tool-btn.red { border-color: #ef4444; color: #ef4444; }
+    body.dark-mode .crm-tool-btn { background: #0f172a; color: #94a3b8; }
+    body.dark-mode .crm-tool-btn.green { color: #07c160; }
+    body.dark-mode .crm-tool-btn.blue { color: #4a6cf7; }
+    body.dark-mode .crm-tool-btn.orange { color: #ff9800; }
+    body.dark-mode .crm-tool-btn.red { color: #ef4444; }
     .crm-toolbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; }
 
     /* CRM Status Badges Bar */
@@ -1602,15 +1611,15 @@
     }
     /* New / Old Badges */
     .crm-badge-new {
-      background: #e6f7ff; color: #1890ff; border: 1px solid #91d5ff;
+      background: #e6f7ff; color: #1890ff; border: none; box-shadow: var(--shadow-card);
       font-size: 10px; padding: 1px 4px; border-radius: var(--radius-xs); font-weight: 700; margin-right: 4px;
     }
     .crm-badge-old {
-      background: #f5f5f5; color: #8c8c8c; border: 1px solid #d9d9d9;
+      background: #f5f5f5; color: #8c8c8c; border: none; box-shadow: var(--shadow-card);
       font-size: 10px; padding: 1px 4px; border-radius: var(--radius-xs); font-weight: 700; margin-right: 4px;
     }
-    body.dark-mode .crm-badge-new { background: rgba(24,144,255,0.15); border-color: rgba(24,144,255,0.3); }
-    body.dark-mode .crm-badge-old { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.15); }
+    body.dark-mode .crm-badge-new { background: rgba(24,144,255,0.15); }
+    body.dark-mode .crm-badge-old { background: rgba(255,255,255,0.05); }
     
     /* Phone Cell Call icon */
     .crm-phone-cell { display: flex; align-items: center; gap: 6px; font-family: monospace; font-size: 0.82rem; }
@@ -1637,12 +1646,13 @@
     body.dark-mode .crm-pager-left { color: #cbd5e1; }
     .crm-pager-center { display: flex; align-items: center; gap: 8px; }
     .crm-pager-btn {
-      height: 28px; padding: 0 12px; border: 1px solid #cbd5e1; background: #fff; color: #475569;
+      height: 28px; padding: 0 12px; border: none; background: #fff; color: #475569;
       border-radius: var(--radius-xs); font-size: 0.78rem; font-weight: 600; cursor: pointer;
+      box-shadow: var(--shadow-card);
     }
-    .crm-pager-btn:hover:not(:disabled) { border-color: #ff5722; color: #ff5722; }
-    .crm-pager-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    body.dark-mode .crm-pager-btn { background: #0f172a; border-color: #334155; color: #cbd5e1; }
+    .crm-pager-btn:hover:not(:disabled) { color: #ff5722; }
+    .crm-pager-btn:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+    body.dark-mode .crm-pager-btn { background: #0f172a; color: #cbd5e1; }
     
     .crm-pager-right { display: flex; align-items: center; gap: 8px; }
     .crm-select-page {
@@ -1655,23 +1665,22 @@
     .cust-cat-tag {
       display: inline-block; padding: 2px 8px; border-radius: 10px;
       font-size: 11px; font-weight: 700; cursor: pointer;
-      background: #f0f0f0; color: #888; border: 1px dashed #ccc;
+      background: #f0f0f0; color: #888; border: none; box-shadow: var(--shadow-card);
       max-width: 80px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
-    .cust-cat-tag.set { border-style: solid; }
     .cust-cat-tag:hover { filter: brightness(0.9); }
-    .cust-cat-tag.cat-潜在客户 { background:#e3f2fd;color:#1565c0;border-color:#90caf9; }
-    .cust-cat-tag.cat-意向客户 { background:#fff3e0;color:#e65100;border-color:#ffcc80; }
-    .cust-cat-tag.cat-已成交 { background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7; }
-    .cust-cat-tag.cat-无效号码 { background:#fce4ec;color:#c62828;border-color:#ef9a9a; }
-    .cust-cat-tag.cat-待跟进 { background:#f3e5f5;color:#6a1b9a;border-color:#ce93d8; }
-    .cust-cat-tag.cat-老客户 { background:#e0f7fa;color:#006064;border-color:#80deea; }
-    .cust-cat-tag.cat-同行 { background:#fff8e1;color:#f57f17;border-color:#fff176; }
-    .cust-cat-tag.cat-其他 { background:#eceff1;color:#455a64;border-color:#b0bec5; }
+    .cust-cat-tag.cat-潜在客户 { background:#e3f2fd;color:#1565c0; }
+    .cust-cat-tag.cat-意向客户 { background:#fff3e0;color:#e65100; }
+    .cust-cat-tag.cat-已成交 { background:#e8f5e9;color:#2e7d32; }
+    .cust-cat-tag.cat-无效号码 { background:#fce4ec;color:#c62828; }
+    .cust-cat-tag.cat-待跟进 { background:#f3e5f5;color:#6a1b9a; }
+    .cust-cat-tag.cat-老客户 { background:#e0f7fa;color:#006064; }
+    .cust-cat-tag.cat-同行 { background:#fff8e1;color:#f57f17; }
+    .cust-cat-tag.cat-其他 { background:#eceff1;color:#455a64; }
     .cust-cat-edit-wrap { display: inline-flex; gap: 2px; align-items: center; }
     .cust-cat-select, .cust-cat-input { font-size: 11px; padding: 1px 4px; border-radius: var(--radius-xs); border: 1px solid #ff5722; outline: none; }
     .cust-cat-input { width: 60px; }
-    .cust-cat-save, .cust-cat-cancel { font-size: 10px; padding: 1px 6px; border-radius: var(--radius-xs); cursor: pointer; border: none; font-weight: 700; }
+    .cust-cat-save, .cust-cat-cancel { font-size: 10px; padding: 1px 6px; border-radius: var(--radius-xs); cursor: pointer; border: none; font-weight: 700; box-shadow: var(--shadow-card); }
     .cust-cat-save { background: #07c160; color: #fff; }
     .cust-cat-cancel { background: #eee; color: #666; }
     /* Mobile responsive */
@@ -1887,7 +1896,7 @@
             </div>
             <span style="font-size: 0.88rem; color: var(--text-main); font-weight: 700; letter-spacing: 0.5px;">BH-AI 智能双引擎导入助手</span>
             <span style="font-size: 0.7rem; color: var(--text-light); max-width: 320px; line-height: 1.4; margin-top: -4px;">搭载启发式文字密度与特征识别算法，自动检测表头、过滤噪音，100% 本地隐私安全。</span>
-            <button id="ocrTrainingDataBtn" style="background:transparent; border:0.5px solid var(--card-border); font-size:0.62rem; color:var(--text-soft); cursor:pointer; display:inline-flex; align-items:center; gap:3px; padding:2px 8px; border-radius:10px; margin-top:-2px;">训练数据 (<span id="trainingCountBadge" style="color:var(--accent-wechat);font-weight:800;">0</span>)</button>
+            <button id="ocrTrainingDataBtn" style="background:var(--btn-bg); border:none; box-shadow:var(--shadow-card); font-size:0.62rem; color:var(--text-soft); cursor:pointer; display:inline-flex; align-items:center; gap:3px; padding:2px 8px; border-radius:10px; margin-top:-2px;">训练数据 (<span id="trainingCountBadge" style="color:var(--accent-wechat);font-weight:800;">0</span>)</button>
             <a id="dialerTemplateBtn" style="font-size:0.62rem; color:var(--accent-wechat); cursor:pointer; font-weight:700; text-decoration:underline; margin-top:-2px; white-space:nowrap;" title="下载客户导入Excel模板文件">下载导入模板</a>
 
             
@@ -1902,7 +1911,7 @@
               <textarea id="textImportArea" placeholder="在此粘贴文本，如：张三 13800138000 腾讯科技 备注" style="width:100%; height:120px; padding:8px; font-size:0.72rem; border:0.5px solid var(--card-border); border-radius:var(--radius-xs); background:var(--card-bg); color:var(--text-main); resize:vertical; outline:none; font-family:monospace;"></textarea>
               <div style="display:flex; gap:6px;">
                 <button class="btn-primary" id="textImportExtractBtn" style="flex:1; padding:6px; font-size:0.72rem; background:var(--wechat-gradient); color:white; border:none; border-radius:var(--radius-xs); font-weight:700;">智能识别提取</button>
-                <button class="btn-secondary" style="padding:6px 12px; font-size:0.72rem; background:var(--btn-bg); color:var(--text-soft); border:0.5px solid var(--card-border); border-radius:var(--radius-xs);" onclick="document.getElementById('textImportPanel').style.display='none';">取消</button>
+                <button class="btn-secondary" style="padding:6px 12px; font-size:0.72rem; background:var(--btn-bg); color:var(--text-soft); border:none; box-shadow:var(--shadow-card); border-radius:var(--radius-xs);" onclick="document.getElementById('textImportPanel').style.display='none';">取消</button>
               </div>
             </div>
             <input type="file" id="xlsFileInput" accept=".xls,.xlsx,.xlsm,.csv,.docx,.pdf,.txt" style="display:none;">
@@ -1982,7 +1991,7 @@
           <div id="aiImportReport" style="display: none; flex-direction: column; width: 100%; text-align: left; gap: 8px;">
             <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px dashed var(--border-light); padding-bottom: 6px;">
               <span id="aiReportTitle" style="font-size: 0.8rem; font-weight: 700; color: var(--text-main);">AI 识别报告</span>
-              <span id="aiConfidenceBadge" style="font-size: 0.62rem; font-weight: 600; padding: 2px 6px; border-radius: var(--radius-xs); background: rgba(7, 193, 96, 0.1); color: var(--accent-wechat); border: 0.5px solid rgba(7, 193, 96, 0.2);">● 置信度: 98%</span>
+              <span id="aiConfidenceBadge" style="font-size: 0.62rem; font-weight: 600; padding: 2px 6px; border-radius: var(--radius-xs); background: rgba(7, 193, 96, 0.1); color: var(--accent-wechat); border: none; box-shadow: var(--shadow-card);">● 置信度: 98%</span>
             </div>
 
             <!-- Mapped Pillars -->
@@ -2060,7 +2069,7 @@
 
             <!-- Confirm Buttons -->
             <div style="display: flex; gap: 8px; width: 100%; margin-top: 4px;">
-              <button id="aiConfirmImportBtn" class="btn-primary" style="flex: 1; padding: 8px; font-size: 0.78rem; font-weight: 600; border-radius: var(--radius-sm); box-shadow: var(--wechat-gradient); text-align: center;">AI 确认导入</button>
+              <button id="aiConfirmImportBtn" class="btn-primary" style="flex: 1; padding: 8px; font-size: 0.78rem; font-weight: 600; border-radius: var(--radius-sm); box-shadow: var(--shadow-card); text-align: center;">AI 确认导入</button>
               <button id="aiResetImportBtn" class="btn-modal btn-neutral" style="padding: 8px 14px; font-size: 0.78rem; font-weight: 600; border-radius: var(--radius-sm); height: auto; box-shadow: none;">取消</button>
             </div>
           </div>
@@ -2110,7 +2119,7 @@
         <span id="callAssistNote" style="font-size:0.72rem;font-weight:700;color:var(--text-soft);line-height:1.4;word-break:break-all;white-space:pre-wrap;"></span>
       </div>
       <div style="display:flex;justify-content:center;margin-top:4px;width:100%;">
-        <a id="callAssistDialLink" class="btn-modal btn-success" style="width:100%;text-decoration:none;display:flex;align-items:center;justify-content:center;font-size:0.85rem;height:38px;box-shadow:var(--wechat-gradient);border-radius:var(--radius-xs);">立即拨打</a>
+        <a id="callAssistDialLink" class="btn-modal btn-success" style="width:100%;text-decoration:none;display:flex;align-items:center;justify-content:center;font-size:0.85rem;height:38px;box-shadow:var(--shadow-card);border-radius:var(--radius-xs);">立即拨打</a>
       </div>
       
       <!-- Recording Player Container inside Call Assistant Modal -->
@@ -2123,16 +2132,16 @@
       <div style="text-align:left;display:flex;flex-direction:column;gap:4px;width:100%;">
         <div style="display:flex;align-items:center;gap:8px;">
           <span class="client-card-label" style="font-size:0.65rem;color:var(--text-light);font-weight:800;">通话小记 / 沟通记录</span>
-          <button type="button" id="bhpBoldBtn" title="加粗 (Alt+B)" style="height:22px;width:22px;font-weight:900;font-size:0.6rem;border:0.5px solid var(--card-border);background:var(--btn-bg);color:var(--text-main);cursor:pointer;border-radius:3px;padding:0;line-height:1;flex-shrink:0;">B</button>
-          <button type="button" id="bhpDelBtn" title="删除线 (Alt+D)" style="height:22px;width:22px;font-weight:700;font-size:0.5rem;border:0.5px solid var(--card-border);background:var(--btn-bg);color:var(--text-main);cursor:pointer;border-radius:3px;padding:0;line-height:1;text-decoration:line-through;flex-shrink:0;">D</button>
+          <button type="button" id="bhpBoldBtn" title="加粗 (Alt+B)" style="height:22px;width:22px;font-weight:900;font-size:0.6rem;border:none;box-shadow:var(--shadow-card);background:var(--btn-bg);color:var(--text-main);cursor:pointer;border-radius:3px;padding:0;line-height:1;flex-shrink:0;">B</button>
+          <button type="button" id="bhpDelBtn" title="删除线 (Alt+D)" style="height:22px;width:22px;font-weight:700;font-size:0.5rem;border:none;box-shadow:var(--shadow-card);background:var(--btn-bg);color:var(--text-main);cursor:pointer;border-radius:3px;padding:0;line-height:1;text-decoration:line-through;flex-shrink:0;">D</button>
         </div>
         <textarea id="callLogNote" placeholder="在这里输入通话记录、客户意向等备注信息..." style="width:100%;height:100px;font-size:0.8rem;padding:8px 10px;background:var(--btn-bg);border:0.5px solid var(--card-border);border-radius:var(--radius-xs);color:var(--text-main);outline:none;font-weight:700;resize:none;"></textarea>
       </div>
 
       <!-- Direct Outcome Action Buttons -->
       <div style="display:flex;gap:10px;width:100%;margin-top:4px;">
-        <button id="callOutcomeSuccessBtn" class="btn-modal btn-success" style="flex:1;font-size:0.85rem;height:42px;box-shadow:var(--wechat-gradient);">已接通</button>
-        <button id="callOutcomeFailedBtn" class="btn-modal btn-danger" style="flex:1;font-size:0.85rem;height:42px;box-shadow:var(--intent-gradient);">未接通</button>
+        <button id="callOutcomeSuccessBtn" class="btn-modal btn-success" style="flex:1;font-size:0.85rem;height:42px;box-shadow:var(--shadow-card);">已接通</button>
+        <button id="callOutcomeFailedBtn" class="btn-modal btn-danger" style="flex:1;font-size:0.85rem;height:42px;box-shadow:var(--shadow-card);">未接通</button>
       </div>
     </div>
   </div>
@@ -2249,7 +2258,7 @@
       <span style="color:var(--text-main);">各账户上传统计：</span>
       <span id="dbAccountStatsList"></span>
       <span style="margin-left:auto; display:flex; align-items:center; gap:6px;">
-        <button id="dbMigrateBtn" style="display:none; height:26px; padding:0 10px; font-size:0.65rem; border:1px solid #e67e22; background:rgba(230,126,34,0.08); color:#e67e22; border-radius:3px; font-weight:700; cursor:pointer;">归属主账户</button>
+        <button id="dbMigrateBtn" style="display:none; height:26px; padding:0 10px; font-size:0.65rem; border:none; box-shadow:var(--shadow-card); background:rgba(230,126,34,0.12); color:#e67e22; border-radius:3px; font-weight:700; cursor:pointer;">归属主账户</button>
         <span>查看：</span>
         <select id="dbViewAccountSel" style="height:26px; padding:0 6px; font-size:0.68rem; border:0.5px solid var(--card-border); border-radius:3px; font-weight:700; background:var(--card-bg); color:var(--text-main); cursor:pointer;">
           <option value="">我的数据</option>
@@ -2344,7 +2353,7 @@
       <div id="dbChangePinError" style="font-size:0.62rem; min-height:16px;"></div>
       <div style="display:flex; gap:8px; border-top:0.5px solid var(--card-border); padding-top:12px;">
         <button id="dbLogoutBtn" class="btn-secondary" style="flex:1; height:34px; font-size:0.75rem;">退出登录</button>
-        <button id="dbResetAccountsBtn" style="flex:1; height:34px; background:transparent; border:1px solid #e74c3c; color:#e74c3c; border-radius:var(--radius-xs); font-size:0.72rem; font-weight:700; cursor:pointer;">重置所有账户</button>
+        <button id="dbResetAccountsBtn" style="flex:1; height:34px; background:rgba(231,76,60,0.08); border:none; box-shadow:var(--shadow-card); color:#e74c3c; border-radius:var(--radius-xs); font-size:0.72rem; font-weight:700; cursor:pointer;">重置所有账户</button>
       </div>
       <div id="dbResetAccountsError" style="font-size:0.62rem; min-height:16px; text-align:center;"></div>
     </div>
@@ -2371,7 +2380,7 @@
         <div style="font-size:0.68rem; color:var(--text-light); line-height:1.5;">保存配置后，该邮箱也会作为爆破密码触发时的自动备份接收邮箱。</div>
       </div>
       <button id="dbSendBackupBtn" class="auth-btn" style="font-size:0.78rem;padding:8px 0;background:#4a6cf7;color:#fff;">发送备份</button>
-      <button id="dbTestBackupBtn" class="auth-btn" style="font-size:0.78rem;padding:8px 0;background:transparent;border:0.5px solid var(--card-border);color:var(--text-main);">测试邮件（1条客户数据）</button>
+      <button id="dbTestBackupBtn" class="auth-btn" style="font-size:0.78rem;padding:8px 0;background:var(--btn-bg);border:none;box-shadow:var(--shadow-card);color:var(--text-main);">测试邮件（1条客户数据）</button>
       <div id="dbBackupStatus" style="font-size:0.68rem; min-height:18px; line-height:1.4;"></div>
     </div>
 
@@ -6276,13 +6285,13 @@
             badgeHtml = '<span class="xls-dial-badge xls-dial-badge-success">已接通 (' + (c.duration || '00:00') + ')</span>';
             cardClass += ' dialed';
             if (phoneVal) {
-              badgeHtml += ' <button class="rec-play-btn" data-phone="' + esc(phoneVal) + '" title="播放通话录音" style="font-size:0.6rem;padding:1px 6px;border:1px solid #07c160;background:rgba(7,193,96,0.08);color:#07c160;border-radius:3px;cursor:pointer;font-weight:700;margin-left:4px;" onclick="event.stopPropagation();var p=this.dataset.phone;var a=document.createElement(\\x27audio\\x27);a.controls=true;a.style.width=\\x27100%\\x27;a.style.height=\\x2728px\\x27;a.style.marginTop=\\x274px\\x27;var w=this.nextElementSibling;if(w&&w.classList.contains(\\x27rec-audio-wrap\\x27)){w.remove();return;}var d=document.createElement(\\x27div\\x27);d.className=\\x27rec-audio-wrap\\x27;d.style.width=\\x27100%\\x27;d.appendChild(a);this.parentElement.appendChild(d);a.src=\\x27/api/local-recording?phone=\\x27+encodeURIComponent(p);a.play().catch(function(){});">录音</button>';
+              badgeHtml += ' <button class="rec-play-btn" data-phone="' + esc(phoneVal) + '" title="播放通话录音" style="font-size:0.6rem;padding:1px 6px;border:none;box-shadow:var(--shadow-card);background:rgba(7,193,96,0.1);color:#07c160;border-radius:3px;cursor:pointer;font-weight:700;margin-left:4px;" onclick="event.stopPropagation();var p=this.dataset.phone;var a=document.createElement(\\x27audio\\x27);a.controls=true;a.style.width=\\x27100%\\x27;a.style.height=\\x2728px\\x27;a.style.marginTop=\\x274px\\x27;var w=this.nextElementSibling;if(w&&w.classList.contains(\\x27rec-audio-wrap\\x27)){w.remove();return;}var d=document.createElement(\\x27div\\x27);d.className=\\x27rec-audio-wrap\\x27;d.style.width=\\x27100%\\x27;d.appendChild(a);this.parentElement.appendChild(d);a.src=\\x27/api/local-recording?phone=\\x27+encodeURIComponent(p);a.play().catch(function(){});">录音</button>';
             }
           } else if (c.dialedStatus === 'failed') {
             badgeHtml = '<span class="xls-dial-badge xls-dial-badge-failed">未接通</span>';
             cardClass += ' dialed';
             if (phoneVal) {
-              badgeHtml += ' <button class="rec-play-btn" data-phone="' + esc(phoneVal) + '" title="播放通话录音" style="font-size:0.6rem;padding:1px 6px;border:1px solid #e67e22;background:rgba(245,124,0,0.08);color:#e67e22;border-radius:3px;cursor:pointer;font-weight:700;margin-left:4px;" onclick="event.stopPropagation();var p=this.dataset.phone;var a=document.createElement(\\x27audio\\x27);a.controls=true;a.style.width=\\x27100%\\x27;a.style.height=\\x2728px\\x27;a.style.marginTop=\\x274px\\x27;var w=this.nextElementSibling;if(w&&w.classList.contains(\\x27rec-audio-wrap\\x27)){w.remove();return;}var d=document.createElement(\\x27div\\x27);d.className=\\x27rec-audio-wrap\\x27;d.style.width=\\x27100%\\x27;d.appendChild(a);this.parentElement.appendChild(d);a.src=\\x27/api/local-recording?phone=\\x27+encodeURIComponent(p);a.play().catch(function(){});">录音</button>';
+              badgeHtml += ' <button class="rec-play-btn" data-phone="' + esc(phoneVal) + '" title="播放通话录音" style="font-size:0.6rem;padding:1px 6px;border:none;box-shadow:var(--shadow-card);background:rgba(245,124,0,0.1);color:#e67e22;border-radius:3px;cursor:pointer;font-weight:700;margin-left:4px;" onclick="event.stopPropagation();var p=this.dataset.phone;var a=document.createElement(\\x27audio\\x27);a.controls=true;a.style.width=\\x27100%\\x27;a.style.height=\\x2728px\\x27;a.style.marginTop=\\x274px\\x27;var w=this.nextElementSibling;if(w&&w.classList.contains(\\x27rec-audio-wrap\\x27)){w.remove();return;}var d=document.createElement(\\x27div\\x27);d.className=\\x27rec-audio-wrap\\x27;d.style.width=\\x27100%\\x27;d.appendChild(a);this.parentElement.appendChild(d);a.src=\\x27/api/local-recording?phone=\\x27+encodeURIComponent(p);a.play().catch(function(){});">录音</button>';
             }
           }
 
@@ -7837,7 +7846,7 @@ function updateAutoDialBtn() {
         var noteDisplay = '';
         if (c.fund) {
           noteDisplay = '<div style="display:flex; flex-direction:column; gap:4px; align-items:flex-start;">' +
-            '<span class="crm-fund-tag" style="background:rgba(255,152,0,0.12); color:#e65100; font-weight:900; font-size:11px; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; border: 1px solid rgba(255,152,0,0.25);">公积金: ' + esc(c.fund) + '</span>' +
+            '<span class="crm-fund-tag" style="background:rgba(255,152,0,0.12); color:#e65100; font-weight:900; font-size:11px; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; border:none; box-shadow:var(--shadow-card);">公积金: ' + esc(c.fund) + '</span>' +
             (realNote ? '<span style="color:var(--text-soft); font-weight:normal;">' + esc(realNote) + '</span>' : '') +
             '</div>';
         } else {
@@ -9717,7 +9726,7 @@ function updateAutoDialBtn() {
           input.style.cssText = 'flex:1; height:28px; padding:0 8px; font-size:0.7rem; border:0.5px solid var(--card-border); border-radius:var(--radius-xs); background:var(--card-bg); color:var(--text-main); outline:none;';
           var delBtn = document.createElement('button');
           delBtn.textContent = '删除';
-          delBtn.style.cssText = 'height:28px; padding:0 8px; font-size:0.65rem; border:0.5px solid #e74c3c; background:transparent; color:#e74c3c; border-radius:var(--radius-xs); cursor:pointer;';
+          delBtn.style.cssText = 'height:28px; padding:0 8px; font-size:0.65rem; border:none; box-shadow:var(--shadow-card); background:rgba(231,76,60,0.08); color:#e74c3c; border-radius:var(--radius-xs); cursor:pointer;';
           delBtn.onclick = function() {
             row.parentNode.removeChild(row);
           };
@@ -9790,7 +9799,7 @@ function updateAutoDialBtn() {
           input.style.cssText = 'flex:1; height:28px; padding:0 8px; font-size:0.7rem; border:0.5px solid var(--card-border); border-radius:var(--radius-xs); background:var(--card-bg); color:var(--text-main); outline:none;';
           var delBtn = document.createElement('button');
           delBtn.textContent = '删除';
-          delBtn.style.cssText = 'height:28px; padding:0 8px; font-size:0.65rem; border:0.5px solid #e74c3c; background:transparent; color:#e74c3c; border-radius:var(--radius-xs); cursor:pointer;';
+          delBtn.style.cssText = 'height:28px; padding:0 8px; font-size:0.65rem; border:none; box-shadow:var(--shadow-card); background:rgba(231,76,60,0.08); color:#e74c3c; border-radius:var(--radius-xs); cursor:pointer;';
           delBtn.onclick = function() { row.parentNode.removeChild(row); };
           row.appendChild(input);
           row.appendChild(delBtn);
@@ -10189,8 +10198,8 @@ function updateAutoDialBtn() {
             return '<div style=\"display:flex; justify-content:space-between; align-items:center; padding:6px 8px; background:var(--btn-bg); border-radius:4px;' + (s.active ? '' : 'opacity:0.5;') + '\">'
               + '<span style=\"font-size:0.72rem; font-weight:700; color:var(--text-main);\">' + (s.account_name || s.label || s.account_id.slice(0,12)) + activeTag + '</span>'
               + '<div style=\"display:flex; gap:3px;\">'
-              + '<button class=\"sub-toggle-btn\" data-id=\"' + s.account_id + '\" data-active=\"' + (s.active ? '1' : '0') + '\" style=\"font-size:0.58rem; padding:2px 6px; border:0.5px solid var(--card-border); border-radius:3px; background:var(--card-bg); color:' + (s.active ? '#e74c3c' : '#07c160') + '; cursor:pointer; font-weight:700;\">' + (s.active ? '禁用' : '启用') + '</button>'
-              + '<button class=\"sub-delete-btn\" data-id=\"' + s.account_id + '\" style=\"font-size:0.58rem; padding:2px 6px; border:0.5px solid var(--card-border); border-radius:3px; background:var(--card-bg); color:#e74c3c; cursor:pointer; font-weight:700;\">删除</button>'
+              + '<button class=\"sub-toggle-btn\" data-id=\"' + s.account_id + '\" data-active=\"' + (s.active ? '1' : '0') + '\" style=\"font-size:0.58rem; padding:2px 6px; border:none; box-shadow:var(--shadow-card); border-radius:3px; background:var(--card-bg); color:' + (s.active ? '#e74c3c' : '#07c160') + '; cursor:pointer; font-weight:700;\">' + (s.active ? '禁用' : '启用') + '</button>'
+              + '<button class=\"sub-delete-btn\" data-id=\"' + s.account_id + '\" style=\"font-size:0.58rem; padding:2px 6px; border:none; box-shadow:var(--shadow-card); border-radius:3px; background:var(--card-bg); color:#e74c3c; cursor:pointer; font-weight:700;\">删除</button>'
               + '</div></div>';
           }).join('');
           list.querySelectorAll('.sub-toggle-btn').forEach(function(btn) {
