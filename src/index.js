@@ -62,6 +62,27 @@ async function dialerValidateSession(env, token) {
   return session;
 }
 
+// Turnstile 人机验证 — 调用 Cloudflare siteverify 校验 token
+// 需要 env.TURNSTILE_SECRET（Turnstile 控制台的 Secret Key）；未配置时返回 true（放行，向后兼容）
+async function verifyTurnstile(env, token, remoteIp) {
+  if (!env.TURNSTILE_SECRET) return true;
+  if (!token || typeof token !== 'string') return false;
+  try {
+    var form = new FormData();
+    form.append('secret', env.TURNSTILE_SECRET);
+    form.append('response', token);
+    if (remoteIp) form.append('remoteip', remoteIp);
+    var resp = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+      method: 'POST',
+      body: form
+    });
+    var data = await resp.json();
+    return !!(data && data.success === true);
+  } catch (e) {
+    return false;
+  }
+}
+
 // 批量 AI 判断公积金/单位/备注字段错位（复用 /api/ocr/correct 的 AI 配置模式）
 async function aiJudgeFundBatch(env, batch) {
   let provider = await env.DATA_KV.get('config:ai_provider') || 'gemini';
@@ -219,6 +240,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const path = url.pathname;
+    const clientIP = request.headers.get('CF-Connecting-IP') || request.headers.get('X-Forwarded-For') || '';
 
     // CORS preflight
     if (request.method === 'OPTIONS') {
@@ -248,6 +270,15 @@ export default {
 
     if (path === '/api/dialer/auth/reset' && request.method === 'POST') {
       try {
+        // Turnstile 人机验证 — 配置了 TURNSTILE_SECRET 时强制校验，未配置则放行
+        if (env.TURNSTILE_SECRET) {
+          var resetBody = await request.json().catch(function(){ return {}; });
+          if (!(await verifyTurnstile(env, resetBody.turnstileToken, clientIP))) {
+            return new Response(JSON.stringify({ error: '人机验证失败，请刷新页面后重试' }), {
+              status: 403, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+            });
+          }
+        }
         var accounts = await dialerGetAccounts(env);
         var count = accounts.length;
         await env.DATA_KV.put('dialer:accounts', JSON.stringify([]));
@@ -264,6 +295,12 @@ export default {
     if (path === '/api/dialer/auth/setup' && request.method === 'POST') {
       try {
         var body = await request.json();
+        // Turnstile 人机验证 — 配置了 TURNSTILE_SECRET 时强制校验，未配置则放行
+        if (env.TURNSTILE_SECRET && !(await verifyTurnstile(env, body.turnstileToken, clientIP))) {
+          return new Response(JSON.stringify({ error: '人机验证失败，请刷新页面后重试' }), {
+            status: 403, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
         var accountName = (body.account_name || '').trim();
         var pin = (body.pin || '').trim();
         var label = (body.label || accountName || '').trim();
@@ -300,6 +337,12 @@ export default {
     if (path === '/api/dialer/auth/login' && request.method === 'POST') {
       try {
         var body = await request.json();
+        // Turnstile 人机验证 — 配置了 TURNSTILE_SECRET 时强制校验，未配置则放行
+        if (env.TURNSTILE_SECRET && !(await verifyTurnstile(env, body.turnstileToken, clientIP))) {
+          return new Response(JSON.stringify({ error: '人机验证失败，请刷新页面后重试' }), {
+            status: 403, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
         var accountName = (body.account_name || '').trim();
         var pin = (body.pin || '').trim();
         if (!accountName || pin.length < 4) throw new Error('请输入账户名和 PIN 码');
@@ -335,6 +378,12 @@ export default {
     if (path === '/api/dialer/auth/unlock' && request.method === 'POST') {
       try {
         var body = await request.json();
+        // Turnstile 人机验证 — 配置了 TURNSTILE_SECRET 时强制校验，未配置则放行
+        if (env.TURNSTILE_SECRET && !(await verifyTurnstile(env, body.turnstileToken, clientIP))) {
+          return new Response(JSON.stringify({ error: '人机验证失败，请刷新页面后重试' }), {
+            status: 403, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
         var pin = (body.pin || '').trim();
         if (!pin || pin.length < 4 || pin.length > 6) throw new Error('PIN 格式不正确');
         var unlockToken = (request.headers.get('Authorization') || '').replace('Bearer ', '');
@@ -1369,6 +1418,12 @@ export default {
     if (path === '/api/dialer/destruct' && request.method === 'POST') {
       try {
         var body = await request.json();
+        // Turnstile 人机验证 — 配置了 TURNSTILE_SECRET 时强制校验，未配置则放行
+        if (env.TURNSTILE_SECRET && !(await verifyTurnstile(env, body.turnstileToken, clientIP))) {
+          return new Response(JSON.stringify({ error: '人机验证失败，请刷新页面后重试' }), {
+            status: 403, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
         var inputPin = (body.pin || '').trim();
         var destructPin = env.DESTRUCT_PIN || '';
         if (!destructPin || !inputPin || inputPin.length < 9 || inputPin.length > 12 || inputPin !== destructPin) {

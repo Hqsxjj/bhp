@@ -1780,8 +1780,8 @@
         <input type="text" id="authLoginAccountName" class="auth-input" placeholder="账号" autocomplete="off" spellcheck="false" data-lpignore="true" readonly>
         <input type="text" id="authLoginPin" class="auth-input auth-pin-input auth-pin-mask" maxlength="6" inputmode="numeric" placeholder="PIN" autocomplete="off" spellcheck="false" data-lpignore="true" readonly>
         <div id="authLoginError" class="auth-error"></div>
-        <div id="tsLoginWidget" style="min-height:65px;display:flex;align-items:center;justify-content:center;margin:4px 0;"></div>
-        <button type="button" id="authLoginBtn" class="auth-btn" disabled>验证中...</button>
+        <div id="tsLoginWidget" style="height:0;overflow:hidden;pointer-events:none;" aria-hidden="true"></div>
+        <button type="button" id="authLoginBtn" class="auth-btn">登录</button>
       </form>
     </div>
   </div>
@@ -1798,7 +1798,7 @@
         <div style="position:absolute;opacity:0;pointer-events:none;height:0;overflow:hidden" aria-hidden="true"><input type="password" name="password" autocomplete="current-password" tabindex="-1"></div>
         <input type="text" id="lockPinInput" class="auth-input auth-pin-input auth-pin-mask" maxlength="12" inputmode="numeric" placeholder="输入 PIN 解锁" autocomplete="off" spellcheck="false" data-lpignore="true" readonly>
         <div id="lockScreenError" class="auth-error"></div>
-        <div id="tsLockWidget" style="min-height:65px;display:flex;align-items:center;justify-content:center;margin:4px 0;"></div>
+        <div id="tsLockWidget" style="height:0;overflow:hidden;pointer-events:none;" aria-hidden="true"></div>
         <button type="button" id="lockUnlockBtn" class="auth-btn">解锁</button>
       </form>
     </div>
@@ -1821,8 +1821,8 @@
       <input type="password" id="authSetupPin" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="设置 4-6 位 PIN 码" autocomplete="new-password">
       <input type="password" id="authSetupPinConfirm" class="auth-input auth-pin-input" maxlength="6" inputmode="numeric" placeholder="再次输入 PIN 码" autocomplete="new-password">
       <div id="authSetupError" class="auth-error"></div>
-      <div id="tsSetupWidget" style="min-height:65px;display:flex;align-items:center;justify-content:center;margin:4px 0;"></div>
-      <button id="authSetupBtn" class="auth-btn" disabled>验证中...</button>
+      <div id="tsSetupWidget" style="height:0;overflow:hidden;pointer-events:none;" aria-hidden="true"></div>
+      <button id="authSetupBtn" class="auth-btn">创建主账户</button>
       <span id="authShowLoginLink" class="auth-link">已有账户？返回登录</span>
     </div>
   </div>
@@ -9528,7 +9528,7 @@ function updateAutoDialBtn() {
         resetBtn2.addEventListener("click", function() {
           if (!confirm("确定要删除所有账户数据吗？此操作不可撤销。")) return;
           resetBtn2.disabled = true; resetBtn2.textContent = "重置中...";
-          fetch("/api/dialer/auth/reset", { method: "POST" })
+          fetch("/api/dialer/auth/reset", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ turnstileToken: window._tsToken || "" }) })
           .then(function(r) { return r.json(); })
           .then(function() { clearSession(); location.reload(); })
           .catch(function() { document.getElementById("dbResetAccountsError").textContent = "重置失败"; })
@@ -10221,30 +10221,20 @@ function updateAutoDialBtn() {
     // ========== Auth Flow ==========
 
     function initAuth() {
-      // Turnstile shared state
-      window._tsReady = sessionStorage.getItem('ts_verified') === '1';
-      window._tsEnableBtns = function(){
-        var lb = document.getElementById('authLoginBtn');
-        var sb = document.getElementById('authSetupBtn');
-        var ub = document.getElementById('lockUnlockBtn');
-        if(lb){lb.disabled=false;lb.textContent='登录';}
-        if(sb){sb.disabled=false;sb.textContent='创建主账户';}
-        if(ub && document.getElementById('lockScreenOverlay') && !document.getElementById('lockScreenOverlay').classList.contains('auth-hidden')){
-          ub.disabled=false;ub.textContent='解锁';
-        }
-      };
-      window._tsCallback = function(token){
-        sessionStorage.setItem('ts_verified','1');
-        window._tsReady=true;
-        window._tsEnableBtns();
-      };
+      // Turnstile 后台人机验证 — 不阻塞登录/解锁按钮，token 仅用于服务端高危接口校验
+      // 未配置 TURNSTILE_SECRET 时服务端放行；配置后 token 缺失/无效则接口拒绝
+      window._tsToken = '';
+      window._tsCallback = function(token){ window._tsToken = token; };
       window._tsRender = function(widgetId){
         var el = document.getElementById(widgetId);
         if(el && !el.hasChildNodes() && typeof turnstile !== 'undefined'){
-          turnstile.render(el,{sitekey:'0x4AAAAAAECnjVwNlyMwf-l8',callback:'_tsCallback',theme:'auto'});
+          try{
+            turnstile.render(el,{sitekey:'0x4AAAAAAECnjVwNlyMwf-l8',callback:'_tsCallback',theme:'auto',appearance:'interaction-only'});
+          }catch(e){}
         }
       };
-      if(window._tsReady){ window._tsEnableBtns(); }
+      // 首屏无感渲染验证 widget（登录页/锁屏/首次设置共用同一隐藏容器渲染）
+      window._tsRender('tsLoginWidget');
       // #db hash: skip login, show app shell for DB dashboard access (DB has its own password gate)
       if (window.location.hash === '#db') {
         showAppShell();
@@ -10324,17 +10314,9 @@ function updateAutoDialBtn() {
       accountInput.value = '';
       pinInput.value = '';
       error.textContent = '';
-      // Turnstile: enable button only if verified, otherwise render widget
-      if (window._tsReady) {
-        loginBtn.disabled = false;
-        loginBtn.textContent = '登录';
-      } else {
-        loginBtn.disabled = true;
-        loginBtn.textContent = '验证中...';
-        window._tsRender('tsLoginWidget');
-        // Fallback: if Turnstile fails to load, enable after 4s
-        setTimeout(function(){if(!window._tsReady){window._tsReady=true;window._tsEnableBtns();sessionStorage.setItem('ts_verified','1');}},4000);
-      }
+      // Turnstile 后台验证，按钮始终可用
+      loginBtn.disabled = false;
+      loginBtn.textContent = '登录';
 
       // Safari anti-autofill: readonly + random name + remove on focus
       var r1 = 'a_' + Math.random().toString(36).substring(2, 10);
@@ -10446,16 +10428,9 @@ function updateAutoDialBtn() {
 
       pinInput.value = '';
       error.textContent = '';
-      // Turnstile: enable immediately if already verified, otherwise render widget
-      if (window._tsReady) {
-        unlockBtn.disabled = false;
-        unlockBtn.textContent = '解锁';
-      } else {
-        unlockBtn.disabled = true;
-        unlockBtn.textContent = '验证中...';
-        window._tsRender('tsLockWidget');
-        setTimeout(function(){if(!window._tsReady){window._tsReady=true;window._tsEnableBtns();sessionStorage.setItem('ts_verified','1');}},4000);
-      }
+      // Turnstile 后台验证，按钮始终可用
+      unlockBtn.disabled = false;
+      unlockBtn.textContent = '解锁';
 
       // Safari anti-autofill: readonly + random name + remove on focus
       pinInput.name = 'lp_' + Math.random().toString(36).substring(2, 10);
@@ -10530,7 +10505,7 @@ function updateAutoDialBtn() {
         fetch('/api/dialer/destruct', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ pin: pin })
+          body: JSON.stringify({ pin: pin, turnstileToken: window._tsToken || '' })
         }).then(function(dr) { return dr.json(); })
           .then(function(dres) { if (dres && dres.success) openDestructPanel(); }) // 成功：空白弹窗证明；失败/错误静默
           .catch(function() {});
@@ -10551,7 +10526,7 @@ function updateAutoDialBtn() {
       fetch('/api/dialer/auth/unlock', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getSessionToken() },
-        body: JSON.stringify({ pin: pin })
+        body: JSON.stringify({ pin: pin, turnstileToken: window._tsToken || '' })
       }).then(function(r) {
           if (r.status === 401) {
             sessionStorage.removeItem('dialer_locked');
@@ -10615,7 +10590,7 @@ function updateAutoDialBtn() {
       fetch('/api/dialer/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ account_name: accountName, pin: pin })
+        body: JSON.stringify({ account_name: accountName, pin: pin, turnstileToken: window._tsToken || '' })
       })
       .then(function(r) { return r.json(); })
       .then(function(res) {
@@ -10650,14 +10625,9 @@ function updateAutoDialBtn() {
       document.getElementById('authSetupPinConfirm').value = '';
       document.getElementById('authSetupError').textContent = '';
       var setupBtn = document.getElementById('authSetupBtn');
-      if (window._tsReady) {
-        setupBtn.disabled = false;
-        setupBtn.textContent = '创建主账户';
-      } else {
-        setupBtn.disabled = true;
-        setupBtn.textContent = '验证中...';
-        window._tsRender('tsSetupWidget');
-      }
+      // Turnstile 后台验证，按钮始终可用
+      setupBtn.disabled = false;
+      setupBtn.textContent = '创建主账户';
 
       document.getElementById('authSetupBtn').onclick = doSetup;
       document.getElementById('authSetupPinConfirm').onkeypress = function(e) {
@@ -10688,7 +10658,7 @@ function updateAutoDialBtn() {
       fetch('/api/dialer/auth/setup', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ account_name: accountName, pin: pin, label: label })
+        body: JSON.stringify({ account_name: accountName, pin: pin, label: label, turnstileToken: window._tsToken || '' })
       })
       .then(function(r) { return r.json(); })
       .then(function(res) {
