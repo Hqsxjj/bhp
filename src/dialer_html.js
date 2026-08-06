@@ -1609,6 +1609,34 @@
       display: inline-flex; align-items: center; justify-content: center; font-size: 0.76rem;
       font-weight: 600; text-transform: uppercase; flex-shrink: 0;
     }
+    /* ===== 手机视图：客户卡片 ===== */
+    .crm-mobile-card {
+      display: flex; gap: 10px; align-items: flex-start;
+      background: #fff; border-radius: var(--radius-sm); padding: 12px;
+      box-shadow: var(--shadow-card); border: none; margin-bottom: 10px;
+    }
+    body.dark-mode .crm-mobile-card { background: #1e293b; }
+    .crm-mobile-card.selected {
+      background: rgba(74,108,247,0.08);
+      box-shadow: 0 0 0 1px rgba(74,108,247,0.35), var(--shadow-card);
+    }
+    .crm-mobile-check { padding-top: 3px; flex-shrink: 0; }
+    .crm-mobile-check input { width: 18px; height: 18px; accent-color: #4a6cf7; cursor: pointer; }
+    .crm-mobile-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+    .crm-mobile-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .crm-mobile-name { font-size: 0.88rem; color: var(--text-main); display: flex; align-items: center; gap: 4px; }
+    .crm-mobile-phone {
+      display: flex; align-items: center; gap: 8px; font-family: monospace;
+      font-size: 0.82rem; font-weight: 600; color: var(--text-soft);
+    }
+    .crm-mobile-company { font-size: 0.75rem; color: var(--text-soft); word-break: break-all; }
+    .crm-mobile-note { font-size: 0.75rem; color: var(--text-soft); line-height: 1.5; word-break: break-word; }
+    .crm-mobile-cust { font-size: 0.72rem; color: var(--text-soft); word-break: break-word; }
+    .crm-mobile-cust .crm-mobile-label {
+      display: inline-block; font-size: 0.62rem; font-weight: 700; color: var(--accent-intent);
+      background: rgba(255,152,0,0.1); padding: 0 6px; border-radius: 6px; margin-right: 4px;
+    }
+    .crm-mobile-actions { display: flex; justify-content: flex-end; border-top: 0.5px solid var(--card-border); padding-top: 8px; }
     /* New / Old Badges */
     .crm-badge-new {
       background: #e6f7ff; color: #1890ff; border: none; box-shadow: var(--shadow-card);
@@ -1629,6 +1657,11 @@
       width: 22px; height: 22px; transition: background 0.15s;
     }
     .crm-btn-call:hover { background: rgba(255,87,34,0.1); }
+    .crm-mobile-card .crm-btn-call {
+      width: 28px; height: 28px; background: rgba(255,87,34,0.08);
+      box-shadow: var(--shadow-card); font-size: 0.9rem;
+    }
+    .crm-mobile-card .cust-cat-tag { font-size: 11px; padding: 2px 8px; }
     
     /* Action Link */
     .crm-action-link {
@@ -1689,14 +1722,16 @@
       .crm-search-grid { grid-template-columns: 1fr; }
       .crm-tabs { padding: 0 8px; gap: 2px; }
       .crm-tab { padding: 0 8px; font-size: 0.76rem; }
-      .crm-toolbar { padding: 6px 12px; gap: 4px; }
+      .crm-toolbar { padding: 6px 12px; gap: 4px; flex-wrap: wrap; }
       .crm-tool-btn { padding: 0 8px; font-size: 0.74rem; }
       .crm-badge-bar { padding: 6px 12px; gap: 8px; }
-      .crm-table td, .crm-table thead th { padding: 8px 10px; font-size: 0.76rem; }
+      /* 手机视图：表格容器内边距（表格本身由 dbTable 隐藏，卡片显示在独立容器） */
+      .db-table-wrap { background: transparent; padding: 0; }
+      .db-table-wrap .db-empty { padding: 40px 20px; }
+      .crm-mobile-list { padding: 10px; }
     }
-      .db-pager { padding: 4px 10px; }
-      .db-cat-bar { padding: 3px 10px; }
-    }
+    .db-pager { padding: 4px 10px; }
+    .db-cat-bar { padding: 3px 10px; }
     /* ===== Learn Magazine Overlay ===== */
 
   </style>
@@ -2452,6 +2487,7 @@
 
     <!-- CRM Data Table -->
     <div class="db-table-wrap">
+      <div id="crmMobileList" class="crm-mobile-list" style="display:none;padding:10px;"></div>
       <table class="crm-table">
         <thead>
           <tr id="dbHeaderRow">
@@ -7471,12 +7507,12 @@ function updateAutoDialBtn() {
       var selectAllCb = document.getElementById('crmSelectAll');
       if (selectAllCb) {
         selectAllCb.onchange = function() {
-          var cbs = document.querySelectorAll('#dbTbody .crm-row-select');
+          var cbs = document.querySelectorAll('#dbTbody .crm-row-select, #crmMobileList .crm-row-select');
           var checked = selectAllCb.checked;
           cbs.forEach(function(cb) {
             cb.checked = checked;
             var m = cb.getAttribute('data-mobile');
-            var tr = cb.closest('tr');
+            var tr = cb.closest('tr') || cb.closest('.crm-mobile-card');
             if (checked) {
               DB.selectedIds[m] = true;
               if (tr) tr.classList.add('selected');
@@ -7803,7 +7839,7 @@ function updateAutoDialBtn() {
       if (document.getElementById('crmCyanCount')) document.getElementById('crmCyanCount').textContent = cyan;
     }
 
-    // 表格行渲染
+    // 表格行渲染（窄屏自动切换为卡片式手机视图）
     function dbTable(data) {
       var tb = document.getElementById('dbTbody');
       var em = document.getElementById('dbEmpty');
@@ -7816,31 +7852,41 @@ function updateAutoDialBtn() {
         data = data.slice(sliceStart, sliceEnd);
       }
 
+      var isMobile = window.innerWidth <= 768;
+      var mobileList = document.getElementById('crmMobileList');
+      var tableEl = document.querySelector('.crm-table');
+
       if (!data || data.length === 0) {
         tb.innerHTML = '';
+        if (mobileList) mobileList.innerHTML = '';
         if (em) em.style.display = 'block';
+        if (mobileList && isMobile) mobileList.style.display = 'none';
+        if (tableEl) tableEl.style.display = isMobile ? 'none' : '';
         return;
       }
       if (em) em.style.display = 'none';
-      
+      // 移动端显示卡片容器、隐藏表格；桌面端反之
+      if (mobileList) mobileList.style.display = isMobile ? 'block' : 'none';
+      if (tableEl) tableEl.style.display = isMobile ? 'none' : '';
+
       var h = '';
       var avatarColors = ['#ff5722', '#4a6cf7', '#07c160', '#ff9800', '#9c27b0', '#00bcd4', '#3f51b5', '#e91e63'];
-      
+
       for (var i = 0; i < data.length; i++) {
         var c = data[i];
         var cat = c.category || '';
-        
+
         var isChecked = DB.selectedIds[c.mobile] ? ' checked' : '';
         var isTrSelected = DB.selectedIds[c.mobile] ? ' class="selected"' : '';
-        
+
         var isNew = c.created_at && (Date.now() - new Date(c.created_at).getTime() < 24 * 60 * 60 * 1000);
         var badgeHtml = isNew ? '<span class="crm-badge-new">新</span>' : '<span class="crm-badge-old">旧</span>';
-        
+
         var firstChar = (c.name || '').trim().charAt(0) || '匿';
         var colorIdx = Math.abs(firstChar.charCodeAt(0)) % avatarColors.length;
         var avatarBg = avatarColors[colorIdx];
         var avatarHtml = '<span class="crm-avatar" style="background:' + avatarBg + ';">' + esc(firstChar) + '</span>';
-        
+
         var parsed = parseCustomerNote(c);
         var realNote = parsed.note;
         var noteDisplay = '';
@@ -7852,13 +7898,41 @@ function updateAutoDialBtn() {
         } else {
           noteDisplay = realNote ? esc(realNote) : '-';
         }
-        
+
         var customTds = '';
         var customCols = DB.customColumns || [];
         customCols.forEach(function(col) {
           var val = parsed.custom[col] || '-';
           customTds += '<td style="white-space: normal; min-width: 100px; word-break: break-all;">' + esc(val) + '</td>';
         });
+
+        // ===== 手机视图：卡片式布局（同一份数据、复用相同 class 绑定） =====
+        if (isMobile) {
+          var cardCust = '';
+          customCols.forEach(function(col) {
+            var val = parsed.custom[col] || '-';
+            if (val !== '-') cardCust += '<div class="crm-mobile-cust"><span class="crm-mobile-label">' + esc(col) + '</span>' + esc(val) + '</div>';
+          });
+          var callBtn = '<button class="crm-btn-call" title="点击呼叫 / 复制" onclick="copyTextToClipboard(\\'' + esc(c.mobile) + '\\');showCopyLimitToast(\\'已复制: ' + esc(c.mobile) + '\\');recordTimeline(\\'' + esc(c.mobile) + '\\',\\'copy_phone\\');"></button>';
+          h += '<div class="crm-mobile-card' + (DB.selectedIds[c.mobile] ? ' selected' : '') + '" data-mobile="' + esc(c.mobile || '') + '">' +
+            '<div class="crm-mobile-check"><input type="checkbox" class="crm-row-select" data-mobile="' + esc(c.mobile) + '" data-name="' + esc(c.name || '') + '"' + isChecked + '></div>' +
+            '<div class="crm-mobile-main">' +
+              '<div class="crm-mobile-top">' +
+                avatarHtml +
+                '<div class="crm-mobile-name">' + badgeHtml + '<span style="font-weight:700;">' + esc(c.name || '-') + '</span></div>' +
+                '<span class="cust-cat-tag set cat-' + esc(cat) + '" data-m="' + esc(c.mobile) + '" data-c="' + esc(cat) + '">' + esc(cat || '未分类') + '</span>' +
+              '</div>' +
+              '<div class="crm-mobile-phone">' + esc(c.mobile || '-') + callBtn + '</div>' +
+              (c.company_name ? '<div class="crm-mobile-company">' + esc(c.company_name) + '</div>' : '') +
+              (noteDisplay !== '-' ? '<div class="crm-mobile-note">' + noteDisplay + '</div>' : '') +
+              cardCust +
+              '<div class="crm-mobile-actions">' +
+                '<a class="crm-action-link crm-btn-followup" data-mobile="' + esc(c.mobile) + '" data-note="' + esc(realNote || '') + '">新增跟进</a>' +
+              '</div>' +
+            '</div>' +
+          '</div>';
+          continue;
+        }
 
         h += '<tr' + isTrSelected + ' data-mobile="' + esc(c.mobile || '') + '">' +
           '<td style="text-align: center; cursor: default;"><input type="checkbox" class="crm-row-select" data-mobile="' + esc(c.mobile) + '" data-name="' + esc(c.name || '') + '"' + isChecked + '></td>' +
@@ -7886,20 +7960,22 @@ function updateAutoDialBtn() {
           '</td>' +
         '</tr>';
       }
-      tb.innerHTML = h;
-      
-      // Wire individual row checkboxes
-      var rowCbs = tb.querySelectorAll('.crm-row-select');
+      // 移动端卡片渲染到独立容器，桌面端渲染到 tbody
+      var renderRoot = isMobile && mobileList ? mobileList : tb;
+      renderRoot.innerHTML = h;
+
+      // Wire individual row checkboxes (兼容表格行 tr 与手机卡片 .crm-mobile-card)
+      var rowCbs = renderRoot.querySelectorAll('.crm-row-select');
       rowCbs.forEach(function(cb) {
         cb.onchange = function() {
           var m = cb.getAttribute('data-mobile');
-          var tr = cb.closest('tr');
+          var rowEl = cb.closest('tr') || cb.closest('.crm-mobile-card');
           if (cb.checked) {
             DB.selectedIds[m] = true;
-            if (tr) tr.classList.add('selected');
+            if (rowEl) rowEl.classList.add('selected');
           } else {
             delete DB.selectedIds[m];
-            if (tr) tr.classList.remove('selected');
+            if (rowEl) rowEl.classList.remove('selected');
           }
           // Update crmSelectAll status
           var allSelected = true;
@@ -7911,8 +7987,9 @@ function updateAutoDialBtn() {
         };
       });
 
-      // Wire row click (except when clicking on checkboxes/links/buttons)
-      tb.querySelectorAll('tr').forEach(function(row) {
+      // Wire row click (except when clicking on checkboxes/links/buttons) — 兼容 tr 与手机卡片
+      var rowEls = renderRoot.querySelectorAll('tr, .crm-mobile-card');
+      rowEls.forEach(function(row) {
         row.onclick = function(e) {
           if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('.crm-btn-call')) {
             return;
@@ -7926,7 +8003,7 @@ function updateAutoDialBtn() {
       });
 
       // Wire row follow-up click
-      tb.querySelectorAll('.crm-btn-followup').forEach(function(btn) {
+      renderRoot.querySelectorAll('.crm-btn-followup').forEach(function(btn) {
         btn.onclick = function(e) {
           e.stopPropagation();
           var mobile = btn.getAttribute('data-mobile');
@@ -8590,17 +8667,17 @@ function updateAutoDialBtn() {
           var checked = selectAllCb.checked;
           var tb = document.getElementById('dbTbody');
           if (!tb) return;
-          var rowCbs = tb.querySelectorAll('.crm-row-select');
+          var rowCbs = document.querySelectorAll('#dbTbody .crm-row-select, #crmMobileList .crm-row-select');
           rowCbs.forEach(function(cb) {
             cb.checked = checked;
             var m = cb.getAttribute('data-mobile');
-            var tr = cb.closest('tr');
+            var rowEl = cb.closest('tr') || cb.closest('.crm-mobile-card');
             if (checked) {
               DB.selectedIds[m] = true;
-              if (tr) tr.classList.add('selected');
+              if (rowEl) rowEl.classList.add('selected');
             } else {
               delete DB.selectedIds[m];
-              if (tr) tr.classList.remove('selected');
+              if (rowEl) rowEl.classList.remove('selected');
             }
           });
         };
