@@ -1730,6 +1730,77 @@
       .db-table-wrap .db-empty { padding: 40px 20px; }
       .crm-mobile-list { padding: 10px; }
     }
+    /* ===== 手机版数据库看板（独立全屏界面） ===== */
+    .dbm-overlay {
+      position: fixed; inset: 0; z-index: 100000;
+      background: #f8fafc; display: none; flex-direction: column;
+      -webkit-overflow-scrolling: touch;
+    }
+    body.dark-mode .dbm-overlay { background: #0f172a; }
+    .dbm-overlay.active { display: flex; }
+    .dbm-topbar {
+      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      background: #fff; border-bottom: 0.5px solid var(--card-border); flex-shrink: 0;
+    }
+    body.dark-mode .dbm-topbar { background: #1e293b; }
+    .dbm-title { flex: 1; font-size: 1rem; font-weight: 700; color: var(--text-main); }
+    .dbm-icon-btn {
+      width: 36px; height: 36px; border: none; background: var(--btn-bg);
+      border-radius: var(--radius-xs); color: var(--text-soft); cursor: pointer;
+      display: inline-flex; align-items: center; justify-content: center;
+      box-shadow: var(--shadow-card); flex-shrink: 0;
+    }
+    .dbm-searchbar {
+      display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+      background: #fff; border-bottom: 0.5px solid var(--card-border); flex-shrink: 0;
+    }
+    body.dark-mode .dbm-searchbar { background: #1e293b; }
+    .dbm-searchbar input {
+      flex: 1; height: 36px; border: none; background: var(--btn-bg);
+      border-radius: 10px; padding: 0 12px; font-size: 0.85rem; color: var(--text-main);
+      outline: none; font-weight: 500;
+    }
+    .dbm-filterbar {
+      display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+      background: #fff; border-bottom: 0.5px solid var(--card-border); flex-shrink: 0;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .dbm-filterbar::-webkit-scrollbar { display: none; }
+    body.dark-mode .dbm-filterbar { background: #1e293b; }
+    .dbm-filterbar select {
+      height: 32px; border: none; background: var(--btn-bg); border-radius: 8px;
+      padding: 0 8px; font-size: 0.75rem; font-weight: 600; color: var(--text-soft);
+      outline: none; cursor: pointer; flex-shrink: 0;
+    }
+    .dbm-selectall-label {
+      margin-left: auto; display: inline-flex; align-items: center; gap: 4px;
+      font-size: 0.72rem; font-weight: 700; color: var(--text-soft); white-space: nowrap;
+    }
+    .dbm-selectall-label input { width: 17px; height: 17px; accent-color: #4a6cf7; cursor: pointer; }
+    .dbm-list { flex: 1; overflow-y: auto; padding: 10px; -webkit-overflow-scrolling: touch; }
+    .dbm-list .crm-mobile-card { background: #fff; border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+    body.dark-mode .dbm-list .crm-mobile-card { background: #1e293b; }
+    .dbm-empty { text-align: center; color: var(--text-light); padding: 60px 20px; font-size: 0.85rem; font-weight: 600; }
+    .dbm-actionbar {
+      display: flex; gap: 8px; padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+      background: #fff; border-top: 0.5px solid var(--card-border); flex-shrink: 0;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .dbm-actionbar::-webkit-scrollbar { display: none; }
+    body.dark-mode .dbm-actionbar { background: #1e293b; }
+    .dbm-action-btn {
+      min-height: 44px; padding: 0 16px; border: none; border-radius: 12px;
+      font-size: 0.8rem; font-weight: 700; cursor: pointer; white-space: nowrap;
+      color: #fff; box-shadow: var(--shadow-card); flex-shrink: 0;
+    }
+    .dbm-action-btn.green { background: #07c160; }
+    .dbm-action-btn.orange { background: #ff9800; }
+    .dbm-action-btn.blue { background: #4a6cf7; }
+    .dbm-action-btn.red { background: #ef4444; }
+    .dbm-action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .dbm-action-btn { background: #64748b; }
+  </style>
+    }
     .db-pager { padding: 4px 10px; }
     .db-cat-bar { padding: 3px 10px; }
     /* ===== Learn Magazine Overlay ===== */
@@ -2284,6 +2355,7 @@
       <div class="crm-tab" data-tab="backupMgr">数据备份</div>
       <div class="crm-tab" data-tab="contentConfig">内容配置</div>
       <div class="crm-tabs-right">
+        <button class="db-close" id="dbMobileBtn" title="手机版界面" style="background:rgba(74,108,247,0.1);color:#4a6cf7;">手机版</button>
         <button class="db-close" id="dbClose">关闭</button>
       </div>
     </div>
@@ -2529,6 +2601,33 @@
         </select>
       </div>
     </div>
+  </div>
+</div>
+
+<!-- ===== 手机版数据库看板（独立全屏界面） ===== -->
+<div class="dbm-overlay" id="dbMobileOverlay">
+  <div class="dbm-topbar">
+    <button class="dbm-icon-btn" id="dbmBackBtn" title="返回"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
+    <span class="dbm-title">客户数据库 <span id="dbmCount" style="font-size:0.68rem;color:var(--text-light);font-weight:600;"></span></span>
+    <button class="dbm-icon-btn" id="dbmRefreshBtn" title="刷新"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
+  </div>
+  <div class="dbm-searchbar">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--text-light)" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.5" y2="16.5"/></svg>
+    <input type="text" id="dbmSearchInput" placeholder="搜索姓名 / 号码 / 单位 / 备注" autocomplete="off">
+    <button class="dbm-icon-btn" id="dbmSearchClearBtn" style="display:none;" title="清除"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+  </div>
+  <div class="dbm-filterbar" id="dbmFilterBar">
+    <select id="dbmCatFilter"><option value="">全部分类</option></select>
+    <select id="dbmBatchFilter"><option value="">全部批次</option></select>
+    <span class="dbm-selectall-label"><input type="checkbox" id="dbmSelectAll"> 全选</span>
+  </div>
+  <div class="dbm-list" id="dbmList"></div>
+  <div class="dbm-actionbar" id="dbmActionBar">
+    <button class="dbm-action-btn green" id="dbmAddToDialBtn">添加到待拨打</button>
+    <button class="dbm-action-btn orange" id="dbmMoveIntentBtn">转意向客户</button>
+    <button class="dbm-action-btn blue" id="dbmMoveLeadsBtn">转线索池</button>
+    <button class="dbm-action-btn" id="dbmMovePublicBtn">转公海</button>
+    <button class="dbm-action-btn red" id="dbmBatchDeleteBtn">批量删除</button>
   </div>
 </div>
   <script>
@@ -8429,6 +8528,282 @@ function updateAutoDialBtn() {
     window.renderAIUnstructuredReport = renderAIUnstructuredReport;
     window.correctOcrTextWithAI = correctOcrTextWithAI;
 
+    // ==================== 手机版数据库看板（独立界面） ====================
+    // 打开手机版（数据复用 DB.allData / crmFilterData / 批量操作按钮）
+    function openDBMobile() {
+      var ov = document.getElementById('dbMobileOverlay');
+      if (!ov) return;
+      ov.classList.add('active');
+      // 数据未加载时先触发桌面看板数据加载（登录鉴权在 openDBDashboard 已处理）
+      if (!DB.allData || DB.allData.length === 0) {
+        openDBDashboard();
+        dbFetch();
+      }
+      dbmPopulateFilters();
+      dbmRender();
+    }
+    window.openDBMobile = openDBMobile;
+
+    function closeDBMobile() {
+      var ov = document.getElementById('dbMobileOverlay');
+      if (ov) ov.classList.remove('active');
+    }
+    window.closeDBMobile = closeDBMobile;
+
+    // 手机版渲染（本地过滤+排序，复用桌面 crmFilterData 逻辑）
+    function dbmFilterData() {
+      var q = (document.getElementById('dbmSearchInput') || {}).value || '';
+      var cat = (document.getElementById('dbmCatFilter') || {}).value || '';
+      var batch = (document.getElementById('dbmBatchFilter') || {}).value || '';
+      var filtered = DB.allData || [];
+      if (q) {
+        var ql = q.toLowerCase();
+        filtered = filtered.filter(function(c) {
+          return (c.name || '').toLowerCase().indexOf(ql) >= 0 ||
+            (c.mobile || '').indexOf(q) >= 0 ||
+            (c.company_name || '').toLowerCase().indexOf(ql) >= 0 ||
+            (c.note || '').toLowerCase().indexOf(ql) >= 0;
+        });
+      }
+      if (cat) filtered = filtered.filter(function(c) { return (c.category || '') === cat; });
+      if (batch) filtered = filtered.filter(function(c) { return (c.batch_label || '') === batch; });
+      filtered = crmFilterData(filtered);
+      var countEl = document.getElementById('dbmCount');
+      if (countEl) countEl.textContent = filtered.length ? '（' + filtered.length + ' 条）' : '';
+      return filtered;
+    }
+
+    // 填充分类/批次下拉
+    function dbmPopulateFilters() {
+      var data = DB.allData || [];
+      var catSel = document.getElementById('dbmCatFilter');
+      var batchSel = document.getElementById('dbmBatchFilter');
+      if (catSel) {
+        var cats = {};
+        data.forEach(function(c) { var k = c.category || '未分类'; cats[k] = true; });
+        var cur = catSel.value;
+        var opts = '<option value="">全部分类</option>';
+        Object.keys(cats).forEach(function(k) { opts += '<option value="' + esc(k) + '"' + (cur === k ? ' selected' : '') + '>' + esc(k) + '</option>'; });
+        catSel.innerHTML = opts;
+      }
+      if (batchSel) {
+        var batches = {};
+        data.forEach(function(c) { if (c.batch_label) batches[c.batch_label] = true; });
+        var cur2 = batchSel.value;
+        var opts2 = '<option value="">全部批次</option>';
+        Object.keys(batches).forEach(function(k) { opts2 += '<option value="' + esc(k) + '"' + (cur2 === k ? ' selected' : '') + '>' + esc(k) + '</option>'; });
+        batchSel.innerHTML = opts2;
+      }
+    }
+
+    // 渲染手机版卡片列表
+    function dbmRender() {
+      var list = document.getElementById('dbmList');
+      if (!list) return;
+      var filtered = dbmFilterData();
+      if (!filtered || filtered.length === 0) {
+        list.innerHTML = '<div class="dbm-empty">暂无客户数据</div>';
+        return;
+      }
+      var avatarColors = ['#ff5722', '#4a6cf7', '#07c160', '#ff9800', '#9c27b0', '#00bcd4', '#3f51b5', '#e91e63'];
+      var h = '';
+      filtered.forEach(function(c) {
+        var cat = c.category || '';
+        var isChecked = DB.selectedIds[c.mobile] ? ' checked' : '';
+        var isNew = c.created_at && (Date.now() - new Date(c.created_at).getTime() < 24 * 60 * 60 * 1000);
+        var badgeHtml = isNew ? '<span class="crm-badge-new">新</span>' : '<span class="crm-badge-old">旧</span>';
+        var firstChar = (c.name || '').trim().charAt(0) || '匿';
+        var colorIdx = Math.abs(firstChar.charCodeAt(0)) % avatarColors.length;
+        var avatarHtml = '<span class="crm-avatar" style="background:' + avatarColors[colorIdx] + ';width:34px;height:34px;font-size:0.85rem;">' + esc(firstChar) + '</span>';
+        var parsed = parseCustomerNote(c);
+        var realNote = parsed.note;
+        var callBtn = '<button class="crm-btn-call" title="点击呼叫 / 复制" onclick="copyTextToClipboard(\\'' + esc(c.mobile) + '\\');showCopyLimitToast(\\'已复制: ' + esc(c.mobile) + '\\');recordTimeline(\\'' + esc(c.mobile) + '\\',\\'copy_phone\\');"></button>';
+        var fundHtml = c.fund ? '<span class="crm-fund-tag" style="background:rgba(255,152,0,0.12); color:#e65100; font-weight:900; font-size:11px; padding:2px 6px; border-radius:4px; display:inline-flex; align-items:center; border:none; box-shadow:var(--shadow-card);">公积金: ' + esc(c.fund) + '</span>' : '';
+        var customHtml = '';
+        (DB.customColumns || []).forEach(function(col) {
+          var val = parsed.custom[col] || '';
+          if (val) customHtml += '<div class="crm-mobile-cust"><span class="crm-mobile-label">' + esc(col) + '</span>' + esc(val) + '</div>';
+        });
+        h += '<div class="crm-mobile-card' + (DB.selectedIds[c.mobile] ? ' selected' : '') + '" data-mobile="' + esc(c.mobile || '') + '">' +
+          '<div class="crm-mobile-check"><input type="checkbox" class="crm-row-select" data-mobile="' + esc(c.mobile) + '" data-name="' + esc(c.name || '') + '"' + isChecked + '></div>' +
+          '<div class="crm-mobile-main">' +
+            '<div class="crm-mobile-top">' +
+              avatarHtml +
+              '<div class="crm-mobile-name">' + badgeHtml + '<span style="font-weight:700;font-size:0.9rem;">' + esc(c.name || '-') + '</span></div>' +
+              '<span class="cust-cat-tag set cat-' + esc(cat) + '" data-m="' + esc(c.mobile) + '" data-c="' + esc(cat) + '">' + esc(cat || '未分类') + '</span>' +
+            '</div>' +
+            '<div class="crm-mobile-phone">' + esc(c.mobile || '-') + callBtn + '</div>' +
+            (c.company_name ? '<div class="crm-mobile-company">' + esc(c.company_name) + '</div>' : '') +
+            (fundHtml ? '<div class="crm-mobile-note">' + fundHtml + '</div>' : '') +
+            (realNote ? '<div class="crm-mobile-note">' + esc(realNote) + '</div>' : '') +
+            customHtml +
+            '<div class="crm-mobile-actions">' +
+              '<a class="crm-action-link crm-btn-followup" data-mobile="' + esc(c.mobile) + '" data-note="' + esc(realNote || '') + '">新增跟进</a>' +
+            '</div>' +
+          '</div>' +
+        '</div>';
+      });
+      list.innerHTML = h;
+
+      // 绑定勾选
+      list.querySelectorAll('.crm-row-select').forEach(function(cb) {
+        cb.onchange = function() {
+          var m = cb.getAttribute('data-mobile');
+          var card = cb.closest('.crm-mobile-card');
+          if (cb.checked) {
+            DB.selectedIds[m] = true;
+            if (card) card.classList.add('selected');
+          } else {
+            delete DB.selectedIds[m];
+            if (card) card.classList.remove('selected');
+          }
+          dbmUpdateActionBar();
+        };
+      });
+      // 行点击选中
+      list.querySelectorAll('.crm-mobile-card').forEach(function(card) {
+        card.onclick = function(e) {
+          if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('.crm-btn-call')) return;
+          var cb = card.querySelector('.crm-row-select');
+          if (cb) { cb.checked = !cb.checked; cb.onchange(); }
+        };
+      });
+      // 跟进
+      list.querySelectorAll('.crm-btn-followup').forEach(function(btn) {
+        btn.onclick = function(e) {
+          e.stopPropagation();
+          var mobile = btn.getAttribute('data-mobile');
+          var oldNote = btn.getAttribute('data-note') || '';
+          var newNote = prompt('请输入新增的跟进备注记录：', oldNote);
+          if (newNote === null) return;
+          newNote = newNote.trim();
+          if (newNote === oldNote) return;
+          btn.textContent = '...';
+          var clientObj = (DB.allData || []).find(function(c) { return c.mobile === mobile; });
+          var rawNoteStr = clientObj ? (clientObj.note || '') : '';
+          var parsed = { note: oldNote, custom: {}, fund: '' };
+          if (rawNoteStr.trim().indexOf('{') === 0) {
+            try {
+              var jsonPart = rawNoteStr.slice(0, rawNoteStr.indexOf('}') + 1);
+              var obj = JSON.parse(jsonPart);
+              if (obj && typeof obj === 'object') { parsed.custom = obj.custom || {}; parsed.fund = obj.fund || ''; }
+            } catch (err) {}
+          }
+          var notePayload = newNote;
+          if (Object.keys(parsed.custom).length > 0 || parsed.fund) {
+            var pl = { note: newNote, custom: parsed.custom };
+            if (parsed.fund) pl.fund = parsed.fund;
+            notePayload = JSON.stringify(pl);
+          }
+          fetch('/api/dialer/customers', {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + getSessionToken() },
+            body: JSON.stringify({ mobile: mobile, note: notePayload })
+          }).then(function(r) { return r.json(); })
+            .then(function(res) {
+              if (res && res.success !== false) {
+                var c = (DB.allData || []).find(function(x) { return x.mobile === mobile; });
+                if (c) c.note = notePayload;
+                dbmRender();
+              } else {
+                alert((res && res.error) || '保存失败');
+                dbmRender();
+              }
+            })
+            .catch(function() { alert('网络错误'); dbmRender(); });
+        };
+      });
+      dbmUpdateActionBar();
+    }
+
+    // 底部操作栏状态：有勾选才可用
+    function dbmUpdateActionBar() {
+      var hasSel = Object.keys(DB.selectedIds).length > 0;
+      var btns = document.querySelectorAll('#dbmActionBar .dbm-action-btn');
+      btns.forEach(function(b) { b.disabled = !hasSel; });
+      var selAll = document.getElementById('dbmSelectAll');
+      if (selAll) {
+        var cbs = document.querySelectorAll('#dbmList .crm-row-select');
+        var allChecked = cbs.length > 0 && Array.prototype.every.call(cbs, function(cb) { return cb.checked; });
+        selAll.checked = allChecked;
+      }
+    }
+
+    // 批量操作：复用桌面版按钮的 onclick（同一套 DB.selectedIds 逻辑）
+    function dbmTriggerAction(desktopBtnId) {
+      var desktopBtn = document.getElementById(desktopBtnId);
+      if (desktopBtn && desktopBtn.onclick) {
+        desktopBtn.onclick();
+        dbmRender();
+        dbmUpdateActionBar();
+      }
+    }
+
+    // 手机版事件绑定
+    function initDBMobile() {
+      var backBtn = document.getElementById('dbmBackBtn');
+      if (backBtn) backBtn.onclick = closeDBMobile;
+      var refreshBtn = document.getElementById('dbmRefreshBtn');
+      if (refreshBtn) refreshBtn.onclick = function() { dbFetch(); setTimeout(dbmRender, 300); };
+      var searchInput = document.getElementById('dbmSearchInput');
+      if (searchInput) searchInput.oninput = function() {
+        var clearBtn = document.getElementById('dbmSearchClearBtn');
+        if (clearBtn) clearBtn.style.display = this.value ? 'block' : 'none';
+        dbmRender();
+      };
+      var clearBtn = document.getElementById('dbmSearchClearBtn');
+      if (clearBtn) clearBtn.onclick = function() {
+        var si = document.getElementById('dbmSearchInput');
+        if (si) { si.value = ''; this.style.display = 'none'; dbmRender(); }
+      };
+      var catSel = document.getElementById('dbmCatFilter');
+      if (catSel) catSel.onchange = dbmRender;
+      var batchSel = document.getElementById('dbmBatchFilter');
+      if (batchSel) batchSel.onchange = dbmRender;
+      var selAll = document.getElementById('dbmSelectAll');
+      if (selAll) {
+        selAll.onchange = function() {
+          var checked = selAll.checked;
+          document.querySelectorAll('#dbmList .crm-row-select').forEach(function(cb) {
+            cb.checked = checked;
+            var m = cb.getAttribute('data-mobile');
+            var card = cb.closest('.crm-mobile-card');
+            if (checked) {
+              DB.selectedIds[m] = true;
+              if (card) card.classList.add('selected');
+            } else {
+              delete DB.selectedIds[m];
+              if (card) card.classList.remove('selected');
+            }
+          });
+          dbmUpdateActionBar();
+        };
+      }
+      // 底部操作按钮：触发桌面版同 ID 按钮逻辑
+      var actions = [
+        ['dbmAddToDialBtn', 'crmAddToDialBtn'],
+        ['dbmMoveIntentBtn', 'crmMoveIntentBtn'],
+        ['dbmMoveLeadsBtn', 'crmMoveLeadsBtn'],
+        ['dbmMovePublicBtn', 'crmMovePublicBtn'],
+        ['dbmBatchDeleteBtn', 'crmBatchDeleteBtn']
+      ];
+      actions.forEach(function(pair) {
+        var mb = document.getElementById(pair[0]);
+        if (mb) mb.onclick = function() { dbmTriggerAction(pair[1]); };
+      });
+      // hash 支持 #dbm
+      window.addEventListener('hashchange', function() {
+        if (window.location.hash === '#dbm') {
+          if (dbPwdSessionAuthed) openDBMobile();
+          else openDBDashboard();
+        }
+      });
+      if (window.location.hash === '#dbm') {
+        if (dbPwdSessionAuthed) { setTimeout(openDBMobile, 100); }
+        else { openDBDashboard(); }
+      }
+    }
+
     // 字段识别检查：修正公积金/单位/备注的错位（与 AI 修正规则一致，纯本地确定性检查）
     function sanitizeClientFields(c) {
       var changes = 0;
@@ -8612,6 +8987,7 @@ function updateAutoDialBtn() {
     function initCustViewer(){
       var ov=document.getElementById('dbOverlay'); if(!ov)return;
       var cls=document.getElementById('dbClose'); if(cls)cls.addEventListener('click',function(){ov.classList.remove('active');});
+      var mbtn=document.getElementById('dbMobileBtn'); if(mbtn)mbtn.addEventListener('click',function(){openDBMobile();});
       ov.addEventListener('click',function(e){if(e.target===ov)ov.classList.remove('active');});
       
       var si=document.getElementById('dbSearch'); if(si)si.addEventListener('input',function(){clearTimeout(DB.timer);DB.timer=setTimeout(function(){DB.page=1;dbFetch();},400);});
@@ -10851,6 +11227,7 @@ function updateAutoDialBtn() {
     safeInit('initCustViewer', initCustViewer);
     safeInit('initAccountMgrPanel', initAccountMgrPanel);
     safeInit('initBackupMgrPanel', initBackupMgrPanel);
+    safeInit('initDBMobile', initDBMobile);
     safeInit('initContentConfigPanel', initContentConfigPanel);
     safeInit('initProgressDrawer', initProgressDrawer);
     safeInit('initDestructPanel', initDestructPanel);
