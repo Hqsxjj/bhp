@@ -379,15 +379,11 @@ export default {
 
     // Unlock: verify PIN with cooldown lockout
     // 2nd wrong → 1min, 3rd wrong → 5min, 4th+ wrong → 10min
+    // 注意：unlock 必须携带有效 session token（Bearer），session 本身已是门槛，不做 Turnstile 校验，
+    // 否则 Turnstile 脚本加载失败时正常用户也无法解锁
     if (path === '/api/dialer/auth/unlock' && request.method === 'POST') {
       try {
         var body = await request.json();
-        // Turnstile 人机验证 — 配置了 TURNSTILE_SECRET 时强制校验，未配置则放行
-        if (getTurnstileSecret(env) && !(await verifyTurnstile(env, body.turnstileToken, clientIP))) {
-          return new Response(JSON.stringify({ error: '人机验证失败，请刷新页面后重试' }), {
-            status: 403, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-          });
-        }
         var pin = (body.pin || '').trim();
         if (!pin || pin.length < 4 || pin.length > 6) throw new Error('PIN 格式不正确');
         var unlockToken = (request.headers.get('Authorization') || '').replace('Bearer ', '');
