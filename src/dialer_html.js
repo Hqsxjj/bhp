@@ -115,12 +115,13 @@
       flex-shrink: 0;
       position: relative;
       z-index: 2500; /* backdrop-filter 创建独立层叠上下文：显式 z-index 保证顶栏及内部下拉菜单浮于客户卡片之上 */
-      background: rgba(255,255,255,0.55);
-      backdrop-filter: blur(20px) saturate(180%);
-      -webkit-backdrop-filter: blur(20px) saturate(180%);
+      background: rgba(255,255,255,0.7);
+      /* 顶栏常驻：blur 半径越大滚动时重采样成本越高，20px→12px 视觉相近、性能大降 */
+      backdrop-filter: blur(12px) saturate(150%);
+      -webkit-backdrop-filter: blur(12px) saturate(150%);
     }
     body.dark-mode .header-bar {
-      background: rgba(28,28,30,0.55);
+      background: rgba(28,28,30,0.7);
     }
     /* iOS Safari（悬浮地址栏在底部、状态栏透明悬浮）：fixed 元素从屏幕物理顶开始，
        普通流内容从状态栏下方开始 → 顶栏改 fixed top:0，内容直接上移覆盖状态栏区域
@@ -213,9 +214,7 @@
     .dashboard-panel {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: var(--modal-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      background: rgba(0,0,0,0.55);
       z-index: 5000;
       opacity: 0;
       pointer-events: none;
@@ -420,9 +419,7 @@
     }
     .crm-table thead th {
       position: sticky; top: 0; z-index: 2;
-      background: rgba(255,255,255,0.55);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      background: rgba(255,255,255,0.92); /* sticky 表头：实色底替代 blur，滚动不重采样 */
       padding: 6px 10px;
       text-align: left;
       font-weight: 700;
@@ -459,15 +456,15 @@
     .crm-table .col-batch { min-width: 90px; }
     .crm-table .col-action { width: 60px; text-align: center; }
     body.dark-mode .crm-table { background: transparent; }
-    body.dark-mode .crm-table thead th { background: rgba(26,26,26,0.55); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-color: rgba(255,255,255,0.08); color: #ccc; border-bottom-color: rgba(255,255,255,0.1); }
+    body.dark-mode .crm-table thead th { background: rgba(26,26,26,0.92); border-color: rgba(255,255,255,0.08); color: #ccc; border-bottom-color: rgba(255,255,255,0.1); }
     body.dark-mode .crm-table thead th:hover { background: rgba(26,26,26,0.8); }
     body.dark-mode .crm-table td { color: #ddd; border-color: rgba(255,255,255,0.05); background: transparent; }
     body.dark-mode .crm-table tbody tr:nth-child(even) td { background: rgba(255,255,255,0.04); }
     body.dark-mode .crm-table tbody tr:hover td { background: rgba(74,108,247,0.12) !important; }
     .xls-dial-card {
       background: var(--card-bg);
-      backdrop-filter: blur(10px) saturate(140%);
-      -webkit-backdrop-filter: blur(10px) saturate(140%);
+      /* 卡片背景已 ≥82% 不透明，backdrop-filter 无视觉贡献；
+         50 张卡片 = 50 个 backdrop 合成层，iOS 列表滚动卡顿/破碎的元凶，移除 */
       border: 0.5px solid var(--card-border);
       border-radius: var(--radius-sm);
       padding: 10px 14px;
@@ -476,12 +473,10 @@
       gap: 6px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.04);
       position: relative;
-      transition: all 0.15s ease;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
     }
     body.dark-mode .xls-dial-card {
       background: var(--card-bg);
-      backdrop-filter: blur(10px) saturate(110%);
-      -webkit-backdrop-filter: blur(10px) saturate(110%);
       border-color: rgba(255,255,255,0.08);
     }
     .xls-dial-card:hover {
@@ -687,13 +682,13 @@
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: var(--modal-bg);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
+      /* backdrop-filter 在 opacity 过渡期间整屏重采样，iOS 弹窗卡顿/破碎元凶：
+         改为实色加深遮罩（iOS 系统弹窗同样是无模糊深色遮罩） */
+      background: rgba(0,0,0,0.55);
       z-index: 2000;
       opacity: 0;
       pointer-events: none;
-      transition: all 0.25s ease;
+      transition: opacity 0.25s ease;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -758,8 +753,9 @@
     .auth-overlay .auth-card {
       position: relative; z-index: 3;
       background: linear-gradient(160deg, rgba(255,255,255,0.55) 0%, rgba(255,240,245,0.4) 40%, rgba(245,225,255,0.35) 100%);
-      backdrop-filter: blur(50px) saturate(180%);
-      -webkit-backdrop-filter: blur(50px) saturate(180%);
+      /* 50px blur 触发整屏重采样（最贵档），24px 视觉相近、成本大降 */
+      backdrop-filter: blur(24px) saturate(160%);
+      -webkit-backdrop-filter: blur(24px) saturate(160%);
       border: 1.5px solid rgba(255,140,180,0.35);
       border-radius: 32px;
       box-shadow:
@@ -776,8 +772,8 @@
     }
     body.dark-mode .auth-overlay .auth-card {
       background: linear-gradient(160deg, rgba(35,25,35,0.55) 0%, rgba(30,20,30,0.45) 40%, rgba(25,20,30,0.4) 100%);
-      backdrop-filter: blur(50px) saturate(150%);
-      -webkit-backdrop-filter: blur(50px) saturate(150%);
+      backdrop-filter: blur(24px) saturate(140%);
+      -webkit-backdrop-filter: blur(24px) saturate(140%);
       border: 1.5px solid rgba(200,120,180,0.25);
       box-shadow:
         0 0 40px rgba(200,100,180,0.12),
@@ -1254,8 +1250,7 @@
     }
     /* ====== Reminder Overlay ====== */
     .reminder-overlay {
-      position: fixed; inset: 0; background: var(--modal-bg);
-      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      position: fixed; inset: 0; background: rgba(0,0,0,0.55);
       z-index: 3000; opacity: 0; pointer-events: none;
       transition: opacity 0.3s ease;
       display: flex; align-items: center; justify-content: center;
@@ -1289,13 +1284,14 @@
       box-shadow: var(--shadow-card);
     }
     .reminder-countdown.urgent { color: #e05060; background: rgba(224,80,96,0.1); }
-    /* 头部倒计时胶囊心跳式红闪：每周期双连闪——大光晕+扩散光环+整体放大，最夸张档 */
+    /* 头部倒计时胶囊心跳式红闪：仅小光晕 + 背景色 + 缩放，去掉 24px+ 扩散环
+       （box-shadow 大半径动画每帧重绘，iOS 持续掉帧） */
     @keyframes roundCdPulse {
-      0%   { box-shadow: 0 0 4px rgba(255, 59, 48, 0.45), 0 0 0 0 rgba(255, 59, 48, 0.5); background: #ff3b30; transform: scale(1); }
-      30%  { box-shadow: 0 0 10px rgba(255, 59, 48, 1), 0 0 26px rgba(255, 59, 48, 0.85), 0 0 46px rgba(255, 59, 48, 0.5), 0 0 0 10px rgba(255, 59, 48, 0.35); background: #ff6659; transform: scale(1.18); }
-      48%  { box-shadow: 0 0 6px rgba(255, 59, 48, 0.7), 0 0 16px rgba(255, 59, 48, 0.6), 0 0 28px rgba(255, 59, 48, 0.35), 0 0 0 0 rgba(255, 59, 48, 0); background: #ff5548; transform: scale(1); }
-      68%  { box-shadow: 0 0 10px rgba(255, 59, 48, 0.95), 0 0 24px rgba(255, 59, 48, 0.8), 0 0 42px rgba(255, 59, 48, 0.45), 0 0 0 8px rgba(255, 59, 48, 0.3); background: #ff6659; transform: scale(1.14); }
-      100% { box-shadow: 0 0 4px rgba(255, 59, 48, 0.45), 0 0 0 0 rgba(255, 59, 48, 0); background: #ff3b30; transform: scale(1); }
+      0%   { box-shadow: 0 0 4px rgba(255, 59, 48, 0.45); background: #ff3b30; transform: scale(1); }
+      30%  { box-shadow: 0 0 10px rgba(255, 59, 48, 0.9); background: #ff6659; transform: scale(1.12); }
+      48%  { box-shadow: 0 0 6px rgba(255, 59, 48, 0.7); background: #ff5548; transform: scale(1); }
+      68%  { box-shadow: 0 0 10px rgba(255, 59, 48, 0.85); background: #ff6659; transform: scale(1.08); }
+      100% { box-shadow: 0 0 4px rgba(255, 59, 48, 0.45); background: #ff3b30; transform: scale(1); }
     }
     .reminder-list { list-style: none; display: flex; flex-direction: column; gap: 10px; }
     .reminder-item {
@@ -1332,8 +1328,7 @@
 
     /* ====== Cooldown Reminder Overlay（冷却期点击换一批时弹出） ====== */
     .cooldown-overlay {
-      position: fixed; inset: 0; background: var(--modal-bg);
-      backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      position: fixed; inset: 0; background: rgba(0,0,0,0.55);
       z-index: 3100; opacity: 0; pointer-events: none;
       transition: opacity 0.3s ease;
       display: flex; align-items: center; justify-content: center;
@@ -1384,7 +1379,6 @@
     /* ====== Progress Drawer ====== */
     .progress-drawer-overlay {
       position: fixed; inset: 0; background: rgba(0,0,0,0.45);
-      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
       z-index: 4000; opacity: 0; pointer-events: none;
       transition: opacity 0.3s ease;
     }
@@ -1498,7 +1492,6 @@
       position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 99999;
       display: none; align-items: center; justify-content: center;
       -webkit-overflow-scrolling: touch;
-      backdrop-filter: blur(8px);
     }
     .db-overlay.active { display: flex; }
     .db-panel {
