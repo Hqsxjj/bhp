@@ -9067,6 +9067,8 @@ function updateAutoDialBtn() {
         panel.parentNode.removeChild(panel);
         wrap.appendChild(panel);
       }
+      // 面板初始内联样式为 display:none，移入手机容器后必须显式显示，否则管理页空白
+      panel.style.display = 'flex';
       // 触发数据加载
       if (entry.load) entry.load();
       // 主账户才显示子账户管理
@@ -9469,6 +9471,11 @@ function updateAutoDialBtn() {
             if (mp) mp.style.display = tabName === 'accountMgr' ? 'flex' : 'none';
             if (bp) bp.style.display = tabName === 'backupMgr' ? 'flex' : 'none';
             if (cp) cp.style.display = tabName === 'contentConfig' ? 'flex' : 'none';
+            // 桌面路径同样按主账户控制子账户管理区显示（初始内联为 none）
+            if (tabName === 'accountMgr') {
+              var subsEl = document.getElementById('dbAccountMgrSubs');
+              if (subsEl) subsEl.style.display = isSessionMaster() ? 'block' : 'none';
+            }
             if (tb) tb.style.display = 'none';
             if (sc) sc.style.display = 'none';
             if (tl) tl.style.display = 'none';
