@@ -2675,6 +2675,7 @@
       </div>
       <div class="crm-pager-right">
         <select class="crm-select-page" id="dbPageSize">
+          <option value="10">10条/页</option>
           <option value="30">30条/页</option>
           <option value="50" selected>50条/页</option>
           <option value="100">100条/页</option>
@@ -2746,6 +2747,22 @@
       btn.addEventListener('click', function() {
         localStorage.setItem(NEW_MODE_K, isNewMode() ? '0' : '1');
         apply();
+        // 切换后同步：主列表重渲染（新号 10 / 普通全部）
+        if (typeof renderDialCards === 'function') renderDialCards();
+        // 客户数据库列表页大小同步（新号 10 / 普通 50），用户手动调过则不覆盖
+        var psSel = document.getElementById('dbPageSize');
+        if (psSel && !localStorage.getItem('crm_page_size')) {
+          psSel.value = isNewMode() ? '10' : '50';
+        }
+        // 客户数据库看板已打开时同步重渲染
+        var dbmOv = document.getElementById('dbMobileOverlay');
+        if (dbmOv && dbmOv.classList.contains('active') && typeof dbmRender === 'function') dbmRender();
+        var dbOv = document.getElementById('dbOverlay');
+        if (dbOv && dbOv.classList.contains('active') && typeof dbRenderCached === 'function') {
+          DB.pageSize = parseInt((document.getElementById('dbPageSize') || {}).value || '50');
+          DB.page = 1;
+          dbRenderCached();
+        }
       });
     }
 
@@ -8630,6 +8647,12 @@ function updateAutoDialBtn() {
       if (noteInp) noteInp.value = '';
       if (fuzzyInp) fuzzyInp.value = '';
       
+      // 客户数据库页大小默认：新号模式 10条/页，普通模式 50条/页（用户手动调过则记住）
+      var psSel = document.getElementById('dbPageSize');
+      if (psSel) {
+        var savedPs = localStorage.getItem('crm_page_size');
+        psSel.value = savedPs || (isNewMode() ? '10' : '50');
+      }
       DB.pageSize=parseInt((document.getElementById('dbPageSize')||{}).value||'50');
       DB.selectedIds = {}; // Reset selections
       var selectAllCb = document.getElementById('crmSelectAll');
@@ -8748,6 +8771,9 @@ function updateAutoDialBtn() {
       var list = document.getElementById('dbmList');
       if (!list) return;
       var filtered = dbmFilterData();
+      // 客户数据库列表与主列表一致：新号模式每轮只显示前 10 条，普通模式显示前 50 条
+      var roundLimit = isNewMode() ? 10 : 50;
+      if (filtered.length > roundLimit) filtered = filtered.slice(0, roundLimit);
       if (!filtered || filtered.length === 0) {
         list.innerHTML = '<div class="dbm-empty">暂无客户数据</div>';
         return;
@@ -9283,7 +9309,7 @@ function updateAutoDialBtn() {
       }
       var cf=document.getElementById('dbCatFilter'); if(cf)cf.addEventListener('change',function(){DB.page=1;dbFetch();});
       var bf=document.getElementById('dbBatchFilter'); if(bf)bf.addEventListener('change',function(){DB.page=1;dbFetch();});
-      var ps=document.getElementById('dbPageSize'); if(ps)ps.addEventListener('change',function(){DB.pageSize=parseInt(ps.value);DB.page=1;dbRenderCached();});
+      var ps=document.getElementById('dbPageSize'); if(ps)ps.addEventListener('change',function(){localStorage.setItem('crm_page_size', ps.value);DB.pageSize=parseInt(ps.value);DB.page=1;dbRenderCached();});
       var pr=document.getElementById('dbPrev'); if(pr)pr.addEventListener('click',function(){if(DB.page>1){DB.page--;dbRenderCached();}});
       var nx=document.getElementById('dbNext'); if(nx)nx.addEventListener('click',function(){var tp=Math.max(1,Math.ceil(DB.total/DB.pageSize));if(DB.page<tp){DB.page++;dbRenderCached();}});
       
