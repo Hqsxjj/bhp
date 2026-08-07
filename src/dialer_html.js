@@ -2737,15 +2737,18 @@
     var isMobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
     // 新号模式：新号每日添加上限低 → 每轮只显示 10 个客户卡片，加完冷却 20-30 分钟（普通模式 50 个、45-60 分钟）
-    var NEW_MODE_K = 'dialer_new_mode';
-    function isNewMode() { return localStorage.getItem(NEW_MODE_K) === '1'; }
+    // 新号模式按「账号 + 当前设备」独立记录：键含账号 ID，切换账号或其他设备互不影响
+    function newModeKey() { return 'dialer_new_mode:' + getOrCreateAccountId(); }
+    function isNewMode() {
+      try { return localStorage.getItem(newModeKey()) === '1'; } catch (e) { return false; }
+    }
     function initNewModeToggle() {
       var btn = document.getElementById('newModeToggle');
       if (!btn) return;
       var apply = function() { btn.classList.toggle('on', isNewMode()); };
       apply();
       btn.addEventListener('click', function() {
-        localStorage.setItem(NEW_MODE_K, isNewMode() ? '0' : '1');
+        localStorage.setItem(newModeKey(), isNewMode() ? '0' : '1');
         apply();
         // 切换后同步：主列表重渲染（新号 10 / 普通全部）
         if (typeof renderDialCards === 'function') renderDialCards();
@@ -2896,6 +2899,9 @@
       d.textContent = label ? '[' + label + ']' : '[' + id.slice(0, 10) + ']';
       var typeTag = isSessionMaster() ? ' [主账户]' : (getSessionAccountId() ? ' [子账户]' : '');
       d.title = '账户: ' + id + (label ? ' (' + label + ')' : '') + typeTag;
+      // 账号变化后刷新新号模式开关（状态按账号独立记录，不跨账号/设备继承）
+      var ntb = document.getElementById('newModeToggle');
+      if (ntb) ntb.classList.toggle('on', isNewMode());
       // Fetch DB count for this account
       fetch('/api/dialer/stats/my-count')
         .then(function(r) { return r.json(); })
