@@ -1435,22 +1435,57 @@
     }
     .drawer-step-btn {
       width: 36px; height: 36px; border-radius: 10px;
-      border: none; background: var(--card-bg);
-      color: var(--text-main); font-size: 1.2rem; font-weight: 600;
+      border: 0.5px solid rgba(0,0,0,0.08);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.35), rgba(255,255,255,0.03)),
+        var(--btn-bg);
+      color: var(--text-main); font-size: 1.2rem; font-weight: 700;
       display: inline-flex; align-items: center; justify-content: center;
       cursor: pointer; font-family: inherit; line-height: 1;
-      box-shadow: var(--shadow-card);
+      box-shadow:
+        inset 0 0.5px 0 rgba(255,255,255,0.55),
+        inset 0 -1px 2px rgba(0,0,0,0.08),
+        0 1px 2px rgba(0,0,0,0.12),
+        0 2px 6px rgba(0,0,0,0.06);
+      text-shadow: 0 0.5px 0 rgba(255,255,255,0.5), 0 -0.5px 1px rgba(0,0,0,0.18);
       -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+      transition: box-shadow 0.15s ease, transform 0.1s ease, background 0.15s ease;
     }
-    .drawer-step-btn:active { background: var(--btn-hover); }
+    .drawer-step-btn:active {
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(0,0,0,0.05)),
+        var(--btn-hover);
+      box-shadow:
+        inset 0 1px 3px rgba(0,0,0,0.2),
+        inset 0 0.5px 0 rgba(255,255,255,0.15);
+      transform: scale(0.95);
+    }
     .drawer-close-btn {
-      width: 32px; height: 32px; border-radius: 10px; border: none;
-      background: var(--btn-bg); color: var(--text-main);
+      width: 32px; height: 32px; border-radius: 10px;
+      border: 0.5px solid rgba(0,0,0,0.08);
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.32), rgba(255,255,255,0.02)),
+        var(--btn-bg);
+      color: var(--text-main);
       display: inline-flex; align-items: center; justify-content: center;
-      cursor: pointer; box-shadow: var(--shadow-card);
+      cursor: pointer;
+      box-shadow:
+        inset 0 0.5px 0 rgba(255,255,255,0.5),
+        inset 0 -1px 2px rgba(0,0,0,0.07),
+        0 1px 2px rgba(0,0,0,0.12),
+        0 2px 6px rgba(0,0,0,0.06);
       -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+      transition: box-shadow 0.15s ease, transform 0.1s ease;
     }
-    .drawer-close-btn:active { background: var(--btn-hover); }
+    .drawer-close-btn:active {
+      box-shadow:
+        inset 0 1px 3px rgba(0,0,0,0.2),
+        inset 0 0.5px 0 rgba(255,255,255,0.15);
+      transform: scale(0.94);
+    }
+    .drawer-close-btn svg {
+      filter: drop-shadow(0 0.5px 0 rgba(255,255,255,0.45)) drop-shadow(0 -0.5px 1px rgba(0,0,0,0.18));
+    }
     .drawer-slogan {
       margin: 0; padding-top: 2px;
       font-size: min(1.8rem, calc(8.5vw - 3.2px)); /* 每行10个全角字符，正好铺满抽屉左右内边距 */
@@ -1917,7 +1952,7 @@
     <div class="progress-drawer" id="progressDrawer">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;">
         <span style="font-size:1rem;font-weight:700;color:var(--text-main);letter-spacing:-0.01em;">添加动作</span>
-        <button class="drawer-close-btn" id="progressDrawerClose" title="关闭" style="border:none;background:transparent;color:var(--text-soft);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+        <button class="drawer-close-btn" id="progressDrawerClose" title="关闭" style="color:var(--text-soft);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
       <!-- 进度卡片：拨打 / 操作 环形进度 -->
       <div class="drawer-group-card">
@@ -1964,9 +1999,9 @@
           <div class="drawer-wc-cell today">
             <span class="drawer-wc-label">今日</span>
             <span style="display:flex;align-items:center;justify-content:center;gap:4px;">
-              <button class="drawer-step-btn" id="drawerWechatMinus" title="减1" style="width:32px;height:32px;font-size:1.05rem;background:var(--btn-bg);box-shadow:none;">−</button>
+              <button class="drawer-step-btn" id="drawerWechatMinus" title="减1" style="width:32px;height:32px;font-size:1.05rem;">−</button>
               <span class="drawer-wc-value" id="drawerWechatVal">0</span>
-              <button class="drawer-step-btn" id="drawerWechatPlus" title="加1" style="width:32px;height:32px;font-size:1.05rem;background:var(--btn-bg);box-shadow:none;">+</button>
+              <button class="drawer-step-btn" id="drawerWechatPlus" title="加1" style="width:32px;height:32px;font-size:1.05rem;">+</button>
             </span>
           </div>
           <div class="drawer-wc-cell">
