@@ -114,6 +114,7 @@
       justify-content: space-between;
       flex-shrink: 0;
       position: relative;
+      z-index: 2500; /* backdrop-filter 创建独立层叠上下文：显式 z-index 保证顶栏及内部下拉菜单浮于客户卡片之上 */
       background: rgba(255,255,255,0.55);
       backdrop-filter: blur(20px) saturate(180%);
       -webkit-backdrop-filter: blur(20px) saturate(180%);
