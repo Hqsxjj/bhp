@@ -135,6 +135,27 @@
       align-items: center;
       gap: 6px;
     }
+    /* 新号模式开关：iOS 风格小 toggle（每轮 10 个客户，加完冷却 20-30 分钟） */
+    #newModeToggle {
+      display: inline-flex; align-items: center; gap: 4px;
+      border: none; background: transparent; cursor: pointer;
+      padding: 2px 4px; flex-shrink: 0;
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
+    }
+    #newModeLabel { font-size: 0.62rem; font-weight: 700; color: var(--text-light); white-space: nowrap; }
+    #newModeToggle.on #newModeLabel { color: var(--accent-wechat); }
+    .nm-track {
+      width: 30px; height: 18px; border-radius: 999px;
+      background: rgba(0,0,0,0.15); position: relative; transition: background 0.2s;
+    }
+    body.dark-mode .nm-track { background: rgba(255,255,255,0.2); }
+    #newModeToggle.on .nm-track { background: var(--accent-wechat); }
+    .nm-thumb {
+      position: absolute; top: 2px; left: 2px; width: 14px; height: 14px;
+      border-radius: 50%; background: #fff;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.2); transition: left 0.2s;
+    }
+    #newModeToggle.on .nm-thumb { left: 14px; }
     .header-dropdown {
       position: absolute;
       top: 34px;
@@ -2011,8 +2032,13 @@
         <button id="refreshBatchBtn" title="换一批 — 按最新导入顺序拉取，拉过的自动沉底" onclick="if(window.refreshBatch)window.refreshBatch()" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: #e67e22; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-sm); white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
         <button id="learnBtn" title="学习" onclick="window.location.href='/learn'" style="font-size: 0.78rem; padding: 4px 8px; border: none; background: transparent; color: #4a6cf7; cursor: pointer; outline: none; font-weight: 700; border-radius: var(--radius-sm); white-space: nowrap; display: inline-flex; align-items: center; justify-content: center;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></button>
         <button id="lockScreenBtn" title="锁定屏幕" style="font-size:0.68rem;padding:3px 6px;border:none;background:transparent;color:var(--text-soft);cursor:pointer;outline:none;font-weight:700;border-radius:3px;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
-        <!-- 距离下轮添加倒计时：转出公海后 45-60 分钟冷却期（每轮随机），走完自动隐藏（鲜艳红底+白字胶囊，最醒目） -->
+        <!-- 距离下轮添加倒计时：转出公海后冷却期（普通 45-60 分钟 / 新号模式 20-30 分钟，每轮随机），走完自动隐藏（鲜艳红底+白字胶囊，最醒目） -->
         <span id="headerRoundCd" title="距离下轮添加" style="display:none;font-size:0.55rem;font-weight:700;font-family:monospace;color:#fff;letter-spacing:-0.01em;white-space:nowrap;flex-shrink:0;border-radius:var(--radius-capsule);padding:2px 7px;line-height:1.1;background:#ff3b30;animation:roundCdPulse 1.8s ease-in-out infinite;">30:00</span>
+        <!-- 新号模式开关：新号每日添加上限低 → 每轮只显示 10 个客户，加完冷却 20-30 分钟（普通模式 50 个、45-60 分钟） -->
+        <button id="newModeToggle" title="新号模式：每轮 10 个客户，加完冷却 20-30 分钟">
+          <span id="newModeLabel">新号</span>
+          <span class="nm-track"><span class="nm-thumb"></span></span>
+        </button>
         <!-- Dropdown Menu Trigger on the Right -->
         <div style="position: relative; display: inline-block;">
           <button id="headerMenuBtn" title="更多设置" style="font-size: 0.8rem; padding: 6px 8px; border: none; background: transparent; cursor: pointer; outline: none; font-weight: 600; color: var(--text-soft); min-width: 44px; min-height: 34px; display:inline-flex;align-items:center;justify-content:center; -webkit-tap-highlight-color: transparent; touch-action: manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
@@ -2709,6 +2735,20 @@
 
     var isMobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
+    // 新号模式：新号每日添加上限低 → 每轮只显示 10 个客户卡片，加完冷却 20-30 分钟（普通模式 50 个、45-60 分钟）
+    var NEW_MODE_K = 'dialer_new_mode';
+    function isNewMode() { return localStorage.getItem(NEW_MODE_K) === '1'; }
+    function initNewModeToggle() {
+      var btn = document.getElementById('newModeToggle');
+      if (!btn) return;
+      var apply = function() { btn.classList.toggle('on', isNewMode()); };
+      apply();
+      btn.addEventListener('click', function() {
+        localStorage.setItem(NEW_MODE_K, isNewMode() ? '0' : '1');
+        apply();
+      });
+    }
+
     // LocalStorage Keys
     var CLIENTS_K = 'standalone_dialer_clients';
     var DARK_K = 'standalone_dialer_dark';
@@ -2967,14 +3007,15 @@
     window._reminderTimer = null;
     var _reminderSeqTimer = null;
 
-    // 操作到序号50的客户卡片时，8秒后弹出提醒并清空列表
+    // 操作到本轮最后一个客户卡片时，8秒后弹出提醒并清空列表（普通模式序号50 / 新号模式序号10）
     // 页面不可见（如切到微信粘贴号码）时暂停倒计时，回到页面后再重新触发，避免回来时列表已被清空
     var _pendingReminderClient = null;
     function scheduleReminder(client) {
       if (_reminderShown) return;
       if (!client) return;
       var seq = client._seq || 0;
-      if (seq < 50) return;
+      var roundSize = isNewMode() ? 10 : 50; // 新号模式每轮 10 个客户，普通模式 50
+      if (seq < roundSize) return;
       _pendingReminderClient = client;
       if (document.hidden) return; // 不在页面时等待 visibilitychange 重新触发
       if (_reminderSeqTimer) clearTimeout(_reminderSeqTimer);
@@ -6465,6 +6506,9 @@
           sorted[sj] = tmp;
         }
       }
+
+      // 新号模式：每轮只显示前 10 个客户卡片（排序后取前 10，序号 1-10 触发一轮）
+      if (isNewMode() && sorted.length > 10) sorted = sorted.slice(0, 10);
 
       // 无分页 — 直接展示全部客户
       var total = sorted.length;
@@ -10704,7 +10748,10 @@ function updateAutoDialBtn() {
       var info = getRoundInfo() || {};
       if (info.date !== today) info = { date: today, count: 0 };
       info.count = Math.min(6, (info.count || 0) + 1); // 今日轮数最多 6 轮（微信每日添加上限），大批次分批操作也能正确累计
-      info.cooldownMs = 45 * 60 * 1000 + Math.floor(Math.random() * 15 * 60 * 1000); // 每轮冷却 45-60 分钟随机（防微信频繁）
+      // 每轮冷却随机（防微信频繁）：新号模式 20-30 分钟，普通模式 45-60 分钟
+      info.cooldownMs = isNewMode()
+        ? 20 * 60 * 1000 + Math.floor(Math.random() * 10 * 60 * 1000)
+        : 45 * 60 * 1000 + Math.floor(Math.random() * 15 * 60 * 1000);
       info.transferTs = Date.now();
       saveRoundInfo(info); // 先乐观更新本地，弹窗立即显示
       // 同步到云端 KV（绝对值上报 + max 合并）：失败/并发都不会丢轮次
@@ -10766,11 +10813,11 @@ function updateAutoDialBtn() {
       var s = totalSec % 60;
       return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
     }
-    // 本轮冷却时长：每轮随机 45-60 分钟；旧数据（无 cooldownMs）兜底 30 分钟。
-    // 防御：云端合并可能带回历史脏值（几十秒），读取时统一钳制到 ≥30 分钟
+    // 本轮冷却时长：普通模式每轮随机 45-60 分钟 / 新号模式 20-30 分钟；旧数据（无 cooldownMs）兜底 30 分钟。
+    // 防御：云端合并可能带回历史脏值（几十秒），读取时统一钳制到 ≥15 分钟（新号模式最小 20 分钟不被误伤）
     function getRoundCooldownMs(info) {
       var cd = (info && info.cooldownMs) ? info.cooldownMs : 30 * 60 * 1000;
-      return cd >= 30 * 60 * 1000 ? cd : 30 * 60 * 1000;
+      return cd >= 15 * 60 * 1000 ? cd : 15 * 60 * 1000;
     }
     function renderRoundInfo() {
       var numEl = document.getElementById('reminderRoundNum');
@@ -10844,6 +10891,11 @@ function updateAutoDialBtn() {
           itemsHtml += '<li class="reminder-item"><span class="reminder-num">' + (i + 1) + '</span>' + escHtml(_reminderConfig.items[i]) + '</li>';
         }
         listEl.innerHTML = itemsHtml;
+      }
+      // 新号模式：提醒文案冷却时长对齐（20-30 分钟）
+      if (isNewMode() && listEl) {
+        var firstItem = listEl.querySelector('li');
+        if (firstItem) firstItem.innerHTML = firstItem.innerHTML.replace('30-50分钟', '20-30分钟');
       }
       overlay.classList.add('active');
       // 弹窗倒计时显示本轮真实剩余冷却（45-60 分钟随机，弹窗在转公海后立即弹出，即整段冷却）
@@ -11447,6 +11499,7 @@ function updateAutoDialBtn() {
     safeInit('initFilters', initFilters);
     safeInit('initDataActions', initDataActions);
 
+    safeInit('initNewModeToggle', initNewModeToggle);
     safeInit('initHeaderMenu', initHeaderMenu);
     safeInit('initNoteModal', initNoteModal);
     safeInit('initCustomColumnsHandlers', initCustomColumnsHandlers);

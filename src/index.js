@@ -881,9 +881,9 @@ export default {
           wsCd = await fetchCooldownRow(env, wsSession.account_id, wsDate, wsDeviceId);
         }
         wsResp.transfer_ts = (wsCd && wsCd.transfer_ts) || (wsRow && wsRow.transfer_ts) || 0;
-        // 返回前钳制冷却时长：0 = 无冷却；非 0 值至少 30 分钟（历史脏值如几十秒在此修正）
+        // 返回前钳制冷却时长：0 = 无冷却；非 0 值至少 15 分钟（历史脏值如几十秒在此修正，新号模式 20-30 分钟放行）
         var rawCdMs = (wsCd && wsCd.cooldown_ms) || (wsRow && wsRow.cooldown_ms) || 0;
-        wsResp.cooldown_ms = rawCdMs === 0 ? 0 : Math.max(rawCdMs, 30 * 60 * 1000);
+        wsResp.cooldown_ms = rawCdMs === 0 ? 0 : Math.max(rawCdMs, 15 * 60 * 1000);
         wsResp.week_count = wm.week_count;
         wsResp.month_count = wm.month_count;
         return new Response(JSON.stringify(wsResp), {
@@ -919,9 +919,10 @@ export default {
           var wrCd = await fetchCooldownRow(env, wrSession.account_id, wrDate, wrDeviceId) || { transfer_ts: 0, cooldown_ms: 0 };
           if (inTs >= (wrCd.transfer_ts || 0)) {
             wrCd.transfer_ts = inTs;
-            // 冷却时长钳制：0 = 无冷却；非 0 值至少 30 分钟（防历史脏值/上报错误把冷却写成几十秒）
+            // 冷却时长钳制：0 = 无冷却；非 0 值至少 15 分钟（防历史脏值/上报错误把冷却写成几十秒；
+            // 下限 15 分钟放行新号模式的 20-30 分钟）
             var rawCd = parseInt(wrBody.cooldownMs, 10) || 0;
-            wrCd.cooldown_ms = rawCd === 0 ? 0 : Math.max(rawCd, 30 * 60 * 1000);
+            wrCd.cooldown_ms = rawCd === 0 ? 0 : Math.max(rawCd, 15 * 60 * 1000);
           }
           await upsertCooldownRow(env, wrSession.account_id, wrDate, wrDeviceId, wrCd);
           if (wrRow.transfer_ts) { wrRow.transfer_ts = 0; wrRow.cooldown_ms = 0; }
@@ -929,7 +930,7 @@ export default {
           // 旧版客户端（无 device_id）：维持账号级行为
           wrRow.transfer_ts = inTs;
           var rawCd2 = parseInt(wrBody.cooldownMs, 10) || 0;
-          wrRow.cooldown_ms = rawCd2 === 0 ? 0 : Math.max(rawCd2, 30 * 60 * 1000);
+          wrRow.cooldown_ms = rawCd2 === 0 ? 0 : Math.max(rawCd2, 15 * 60 * 1000);
         }
         await upsertWorkRow(env, wrSession.account_id, wrDate, wrRow);
         // 响应带本设备冷却值（设备键优先，旧客户端回退账号级），客户端合并以云端为准
@@ -938,7 +939,7 @@ export default {
           rounds: wrRow.rounds,
           wechat_count: wrRow.wechat_count || 0,
           transfer_ts: (wrCd && wrCd.transfer_ts) || (wrRow.transfer_ts || 0),
-          cooldown_ms: ((wrCd && wrCd.cooldown_ms) || (wrRow.cooldown_ms || 0)) === 0 ? 0 : Math.max((wrCd && wrCd.cooldown_ms) || (wrRow.cooldown_ms || 0), 30 * 60 * 1000)
+          cooldown_ms: ((wrCd && wrCd.cooldown_ms) || (wrRow.cooldown_ms || 0)) === 0 ? 0 : Math.max((wrCd && wrCd.cooldown_ms) || (wrRow.cooldown_ms || 0), 15 * 60 * 1000)
         };
         return new Response(JSON.stringify(wrResp), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
