@@ -6,10 +6,10 @@
   <title>减肥打卡</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#ededed">
   <link rel="manifest" href="/manifest.json">
-  <link rel="apple-touch-icon" href="/icon.svg">
+  <link rel="apple-touch-icon" href="/icon.png">
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <style>
@@ -102,10 +102,12 @@
     }
 
     /* Header Bar — full width；半透明毛玻璃，让全屏壁纸从屏幕顶连续透入顶栏（移动浏览器中
-       普通流内容从地址栏下方开始，壁纸 fixed 铺满全屏，顶栏必须融入壁纸才没有「间隙」） */
+       普通流内容从地址栏下方开始，壁纸 fixed 铺满全屏，顶栏必须融入壁纸才没有「间隙」）
+       env(safe-area-inset-top)：添加到主屏幕（独立模式，状态栏透明）时顶栏背景延伸到
+       刘海/状态栏区域，顶栏真正从屏幕物理顶开始；普通浏览器中该值为 0，无副作用 */
     .header-bar {
-      height: 36px;
-      padding: 0 16px;
+      height: calc(36px + env(safe-area-inset-top, 0px));
+      padding: env(safe-area-inset-top, 0px) 16px 0;
       border-bottom: 0.5px solid var(--separator);
       display: flex;
       align-items: center;
@@ -1113,8 +1115,8 @@
         height: 28px;
       }
       .header-bar {
-        height: 38px;
-        padding: 0 10px;
+        height: calc(38px + env(safe-area-inset-top, 0px));
+        padding: env(safe-area-inset-top, 0px) 10px 0;
       }
       .header-stats-minimal {
         font-size: 0.72rem;
@@ -1745,7 +1747,7 @@
     body.dark-mode .dbm-overlay { background: #0f172a; }
     .dbm-overlay.active { display: flex; }
     .dbm-topbar {
-      display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+      display: flex; align-items: center; gap: 10px; padding: calc(10px + env(safe-area-inset-top, 0px)) 12px 10px;
       background: #fff; border-bottom: 0.5px solid var(--card-border); flex-shrink: 0;
     }
     body.dark-mode .dbm-topbar { background: #1e293b; }
