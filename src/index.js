@@ -3052,8 +3052,8 @@ export default {
         description: '减肥打卡',
         start_url: '/dialer',
         display: 'standalone',
-        background_color: '#ededed',
-        theme_color: '#ededed',
+        background_color: '#f2f2f7',
+        theme_color: '#f2f2f7',
         orientation: 'portrait',
         icons: [
           { src: '/icon.png', sizes: '512x512', type: 'image/png', purpose: 'any' },

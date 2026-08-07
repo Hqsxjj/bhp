@@ -6,8 +6,8 @@
   <title>减肥打卡</title>
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#ededed">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="theme-color" content="#f2f2f7">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/icon.png">
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
@@ -127,29 +127,6 @@
        max(env(safe-area-inset-top), 4px)：普通 Safari 悬浮模式为 0 时内容贴顶（4px 小间隙，
        覆盖状态栏）；独立模式（添加到主屏幕）刘海 47/59px 时取环境值避让刘海。
        旧 iOS 不支持 max() 时整条规则失效，回退普通流 */
-    /* iOS：状态栏区域显示的是页面背景（fixed 元素到不了状态栏后面）→ body 背景顶部
-       47px 涂上顶栏磨砂玻璃的近似色（深蓝壁纸 × 0.55 白模糊 ≈ #9a9cb0），浅色背景让
-       系统状态栏文字自动变黑（不再刺眼的白字），47px 以下平滑过渡回正常页面背景 */
-    body.ios {
-      background: linear-gradient(to bottom, #9a9cb0 0%, #9a9cb0 47px, var(--bg-app) 55px);
-    }
-    body.ios.dark-mode {
-      background: linear-gradient(to bottom, #1e2233 0%, #1e2233 47px, var(--bg-app) 55px);
-    }
-    body.ios .header-bar {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      height: calc(36px + max(env(safe-area-inset-top, 0px), 4px));
-      padding: max(env(safe-area-inset-top, 0px), 4px) 16px 0;
-      z-index: 100;
-      background: rgba(255,255,255,0.55);
-    }
-    body.ios.dark-mode .header-bar {
-      background: rgba(28,28,30,0.55);
-    }
-    body.ios .app-shell {
-      padding-top: calc(36px + max(env(safe-area-inset-top, 0px), 4px));
-    }
     .header-stats-minimal {
       font-size: 0.78rem;
       font-weight: 700;
@@ -1147,13 +1124,6 @@
         height: calc(38px + env(safe-area-inset-top, 0px));
         padding: env(safe-area-inset-top, 0px) 10px 0;
       }
-      body.ios .header-bar {
-        height: calc(38px + max(env(safe-area-inset-top, 0px), 4px));
-        padding: max(env(safe-area-inset-top, 0px), 4px) 10px 0;
-      }
-      body.ios .app-shell {
-        padding-top: calc(38px + max(env(safe-area-inset-top, 0px), 4px));
-      }
       .header-stats-minimal {
         font-size: 0.72rem;
       }
@@ -1787,10 +1757,6 @@
       background: #fff; border-bottom: 0.5px solid var(--card-border); flex-shrink: 0;
     }
     body.dark-mode .dbm-topbar { background: #1e293b; }
-    /* iOS：看板 overlay 是 fixed inset:0，从屏幕物理顶开始 → 顶栏内容上移覆盖状态栏（独立模式避让刘海） */
-    body.ios .dbm-topbar {
-      padding-top: max(env(safe-area-inset-top, 0px), 4px);
-    }
     .dbm-title { flex: 1; font-size: 1rem; font-weight: 700; color: var(--text-main); }
     .dbm-icon-btn {
       width: 36px; height: 36px; border: none; background: var(--btn-bg);
@@ -2740,11 +2706,6 @@
     if(/Android/.test(navigator.userAgent)&&!/iPhone|iPad|iPod/.test(navigator.userAgent)){
       document.body.classList.add('android');
     }
-    // iOS Safari 悬浮地址栏（地址栏在屏幕底部、状态栏透明悬浮）：fixed 元素从屏幕物理顶
-    // 开始、普通流内容从状态栏下方开始 → 顶栏改 fixed + 状态栏高度 padding，背景延伸到屏幕顶
-    if(/iPhone|iPad|iPod/.test(navigator.userAgent)){
-      document.body.classList.add('ios');
-    }
 
     var isMobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
 
@@ -3063,7 +3024,7 @@
           document.body.classList.remove('dark-mode');
         }
         var themeMeta = document.querySelector('meta[name="theme-color"]');
-        if (themeMeta) themeMeta.content = isDark ? '#111111' : '#ededed';
+        if (themeMeta) themeMeta.content = isDark ? '#1c1c1e' : '#f2f2f7';
       };
       var updateDarkTitle = function() {
         if (!btn) return;
