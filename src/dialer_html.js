@@ -10766,9 +10766,11 @@ function updateAutoDialBtn() {
       var s = totalSec % 60;
       return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
     }
-    // 本轮冷却时长：每轮随机 45-60 分钟；旧数据（无 cooldownMs）兜底 30 分钟
+    // 本轮冷却时长：每轮随机 45-60 分钟；旧数据（无 cooldownMs）兜底 30 分钟。
+    // 防御：云端合并可能带回历史脏值（几十秒），读取时统一钳制到 ≥30 分钟
     function getRoundCooldownMs(info) {
-      return (info && info.cooldownMs) ? info.cooldownMs : 30 * 60 * 1000;
+      var cd = (info && info.cooldownMs) ? info.cooldownMs : 30 * 60 * 1000;
+      return cd >= 30 * 60 * 1000 ? cd : 30 * 60 * 1000;
     }
     function renderRoundInfo() {
       var numEl = document.getElementById('reminderRoundNum');
