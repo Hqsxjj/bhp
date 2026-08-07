@@ -1853,12 +1853,6 @@
     #dbmMgrBody .dbm-mgr-inner textarea { border-radius: 10px; border: none; background: var(--btn-bg); color: var(--text-main); padding: 10px; font-size: 0.78rem; outline: none; }
     #dbmMgrBody .dbm-mgr-inner .auth-input { background: var(--btn-bg); border: none; }
   </style>
-    }
-    .db-pager { padding: 4px 10px; }
-    .db-cat-bar { padding: 3px 10px; }
-    /* ===== Learn Magazine Overlay ===== */
-
-  </style>
 </head>
 <body>
   <div class="copy-limit-toast" id="copyLimitToast"></div>
