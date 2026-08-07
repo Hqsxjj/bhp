@@ -101,7 +101,8 @@
       z-index: 1;
     }
 
-    /* Header Bar — full width */
+    /* Header Bar — full width；半透明毛玻璃，让全屏壁纸从屏幕顶连续透入顶栏（移动浏览器中
+       普通流内容从地址栏下方开始，壁纸 fixed 铺满全屏，顶栏必须融入壁纸才没有「间隙」） */
     .header-bar {
       height: 36px;
       padding: 0 16px;
@@ -111,7 +112,12 @@
       justify-content: space-between;
       flex-shrink: 0;
       position: relative;
-      background: var(--card-bg);
+      background: rgba(255,255,255,0.55);
+      backdrop-filter: blur(20px) saturate(180%);
+      -webkit-backdrop-filter: blur(20px) saturate(180%);
+    }
+    body.dark-mode .header-bar {
+      background: rgba(28,28,30,0.55);
     }
     .header-stats-minimal {
       font-size: 0.78rem;
