@@ -127,16 +127,25 @@
        max(env(safe-area-inset-top), 4px)：普通 Safari 悬浮模式为 0 时内容贴顶（4px 小间隙，
        覆盖状态栏）；独立模式（添加到主屏幕）刘海 47/59px 时取环境值避让刘海。
        旧 iOS 不支持 max() 时整条规则失效，回退普通流 */
+    /* iOS：状态栏区域显示的是页面背景（fixed 元素到不了状态栏后面）→ body 背景顶部
+       47px 涂上顶栏磨砂玻璃的近似色（深蓝壁纸 × 0.55 白模糊 ≈ #9a9cb0），浅色背景让
+       系统状态栏文字自动变黑（不再刺眼的白字），47px 以下平滑过渡回正常页面背景 */
+    body.ios {
+      background: linear-gradient(to bottom, #9a9cb0 0%, #9a9cb0 47px, var(--bg-app) 55px);
+    }
+    body.ios.dark-mode {
+      background: linear-gradient(to bottom, #1e2233 0%, #1e2233 47px, var(--bg-app) 55px);
+    }
     body.ios .header-bar {
       position: fixed;
       top: 0; left: 0; right: 0;
       height: calc(36px + max(env(safe-area-inset-top, 0px), 4px));
       padding: max(env(safe-area-inset-top, 0px), 4px) 16px 0;
       z-index: 100;
-      background: rgba(255,255,255,0.8);
+      background: rgba(255,255,255,0.55);
     }
     body.ios.dark-mode .header-bar {
-      background: rgba(28,28,30,0.8);
+      background: rgba(28,28,30,0.55);
     }
     body.ios .app-shell {
       padding-top: calc(36px + max(env(safe-area-inset-top, 0px), 4px));
