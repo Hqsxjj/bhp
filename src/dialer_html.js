@@ -1405,8 +1405,34 @@
     .drawer-stat-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
     .drawer-stat-row > span:first-child { font-size: 0.82rem; font-weight: 500; color: var(--text-soft); }
     .drawer-stat-value { font-size: 0.82rem; font-weight: 600; color: var(--text-main); font-variant-numeric: tabular-nums; }
-    .drawer-progress-track { height: 4px; border-radius: 2px; background: var(--btn-bg); overflow: hidden; }
-    .drawer-progress-fill { height: 100%; border-radius: 2px; background: var(--accent-wechat); width: 0%; transition: width 0.3s ease; }
+    .drawer-group-card {
+      background: var(--card-bg);
+      border: 0.5px solid var(--card-border);
+      border-radius: 16px;
+      padding: 12px;
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .drawer-ring-wrap { position: relative; width: 88px; height: 88px; }
+    .drawer-ring-value {
+      position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+      font-size: 1.05rem; font-weight: 700; color: var(--text-main);
+      font-variant-numeric: tabular-nums; letter-spacing: -0.01em;
+    }
+    .drawer-ring-label { font-size: 0.68rem; font-weight: 600; color: var(--text-light); margin-top: 6px; }
+    .drawer-round-pill {
+      font-size: 0.76rem; font-weight: 700; color: var(--accent-wechat);
+      background: rgba(7, 193, 96, 0.1); border-radius: 999px; padding: 3px 10px;
+    }
+    .drawer-wc-cell {
+      flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: 10px 4px 8px; border-radius: 12px; background: rgba(127, 127, 127, 0.07);
+    }
+    .drawer-wc-cell.today { flex: 1.4; }
+    .drawer-wc-label { font-size: 0.66rem; font-weight: 600; color: var(--text-light); }
+    .drawer-wc-value {
+      font-size: 1.05rem; font-weight: 700; color: var(--text-main);
+      font-variant-numeric: tabular-nums; min-width: 24px; text-align: center; line-height: 1.2;
+    }
     .drawer-step-btn {
       width: 36px; height: 36px; border-radius: 10px;
       border: none; background: var(--card-bg);
@@ -1893,42 +1919,65 @@
         <span style="font-size:1rem;font-weight:700;color:var(--text-main);letter-spacing:-0.01em;">添加动作</span>
         <button class="drawer-close-btn" id="progressDrawerClose" title="关闭" style="border:none;background:transparent;color:var(--text-soft);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
       </div>
-      <div class="drawer-stat-row">
-        <span>拨打进度</span>
-        <span class="drawer-stat-value" id="drawerDialedVal">0/0</span>
+      <!-- 进度卡片：拨打 / 操作 环形进度 -->
+      <div class="drawer-group-card">
+        <div style="display:flex;gap:12px;">
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;">
+            <div class="drawer-ring-wrap">
+              <svg width="88" height="88" viewBox="0 0 88 88" style="display:block;">
+                <circle cx="44" cy="44" r="36" fill="none" stroke="var(--btn-bg)" stroke-width="6"/>
+                <circle id="drawerDialedRing" cx="44" cy="44" r="36" fill="none" stroke="var(--accent-wechat)" stroke-width="6" stroke-linecap="round" stroke-dasharray="226.2" stroke-dashoffset="226.2" transform="rotate(-90 44 44)" style="transition:stroke-dashoffset 0.6s cubic-bezier(0.25,0.8,0.25,1);"/>
+              </svg>
+              <span class="drawer-ring-value" id="drawerDialedRingText">0%</span>
+            </div>
+            <span class="drawer-ring-label">拨打进度</span>
+          </div>
+          <div style="flex:1;display:flex;flex-direction:column;align-items:center;">
+            <div class="drawer-ring-wrap">
+              <svg width="88" height="88" viewBox="0 0 88 88" style="display:block;">
+                <circle cx="44" cy="44" r="36" fill="none" stroke="var(--btn-bg)" stroke-width="6"/>
+                <circle id="drawerWorkRing" cx="44" cy="44" r="36" fill="none" stroke="#4a6cf7" stroke-width="6" stroke-linecap="round" stroke-dasharray="226.2" stroke-dashoffset="226.2" transform="rotate(-90 44 44)" style="transition:stroke-dashoffset 0.6s cubic-bezier(0.25,0.8,0.25,1);"/>
+              </svg>
+              <span class="drawer-ring-value" id="drawerWorkRingText">0%</span>
+            </div>
+            <span class="drawer-ring-label">操作进度</span>
+          </div>
+        </div>
       </div>
-      <div class="drawer-progress-track"><div class="drawer-progress-fill" id="drawerDialedBar"></div></div>
-      <div class="drawer-stat-row">
-        <span>添加次数</span>
-        <span class="drawer-stat-value" id="drawerWorkVal">0/0</span>
+      <!-- 轮次与模式 -->
+      <div class="drawer-group-card">
+        <div class="drawer-stat-row">
+          <span>今日添加轮数</span>
+          <span class="drawer-round-pill" id="drawerRoundVal">第 1 轮</span>
+        </div>
+        <div class="drawer-stat-row">
+          <span>本机新号</span>
+          <button id="newModeToggle" title="本机新号：每轮 10 个客户，加完冷却 20-30 分钟（普通模式 50 个、45-60 分钟）">
+            <span class="nm-track"><span class="nm-thumb"></span></span>
+          </button>
+        </div>
       </div>
-      <div class="drawer-progress-track"><div class="drawer-progress-fill" id="drawerWorkBar"></div></div>
-      <div class="drawer-stat-row">
-        <span>今日添加轮数</span>
-        <span class="drawer-stat-value" id="drawerRoundVal">1</span>
-      </div>
-      <div class="drawer-stat-row">
-        <span>本机新号</span>
-        <button id="newModeToggle" title="本机新号：每轮 10 个客户，加完冷却 20-30 分钟（普通模式 50 个、45-60 分钟）">
-          <span class="nm-track"><span class="nm-thumb"></span></span>
-        </button>
-      </div>
-      <div style="height:0.5px;background:var(--card-border);margin:4px 0;"></div>
-      <div class="drawer-stat-row">
-        <span>通过微信数量（今日）</span>
-        <span style="display:inline-flex;align-items:center;gap:8px;">
-          <button class="drawer-step-btn" id="drawerWechatMinus" title="减1">−</button>
-          <span class="drawer-stat-value" id="drawerWechatVal" style="min-width:48px;text-align:center;font-size:1.2rem;font-weight:700;">0</span>
-          <button class="drawer-step-btn" id="drawerWechatPlus" title="加1">+</button>
-        </span>
-      </div>
-      <div class="drawer-stat-row">
-        <span>通过微信数量（本周）</span>
-        <span class="drawer-stat-value" id="drawerWeekWechatVal">0</span>
-      </div>
-      <div class="drawer-stat-row">
-        <span>通过微信数量（本月）</span>
-        <span class="drawer-stat-value" id="drawerMonthWechatVal">0</span>
+      <!-- 通过微信 -->
+      <div class="drawer-group-card">
+        <div style="font-size:0.68rem;font-weight:600;color:var(--text-light);letter-spacing:0.02em;">通过微信</div>
+        <div style="display:flex;gap:8px;">
+          <div class="drawer-wc-cell today">
+            <span class="drawer-wc-label">今日</span>
+            <span style="display:flex;align-items:center;justify-content:center;gap:4px;">
+              <button class="drawer-step-btn" id="drawerWechatMinus" title="减1" style="width:32px;height:32px;font-size:1.05rem;background:var(--btn-bg);box-shadow:none;">−</button>
+              <span class="drawer-wc-value" id="drawerWechatVal">0</span>
+              <button class="drawer-step-btn" id="drawerWechatPlus" title="加1" style="width:32px;height:32px;font-size:1.05rem;background:var(--btn-bg);box-shadow:none;">+</button>
+            </span>
+          </div>
+          <div class="drawer-wc-cell">
+            <span class="drawer-wc-label">本周</span>
+            <span class="drawer-wc-value" id="drawerWeekWechatVal">0</span>
+          </div>
+          <div class="drawer-wc-cell">
+            <span class="drawer-wc-label">本月</span>
+            <span class="drawer-wc-value" id="drawerMonthWechatVal">0</span>
+          </div>
+        </div>
       </div>
       <div style="height:0.5px;background:var(--card-border);margin-top:auto;"></div>
       <p class="drawer-slogan">增加广度，多加微信。<br>保持深度，全部触达。<br>增强粘性，经常群发。</p>
@@ -10650,6 +10699,7 @@ function updateAutoDialBtn() {
         })
         .catch(function() { _wechatWriteTs = Infinity; }); // 同步失败：本地值为准，直到下次点击成功确认
     }
+    var DRAWER_RING_C = 226.2; // 环形周长：2πr (r=36)
     function renderDrawer() {
       var total = importedClients.length;
       var dialed = 0, operated = 0;
@@ -10659,16 +10709,25 @@ function updateAutoDialBtn() {
       });
       var dialedPct = total > 0 ? Math.round((dialed / total) * 100) : 0;
       var workPct = total > 0 ? Math.round((operated / total) * 100) : 0;
-      document.getElementById('drawerDialedVal').textContent = dialed + '/' + total + ' (' + dialedPct + '%)';
-      document.getElementById('drawerWorkVal').textContent = operated + '/' + total + ' (' + workPct + '%)';
-      document.getElementById('drawerDialedBar').style.width = (total > 0 ? (dialed / total) * 100 : 0) + '%';
-      document.getElementById('drawerWorkBar').style.width = (total > 0 ? (operated / total) * 100 : 0) + '%';
+      // 环形进度：stroke-dashoffset = C × (1 - 进度)，C=226.2
+      var dRing = document.getElementById('drawerDialedRing');
+      if (dRing) dRing.style.strokeDashoffset = (DRAWER_RING_C * (1 - (total > 0 ? dialed / total : 0))).toFixed(1);
+      var dRingT = document.getElementById('drawerDialedRingText');
+      if (dRingT) dRingT.textContent = dialedPct + '%';
+      var wRing = document.getElementById('drawerWorkRing');
+      if (wRing) wRing.style.strokeDashoffset = (DRAWER_RING_C * (1 - (total > 0 ? operated / total : 0))).toFixed(1);
+      var wRingT = document.getElementById('drawerWorkRingText');
+      if (wRingT) wRingT.textContent = workPct + '%';
       var rInfo = getRoundInfo();
       var rv = (rInfo && rInfo.count) ? rInfo.count : 1;
-      document.getElementById('drawerRoundVal').textContent = Math.min(6, Math.max(1, rv)); // 轮数显示钳制在 1-6
-      document.getElementById('drawerWechatVal').textContent = getWechatCount();
-      document.getElementById('drawerWeekWechatVal').textContent = _weekWechat;
-      document.getElementById('drawerMonthWechatVal').textContent = _monthWechat;
+      var rvEl = document.getElementById('drawerRoundVal');
+      if (rvEl) rvEl.textContent = '第 ' + Math.min(6, Math.max(1, rv)) + ' 轮'; // 轮数显示钳制在 1-6
+      var wv = document.getElementById('drawerWechatVal');
+      if (wv) wv.textContent = getWechatCount();
+      var ww = document.getElementById('drawerWeekWechatVal');
+      if (ww) ww.textContent = _weekWechat;
+      var wm = document.getElementById('drawerMonthWechatVal');
+      if (wm) wm.textContent = _monthWechat;
     }
     function initProgressDrawer() {
       var stats = document.getElementById('headerStatsMinimal');
@@ -10680,7 +10739,13 @@ function updateAutoDialBtn() {
         e.stopPropagation();
         renderDrawer();
         fetchWorkStats(); // 打开时拉取云端最新工作数据
+        // 环形进度动画：先把环置空，抽屉显示后过渡到实际值
+        ['drawerDialedRing', 'drawerWorkRing'].forEach(function(id) {
+          var el = document.getElementById(id);
+          if (el) el.style.strokeDashoffset = '226.2';
+        });
         overlay.classList.add('active');
+        setTimeout(renderDrawer, 40); // 抽屉滑入时环从空过渡到实际值
       });
       overlay.addEventListener('click', function(e) {
         if (e.target === overlay) overlay.classList.remove('active');
