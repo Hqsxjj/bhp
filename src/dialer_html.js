@@ -121,6 +121,21 @@
     body.dark-mode .header-bar {
       background: rgba(28,28,30,0.55);
     }
+    /* iOS Safari（悬浮地址栏在底部、状态栏透明悬浮）：fixed 元素从屏幕物理顶开始，
+       普通流内容从状态栏下方开始 → 顶栏改 fixed top:0 + 状态栏高度 padding，毛玻璃背景
+       从屏幕最顶铺起（时间/电量浮在顶栏上），视觉上顶栏「贴到屏幕顶」。
+       max(env(safe-area-inset-top), 47px)：独立模式（添加到主屏幕）刘海 47/59px 时取环境值，
+       普通 Safari 悬浮模式为 0 时取 47px 固定状态栏高；旧 iOS 不支持 max() 时整条规则失效，回退普通流 */
+    body.ios .header-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: calc(36px + max(env(safe-area-inset-top, 0px), 47px));
+      padding: max(env(safe-area-inset-top, 0px), 47px) 16px 0;
+      z-index: 100;
+    }
+    body.ios .app-shell {
+      padding-top: calc(36px + max(env(safe-area-inset-top, 0px), 47px));
+    }
     .header-stats-minimal {
       font-size: 0.78rem;
       font-weight: 700;
@@ -1118,6 +1133,13 @@
         height: calc(38px + env(safe-area-inset-top, 0px));
         padding: env(safe-area-inset-top, 0px) 10px 0;
       }
+      body.ios .header-bar {
+        height: calc(38px + max(env(safe-area-inset-top, 0px), 47px));
+        padding: max(env(safe-area-inset-top, 0px), 47px) 10px 0;
+      }
+      body.ios .app-shell {
+        padding-top: calc(38px + max(env(safe-area-inset-top, 0px), 47px));
+      }
       .header-stats-minimal {
         font-size: 0.72rem;
       }
@@ -1751,6 +1773,10 @@
       background: #fff; border-bottom: 0.5px solid var(--card-border); flex-shrink: 0;
     }
     body.dark-mode .dbm-topbar { background: #1e293b; }
+    /* iOS：看板 overlay 是 fixed inset:0，从屏幕物理顶开始 → 顶栏内容避开状态栏 */
+    body.ios .dbm-topbar {
+      padding-top: max(env(safe-area-inset-top, 0px), 47px);
+    }
     .dbm-title { flex: 1; font-size: 1rem; font-weight: 700; color: var(--text-main); }
     .dbm-icon-btn {
       width: 36px; height: 36px; border: none; background: var(--btn-bg);
@@ -2699,6 +2725,11 @@
     // Android WebView detection for full-screen spacing
     if(/Android/.test(navigator.userAgent)&&!/iPhone|iPad|iPod/.test(navigator.userAgent)){
       document.body.classList.add('android');
+    }
+    // iOS Safari 悬浮地址栏（地址栏在屏幕底部、状态栏透明悬浮）：fixed 元素从屏幕物理顶
+    // 开始、普通流内容从状态栏下方开始 → 顶栏改 fixed + 状态栏高度 padding，背景延伸到屏幕顶
+    if(/iPhone|iPad|iPod/.test(navigator.userAgent)){
+      document.body.classList.add('ios');
     }
 
     var isMobileDevice = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
