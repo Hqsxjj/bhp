@@ -142,8 +142,6 @@
       padding: 2px 4px; flex-shrink: 0;
       -webkit-tap-highlight-color: transparent; touch-action: manipulation;
     }
-    #newModeLabel { font-size: 0.62rem; font-weight: 700; color: var(--text-light); white-space: nowrap; }
-    #newModeToggle.on #newModeLabel { color: var(--accent-wechat); }
     .nm-track {
       width: 30px; height: 18px; border-radius: 999px;
       background: rgba(0,0,0,0.15); position: relative; transition: background 0.2s;
@@ -1908,6 +1906,12 @@
         <span>今日添加轮数</span>
         <span class="drawer-stat-value" id="drawerRoundVal">1</span>
       </div>
+      <div class="drawer-stat-row">
+        <span>本机新号</span>
+        <button id="newModeToggle" title="本机新号：每轮 10 个客户，加完冷却 20-30 分钟（普通模式 50 个、45-60 分钟）">
+          <span class="nm-track"><span class="nm-thumb"></span></span>
+        </button>
+      </div>
       <div style="height:0.5px;background:var(--card-border);margin:4px 0;"></div>
       <div class="drawer-stat-row">
         <span>通过微信数量（今日）</span>
@@ -2034,11 +2038,6 @@
         <button id="lockScreenBtn" title="锁定屏幕" style="font-size:0.68rem;padding:3px 6px;border:none;background:transparent;color:var(--text-soft);cursor:pointer;outline:none;font-weight:700;border-radius:3px;white-space:nowrap;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
         <!-- 距离下轮添加倒计时：转出公海后冷却期（普通 45-60 分钟 / 新号模式 20-30 分钟，每轮随机），走完自动隐藏（鲜艳红底+白字胶囊，最醒目） -->
         <span id="headerRoundCd" title="距离下轮添加" style="display:none;font-size:0.55rem;font-weight:700;font-family:monospace;color:#fff;letter-spacing:-0.01em;white-space:nowrap;flex-shrink:0;border-radius:var(--radius-capsule);padding:2px 7px;line-height:1.1;background:#ff3b30;animation:roundCdPulse 1.8s ease-in-out infinite;">30:00</span>
-        <!-- 新号模式开关：新号每日添加上限低 → 每轮只显示 10 个客户，加完冷却 20-30 分钟（普通模式 50 个、45-60 分钟） -->
-        <button id="newModeToggle" title="新号模式：每轮 10 个客户，加完冷却 20-30 分钟">
-          <span id="newModeLabel">新号</span>
-          <span class="nm-track"><span class="nm-thumb"></span></span>
-        </button>
         <!-- Dropdown Menu Trigger on the Right -->
         <div style="position: relative; display: inline-block;">
           <button id="headerMenuBtn" title="更多设置" style="font-size: 0.8rem; padding: 6px 8px; border: none; background: transparent; cursor: pointer; outline: none; font-weight: 600; color: var(--text-soft); min-width: 44px; min-height: 34px; display:inline-flex;align-items:center;justify-content:center; -webkit-tap-highlight-color: transparent; touch-action: manipulation;"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="12" cy="19" r="1"/></svg></button>
