@@ -3228,12 +3228,14 @@
 
     // Cross-platform WeChat jump
     var isAndroid = /Android/.test(navigator.userAgent) && !/iPhone|iPad|iPod/.test(navigator.userAgent);
+    // 鸿蒙（华为自研 WebView 内核不解析 Android intent:// scheme）
+    var isHarmonyOS = /HarmonyOS|HMSCore|HUAWEI/.test(navigator.userAgent);
     function jumpToWechat() {
-      if (isAndroid) {
-        // Android: use intent:// scheme for WebView/Chrome
+      if (isAndroid && !isHarmonyOS) {
+        // Android (Chrome/Chromium WebView): intent:// scheme
         window.location.href = 'intent://#Intent;scheme=weixin;package=com.tencent.mm;end';
       } else {
-        // iOS: use weixin:// scheme
+        // iOS / 鸿蒙: weixin:// scheme（必须在点击同步栈内调用，setTimeout 脱离手势会被拦截）
         window.location.href = 'weixin://';
       }
     }
@@ -6751,9 +6753,7 @@
             var card = document.getElementById('xdc_' + idx);
             if (card) card.classList.add('copied-card');
 
-            setTimeout(function() {
-              jumpToWechat();
-            }, 100);
+            jumpToWechat(); // 同步调用：setTimeout 脱离手势，鸿蒙/华为 WebView 会拦截 scheme 跳转
 
             setTimeout(function() {
               b.textContent = maskPhone(phone);
@@ -6831,9 +6831,7 @@
             }
             if (cardEl) cardEl.classList.add('copied-company');
 
-            setTimeout(function() {
-              jumpToWechat(); // 与复制号码一致：复制单位后直接跳转微信
-            }, 100);
+            jumpToWechat(); // 与复制号码一致：复制单位后直接跳转微信（同步调用保持手势）
 
             setTimeout(function() {
               b.textContent = company;
@@ -7282,9 +7280,7 @@ function updateAutoDialBtn() {
  }
  }
 
- setTimeout(function() {
- jumpToWechat();
- }, 100);
+ jumpToWechat(); // 同步调用：保持点击手势（鸿蒙拦截非手势 scheme 跳转）
 
  setTimeout(function() {
  phoneDisp.textContent = maskPhone(phone);
