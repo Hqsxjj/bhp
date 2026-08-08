@@ -4,13 +4,16 @@ export const DIET_HTML = `<!DOCTYPE html>
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+  <meta name="theme-color" content="#f2f2f7">
   <title>减肥打卡</title>
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/icon.svg">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --card: linear-gradient(160deg, rgba(255,255,255,0.55) 0%, rgba(255,240,245,0.4) 40%, rgba(245,225,255,0.35) 100%);
+      /* 背景 ≥85% 不透明：backdrop-filter 无视觉贡献（每张卡片 = 1 个合成层，
+         iOS 滚动卡顿元凶），渐变自身保留粉→紫调色 */
+      --card: linear-gradient(160deg, rgba(255,255,255,0.92) 0%, rgba(255,248,250,0.88) 40%, rgba(250,240,252,0.85) 100%);
       --card-border: rgba(255,140,180,0.35);
       --text: #3d2d3d;
       --text2: #6b5a6b;
@@ -25,7 +28,7 @@ export const DIET_HTML = `<!DOCTYPE html>
       --wallpaper-url: '';
     }
     body.dark {
-      --card: linear-gradient(160deg, rgba(35,25,35,0.55) 0%, rgba(30,20,30,0.45) 40%, rgba(25,20,30,0.4) 100%);
+      --card: linear-gradient(160deg, rgba(40,30,40,0.92) 0%, rgba(35,25,35,0.88) 40%, rgba(30,24,36,0.86) 100%);
       --card-border: rgba(200,120,180,0.25);
       --text: #e0d0e0;
       --text2: #b0a0b0;
@@ -47,7 +50,8 @@ export const DIET_HTML = `<!DOCTYPE html>
     /* Main container */
     .main-container {
       position: relative; z-index: 1;
-      padding: 16px; max-width: 720px; margin: 0 auto;
+      padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
+      max-width: 720px; margin: 0 auto;
       min-height: 100%;
     }
 
@@ -56,16 +60,15 @@ export const DIET_HTML = `<!DOCTYPE html>
     .header h1 { font-size: 1.3rem; font-weight: 600; flex: 1; color: var(--text); }
     .header .date { font-size: 0.78rem; color: var(--text2); font-weight: 600; }
     .header .day-badge {
-      background: rgba(255,255,255,0.5); backdrop-filter: blur(8px);
+      background: rgba(255,255,255,0.9);
       color: #d08ae8; font-size: 0.75rem; font-weight: 600;
       padding: 4px 10px; border-radius: 20px;
       border: none; box-shadow: var(--shadow-card);
     }
-    body.dark .header .day-badge { background: rgba(255,255,255,0.1); }
+    body.dark .header .day-badge { background: rgba(255,255,255,0.16); }
     .header .lock-btn, .header .settings-btn {
       height: 30px; border: none; padding: 0 12px;
-      background: var(--card); backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      background: var(--card);
       border-radius: 15px; font-size: 0.72rem; cursor: pointer; font-weight: 600;
       color: var(--text2); box-shadow: var(--shadow-card);
       text-decoration: none; display: inline-flex; align-items: center; justify-content: center;
@@ -73,8 +76,7 @@ export const DIET_HTML = `<!DOCTYPE html>
 
     /* Frosted glass cards */
     .card {
-      background: var(--card); backdrop-filter: blur(16px) saturate(160%);
-      -webkit-backdrop-filter: blur(16px) saturate(160%);
+      background: var(--card);
       border: 1px solid var(--card-border);
       border-radius: var(--radius); padding: 16px;
       box-shadow: 0 2px 12px rgba(0,0,0,0.05);
@@ -96,11 +98,11 @@ export const DIET_HTML = `<!DOCTYPE html>
     .weight-input-row input {
       flex: 1; height: 38px; padding: 0 12px; font-size: 0.9rem; font-weight: 600;
       border: 2px solid rgba(255,180,210,0.5); border-radius: 18px;
-      background: rgba(255,255,255,0.55); backdrop-filter: blur(8px);
+      background: rgba(255,255,255,0.95);
       color: #5c3d5c; outline: none;
     }
     .weight-input-row input:focus { border-color: rgba(255,130,180,0.8); box-shadow: 0 0 20px rgba(255,150,200,0.2), 0 0 0 4px rgba(255,180,210,0.08); }
-    body.dark .weight-input-row input { background: rgba(40,25,40,0.5); border-color: rgba(180,100,160,0.4); color: #e0d0e0; }
+    body.dark .weight-input-row input { background: rgba(45,30,45,0.85); border-color: rgba(180,100,160,0.4); color: #e0d0e0; }
     .weight-input-row button {
       padding: 0 16px; height: 38px; background: var(--accent-gradient); color: #fff;
       border: none; border-radius: 22px; font-weight: 600; font-size: 0.82rem; cursor: pointer;
@@ -115,8 +117,7 @@ export const DIET_HTML = `<!DOCTYPE html>
 
     /* Metric cards */
     .metric-card {
-      background: var(--card); backdrop-filter: blur(14px) saturate(150%);
-      -webkit-backdrop-filter: blur(14px) saturate(150%);
+      background: var(--card);
       border: 1px solid var(--card-border);
       border-radius: var(--radius-sm); padding: 14px; text-align: center;
       cursor: pointer; transition: 0.15s;
@@ -139,24 +140,27 @@ export const DIET_HTML = `<!DOCTYPE html>
     .notes-area {
       width: 100%; min-height: 60px; padding: 12px; font-size: 0.85rem; font-weight: 600;
       border: 2px solid rgba(255,180,210,0.5); border-radius: 18px;
-      background: rgba(255,255,255,0.55); backdrop-filter: blur(8px);
+      background: rgba(255,255,255,0.95);
       color: #5c3d5c; resize: vertical; outline: none; line-height: 1.6; font-family: inherit;
     }
-    body.dark .notes-area { background: rgba(40,25,40,0.5); border-color: rgba(180,100,160,0.4); color: #e0d0e0; }
+    body.dark .notes-area { background: rgba(45,30,45,0.85); border-color: rgba(180,100,160,0.4); color: #e0d0e0; }
     .notes-area:focus { border-color: rgba(255,130,180,0.8); box-shadow: 0 0 20px rgba(255,150,200,0.15); }
 
     /* Check-in button */
-    .checkin-btn { width: 100%; height: 48px; background: var(--accent-gradient); color: #fff; border: none; border-radius: 22px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s; letter-spacing: 4px; margin-top: 8px; box-shadow: 0 6px 24px rgba(210,130,200,0.35), 0 0 40px rgba(200,150,220,0.1); }
-    .checkin-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 28px rgba(210,130,200,0.45), 0 0 50px rgba(200,150,220,0.18); }
+    /* transition 限定具体属性 + 小半径阴影：大半径扩散光环（24px+）每帧重绘，iOS 卡顿 */
+    .checkin-btn { width: 100%; height: 48px; background: var(--accent-gradient); color: #fff; border: none; border-radius: 22px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: transform 0.15s ease, box-shadow 0.15s ease; letter-spacing: 4px; margin-top: 8px; box-shadow: 0 6px 18px rgba(210,130,200,0.35); }
+    .checkin-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(210,130,200,0.45); }
     .checkin-btn:active { transform: scale(0.97); box-shadow: 0 4px 16px rgba(210,130,200,0.3); }
     .checkin-btn.done { background: #c0c0c0; cursor: default; box-shadow: none; }
     .checkin-btn.done:hover { transform: none; box-shadow: none; }
 
     /* Modal */
-    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.3); backdrop-filter: blur(4px); z-index: 100; display: flex; align-items: center; justify-content: center; visibility: hidden; opacity: 0; transition: 0.2s; }
+    /* backdrop-filter 在 opacity 过渡期间整屏重采样，iOS 弹窗卡顿元凶：
+       改实色深遮罩（iOS 系统弹窗同款），卡片背景不透明化 */
+    .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.55); z-index: 100; display: flex; align-items: center; justify-content: center; visibility: hidden; opacity: 0; transition: 0.2s; }
     .modal.show { visibility: visible; opacity: 1; }
-    .modal-card { background: rgba(255,255,255,0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-radius: var(--radius); padding: 24px; width: 90%; max-width: 400px; box-shadow: 0 16px 48px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); }
-    body.dark .modal-card { background: rgba(30,30,30,0.9); border-color: rgba(255,255,255,0.08); }
+    .modal-card { background: rgba(255,255,255,0.97); border-radius: var(--radius); padding: 24px; width: 90%; max-width: 400px; box-shadow: 0 16px 48px rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.3); }
+    body.dark .modal-card { background: rgba(34,28,36,0.95); border-color: rgba(255,255,255,0.08); }
     .modal-card h2 { font-size: 1.1rem; margin-bottom: 16px; }
     .modal-card label { display: block; font-size: 0.78rem; color: var(--text2); font-weight: 600; margin-bottom: 4px; margin-top: 10px; }
     .modal-card input { width: 100%; height: 40px; padding: 0 12px; font-size: 0.9rem; font-weight: 600; border: 2px solid rgba(255,180,210,0.5); border-radius: 18px; background: rgba(255,255,255,0.6); color: #5c3d5c; outline: none; margin-bottom: 6px; }
@@ -167,7 +171,7 @@ export const DIET_HTML = `<!DOCTYPE html>
     /* Calendar */
     .cal-card { margin-bottom: 14px; }
     .cal-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .cal-head button { width: 28px; height: 28px; border: none; background: rgba(255,255,255,0.5); backdrop-filter: blur(8px); border-radius: 50%; font-size: 0.9rem; cursor: pointer; color: var(--text2); font-weight: 600; box-shadow: var(--shadow-card); }
+    .cal-head button { width: 28px; height: 28px; border: none; background: rgba(255,255,255,0.9); border-radius: 50%; font-size: 0.9rem; cursor: pointer; color: var(--text2); font-weight: 600; box-shadow: var(--shadow-card); }
     .cal-head .cal-title { font-size: 0.9rem; font-weight: 600; color: var(--text); }
     .cal-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 0.65rem; font-weight: 600; color: var(--text3); margin-bottom: 4px; }
     .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
@@ -180,14 +184,14 @@ export const DIET_HTML = `<!DOCTYPE html>
     .cal-dot { width: 5px; height: 5px; border-radius: 50%; background: #d08ae8; margin-top: 1px; }
     .cal-day.today .cal-dot { background: rgba(255,255,255,0.7); }
 
-    .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(30,30,30,0.85); backdrop-filter: blur(10px); color: #fff; padding: 10px 24px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; z-index: 200; opacity: 0; transition: 0.3s; pointer-events: none; border: 1px solid rgba(255,255,255,0.1); }
+    .toast { position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: rgba(30,30,30,0.92); color: #fff; padding: 10px 24px; border-radius: 20px; font-size: 0.82rem; font-weight: 600; z-index: 200; opacity: 0; transition: 0.3s; pointer-events: none; border: 1px solid rgba(255,255,255,0.1); }
     body.dark .toast { background: rgba(255,255,255,0.85); color: #111; }
     .toast.show { opacity: 1; }
 
     @media (max-width: 500px) {
       .row2, .row4 { grid-template-columns: 1fr 1fr; }
       body { padding: 0; }
-      .main-container { padding: 10px; }
+      .main-container { padding: calc(10px + env(safe-area-inset-top, 0px)) 10px calc(10px + env(safe-area-inset-bottom, 0px)); }
       .card { padding: 12px; }
       .card-value { font-size: 1.3rem; }
     }
@@ -604,7 +608,6 @@ export const DIET_HTML = `<!DOCTYPE html>
       var cfg = config || {};
       document.getElementById('cfgStartWeight').value = cfg.startWeight || '';
       document.getElementById('cfgTargetWeight').value = cfg.targetWeight || '';
-      document.getElementById('cfgTargetWeight').value = cfg.targetWeight || '';
       document.getElementById('cfgStartDate').value = cfg.startDate || '';
       document.getElementById('cfgWaterGoal').value = cfg.waterGoal || '3000';
       document.getElementById('settingsModal').classList.add('show');
@@ -626,9 +629,25 @@ export const DIET_HTML = `<!DOCTYPE html>
       });
     });
 
-    // Dark mode
-    var dm = localStorage.getItem('diet_dark');
-    if (dm === '1') document.body.classList.add('dark');
+    // Dark mode — 与主应用三态同步 (light/dark/auto，键 standalone_dialer_dark)
+    var DARK_K = 'standalone_dialer_dark';
+    function applyDietDark() {
+      var mode = localStorage.getItem(DARK_K) || 'auto';
+      var isDark = mode === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : mode === 'dark';
+      if (mode === 'auto' && localStorage.getItem('diet_dark') === '1') isDark = true; // 兼容旧 diet_dark 键
+      document.body.classList.toggle('dark', isDark);
+      var themeMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeMeta) themeMeta.content = isDark ? '#1c1c1e' : '#f2f2f7';
+    }
+    applyDietDark();
+    // 主应用切换主题时实时同步（同源 localStorage storage 事件跨页触发）
+    window.addEventListener('storage', function(e) {
+      if (e.key === DARK_K) applyDietDark();
+    });
+    // 系统外观变化时自动跟随（auto 模式）
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', function() {
+      if ((localStorage.getItem(DARK_K) || 'auto') === 'auto') applyDietDark();
+    });
 
     fetchData();
   </script>

@@ -357,7 +357,7 @@ export const LEARN_HTML = `<!DOCTYPE html>
       padding: 12px 16px;
       background: rgba(242,242,247,0.85); border-bottom: 0.5px solid var(--card-border);
       position: sticky; top: 0; z-index: 10;
-      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     }
     .learn-back-btn {
       font-size: 0.8rem; padding: 6px 12px; border: none; background: var(--btn-bg);
