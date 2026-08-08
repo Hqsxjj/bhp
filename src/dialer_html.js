@@ -3241,28 +3241,45 @@
     }
 
     function copyTextToClipboard(text) {
+      if (isHarmonyOS) {
+        // 鸿蒙 WebView：异步 clipboard IPC 在 scheme 跳转页面失焦时被拒（实测剪贴板为空），
+        // execCommand 同步完成，保证「复制 → 跳转」同栈先后执行
+        syncCopy(text);
+        return;
+      }
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(text).catch(function() {
-          fallbackCopy(text);
+          syncCopy(text);
         });
       } else {
-        fallbackCopy(text);
+        syncCopy(text);
       }
     }
 
-    function fallbackCopy(text) {
+    function syncCopy(text) {
       var textarea = document.createElement('textarea');
       textarea.value = text;
       textarea.style.position = 'fixed';
       textarea.style.opacity = '0';
       document.body.appendChild(textarea);
       textarea.select();
+      var ok = false;
       try {
-        document.execCommand('copy');
+        ok = document.execCommand('copy');
       } catch (err) {
         console.error('Copy failed:', err);
       }
       document.body.removeChild(textarea);
+      if (!ok) {
+        // execCommand 不可用时异步兜底；页面即将跳转失焦，仅尽力而为
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).catch(function() {
+            showCopyLimitToast('复制失败，请长按手动复制', true);
+          });
+        } else {
+          showCopyLimitToast('复制失败，请长按手动复制', true);
+        }
+      }
     }
 
     // 记录客户操作时间线（最新覆盖）
