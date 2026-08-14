@@ -2529,6 +2529,7 @@
       <div class="crm-tab" data-tab="accountMgr">账户管理</div>
       <div class="crm-tab" data-tab="backupMgr">数据备份</div>
       <div class="crm-tab" data-tab="contentConfig">内容配置</div>
+      <div class="crm-tab" data-tab="uploadLog">上传记录</div>
       <div class="crm-tabs-right">
         <button class="db-close" id="dbMobileBtn" title="手机版界面" style="background:rgba(74,108,247,0.1);color:#4a6cf7;">手机版</button>
         <button class="db-close" id="dbClose">关闭</button>
@@ -2711,6 +2712,19 @@
       </div>
     </div>
 
+    <!-- Upload Log Panel -->
+    <div id="dbUploadLogPanel" style="display:none; flex-direction:column; gap:12px; padding:16px; overflow-y:auto; flex:1;">
+      <div style="font-size:0.85rem; font-weight:900; color:var(--text-main);">上传记录</div>
+      <div style="font-size:0.68rem; color:var(--text-light); font-weight:600;">客户上传/添加的历史记录（子账号仅显示本账号，主账号显示全部）</div>
+      <div style="display:flex; gap:6px;">
+        <button id="ulScopeDay" data-scope="day" style="flex:1; height:30px; border:none; border-radius:var(--radius-xs); font-size:0.72rem; font-weight:700; cursor:pointer; background:#07c160; color:#fff;">当天</button>
+        <button id="ulScopeWeek" data-scope="week" style="flex:1; height:30px; border:none; border-radius:var(--radius-xs); font-size:0.72rem; font-weight:700; cursor:pointer; background:var(--btn-bg); color:var(--text-soft);">本周</button>
+        <button id="ulScopeMonth" data-scope="month" style="flex:1; height:30px; border:none; border-radius:var(--radius-xs); font-size:0.72rem; font-weight:700; cursor:pointer; background:var(--btn-bg); color:var(--text-soft);">本月</button>
+      </div>
+      <div id="ulSummary" style="font-size:0.72rem; font-weight:700; color:var(--text-main);"></div>
+      <div id="ulList" style="display:flex; flex-direction:column; gap:6px; font-size:0.72rem;"></div>
+    </div>
+
     <!-- Batch category mini-panel -->
     <div id="dbBatchCatPanel" style="display:none;padding:6px 16px;border-bottom:1px solid #cbd5e1;background:#f8fafc;align-items:center;gap:8px;flex-wrap:wrap;">
       <span style="font-size:12px;font-weight:700;color:#555;">批量设置分类：</span>
@@ -2812,6 +2826,7 @@
       <button class="dbm-mgr-tab active" data-mgrtab="account">账户管理</button>
       <button class="dbm-mgr-tab" data-mgrtab="backup">数据备份</button>
       <button class="dbm-mgr-tab" data-mgrtab="content">内容配置</button>
+      <button class="dbm-mgr-tab" data-mgrtab="upload">上传记录</button>
     </div>
     <div id="dbmMgrBody"></div>
   </div>
@@ -9114,7 +9129,8 @@ function updateAutoDialBtn() {
     var DBM_PANELS = [
       { tab: 'account', panelId: 'dbAccountMgrPanel', load: function() { loadSubAccounts(); loadAccountStats(); } },
       { tab: 'backup', panelId: 'dbBackupMgrPanel', load: function() { loadBackupConfig(); } },
-      { tab: 'content', panelId: 'dbContentConfigPanel', load: function() { loadContentConfig(); } }
+      { tab: 'content', panelId: 'dbContentConfigPanel', load: function() { loadContentConfig(); } },
+      { tab: 'upload', panelId: 'dbUploadLogPanel', load: function() { loadUploadLog('day'); } }
     ];
     var _dbmActiveTab = 'account';
 
@@ -9557,18 +9573,20 @@ function updateAutoDialBtn() {
       tabs.forEach(function(tab) {
         tab.onclick = function() {
           var tabName = tab.getAttribute('data-tab') || 'all';
-          if (tabName === 'accountMgr' || tabName === 'backupMgr' || tabName === 'contentConfig') {
+          if (tabName === 'accountMgr' || tabName === 'backupMgr' || tabName === 'contentConfig' || tabName === 'uploadLog') {
             tabs.forEach(function(t) { t.classList.remove('active'); });
             tab.classList.add('active');
             var mp = document.getElementById('dbAccountMgrPanel');
             var bp = document.getElementById('dbBackupMgrPanel');
             var cp = document.getElementById('dbContentConfigPanel');
+            var up = document.getElementById('dbUploadLogPanel');
             var tb = document.querySelector('#dbOverlay .crm-table');
             var sc = document.querySelector('#dbOverlay .crm-search-card');
             var tl = document.querySelector('#dbOverlay .crm-toolbar');
             if (mp) mp.style.display = tabName === 'accountMgr' ? 'flex' : 'none';
             if (bp) bp.style.display = tabName === 'backupMgr' ? 'flex' : 'none';
             if (cp) cp.style.display = tabName === 'contentConfig' ? 'flex' : 'none';
+            if (up) up.style.display = tabName === 'uploadLog' ? 'flex' : 'none';
             // 桌面路径同样按主账户控制子账户管理区显示（初始内联为 none）
             if (tabName === 'accountMgr') {
               var subsEl = document.getElementById('dbAccountMgrSubs');
@@ -9580,16 +9598,19 @@ function updateAutoDialBtn() {
             if (tabName === 'accountMgr') { loadSubAccounts(); loadAccountStats(); }
             if (tabName === 'backupMgr') { loadBackupConfig(); }
             if (tabName === 'contentConfig') { loadContentConfig(); }
+            if (tabName === 'uploadLog') { loadUploadLog('day'); }
           } else {
             var mp2 = document.getElementById('dbAccountMgrPanel');
             var bp2 = document.getElementById('dbBackupMgrPanel');
             var cp2 = document.getElementById('dbContentConfigPanel');
+            var up2 = document.getElementById('dbUploadLogPanel');
             var tb2 = document.querySelector('#dbOverlay .crm-table');
             var sc2 = document.querySelector('#dbOverlay .crm-search-card');
             var tl2 = document.querySelector('#dbOverlay .crm-toolbar');
             if (mp2) mp2.style.display = 'none';
             if (bp2) bp2.style.display = 'none';
             if (cp2) cp2.style.display = 'none';
+            if (up2) up2.style.display = 'none';
             if (tb2) tb2.style.display = '';
             if (sc2) sc2.style.display = '';
             if (tl2) tl2.style.display = '';
@@ -10724,6 +10745,87 @@ function updateAutoDialBtn() {
         }).catch(function() {});
     }
 
+    function formatUploadTime(ts) {
+      var d = new Date(Number(ts));
+      if (isNaN(d.getTime())) return '';
+      function p(n) { return (n < 10 ? '0' : '') + n; }
+      return p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    }
+
+    function loadUploadLog(scope) {
+      var panel = document.getElementById('dbUploadLogPanel');
+      if (!panel) return;
+      scope = scope || 'day';
+      // 作用域按钮高亮：当前选中的为绿色实底
+      var btns = panel.querySelectorAll('button[data-scope]');
+      btns.forEach(function(b) {
+        var active = b.getAttribute('data-scope') === scope;
+        b.style.background = active ? '#07c160' : 'var(--btn-bg)';
+        b.style.color = active ? '#fff' : 'var(--text-soft)';
+      });
+      var listEl = document.getElementById('ulList');
+      var summaryEl = document.getElementById('ulSummary');
+      if (!listEl || !summaryEl) return;
+      listEl.innerHTML = '<div style="padding:14px; text-align:center; font-size:0.7rem; color:var(--text-sub);">加载中…</div>';
+      summaryEl.textContent = '';
+      fetch('/api/dialer/stats/upload-records?scope=' + encodeURIComponent(scope))
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          var records = (res && res.records) || [];
+          if (!records.length) {
+            listEl.innerHTML = '<div style="padding:14px; text-align:center; font-size:0.7rem; color:var(--text-sub);">暂无上传/添加记录</div>';
+            summaryEl.textContent = '';
+            return;
+          }
+          summaryEl.textContent = '共 ' + records.length + ' 次上传/添加，合计 ' + (res.total_count || 0) + ' 条客户';
+          listEl.innerHTML = '';
+          records.forEach(function(rec) {
+            var row = document.createElement('div');
+            row.style.cssText = 'display:flex; align-items:center; gap:8px; padding:9px 10px; background:var(--card-bg); border:0.5px solid var(--card-border); border-radius:var(--radius-sm);';
+            // 类型标签
+            var tag = document.createElement('span');
+            var tagTxt = '上传';
+            if (rec.batch_label === '手动录入') tagTxt = '手动添加';
+            else if (rec.batch_label && rec.batch_label.indexOf('导入') === 0) tagTxt = '批量导入';
+            tag.textContent = tagTxt;
+            tag.style.cssText = 'flex:none; font-size:0.6rem; padding:2px 7px; border-radius:var(--radius-xs); background:rgba(7,193,96,0.08); color:var(--accent-wechat); font-weight:600;';
+            // 账号名 + 时间
+            var mid = document.createElement('div');
+            mid.style.cssText = 'flex:1; min-width:0;';
+            var nameEl = document.createElement('div');
+            nameEl.textContent = rec.account_name || rec.account_id || '未知账号';
+            nameEl.style.cssText = 'font-size:0.72rem; color:var(--text-main); font-weight:500; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;';
+            var timeEl = document.createElement('div');
+            timeEl.textContent = formatUploadTime(rec.created_at);
+            timeEl.style.cssText = 'font-size:0.6rem; color:var(--text-sub); margin-top:1px;';
+            mid.appendChild(nameEl);
+            mid.appendChild(timeEl);
+            // 数量
+            var cnt = document.createElement('span');
+            cnt.textContent = '+' + rec.count;
+            cnt.style.cssText = 'flex:none; font-size:0.78rem; font-weight:700; color:var(--accent-wechat);';
+            row.appendChild(tag);
+            row.appendChild(mid);
+            row.appendChild(cnt);
+            listEl.appendChild(row);
+          });
+        })
+        .catch(function() {
+          listEl.innerHTML = '<div style="padding:14px; text-align:center; font-size:0.7rem; color:var(--text-sub);">加载失败</div>';
+        });
+    }
+
+    function initUploadLogPanel() {
+      var panel = document.getElementById('dbUploadLogPanel');
+      if (!panel) return;
+      var btns = panel.querySelectorAll('button[data-scope]');
+      btns.forEach(function(b) {
+        b.onclick = function() {
+          loadUploadLog(b.getAttribute('data-scope') || 'day');
+        };
+      });
+    }
+
     function renderReminderItemInputs(items) {
       var container = document.getElementById('cfgReminderItems');
       if (!container) return;
@@ -11815,6 +11917,7 @@ function updateAutoDialBtn() {
     safeInit('initBackupMgrPanel', initBackupMgrPanel);
     safeInit('initDBMobile', initDBMobile);
     safeInit('initContentConfigPanel', initContentConfigPanel);
+    safeInit('initUploadLogPanel', initUploadLogPanel);
     safeInit('initProgressDrawer', initProgressDrawer);
     safeInit('initDestructPanel', initDestructPanel);
 

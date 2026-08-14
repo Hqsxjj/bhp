@@ -760,6 +760,71 @@ export default {
       }
     }
 
+    // GET /api/dialer/stats/upload-records — 上传/添加记录时间线（当天/本周/本月）
+    // 子账号只返回自己的记录，主账号返回所有账号
+    if (path === '/api/dialer/stats/upload-records' && request.method === 'GET') {
+      try {
+        var ulAuth = request.headers.get('Authorization') || '';
+        var ulToken = ulAuth.startsWith('Bearer ') ? ulAuth.slice(7) : '';
+        var ulSession = await dialerValidateSession(env, ulToken);
+        if (!ulSession) throw new Error('未登录');
+
+        var ulAccts = await dialerGetAccounts(env);
+        var ulIsMaster = false;
+        var ulNameMap = {};
+        for (var ua = 0; ua < ulAccts.length; ua++) {
+          ulNameMap[ulAccts[ua].account_id] = ulAccts[ua].account_name || ulAccts[ua].label || '';
+          if (ulAccts[ua].account_id === ulSession.account_id && ulAccts[ua].is_master !== false) ulIsMaster = true;
+        }
+
+        var ulUrl = new URL(request.url);
+        var ulScope = ulUrl.searchParams.get('scope') || 'day';
+        var ulNowD = new Date();
+        var ulStart = new Date(ulNowD.getFullYear(), ulNowD.getMonth(), ulNowD.getDate()); // 当天 00:00
+        if (ulScope === 'week') {
+          var ulDow = ulNowD.getDay() || 7; // 周日(0) 视为 7
+          ulStart = new Date(ulNowD.getFullYear(), ulNowD.getMonth(), ulNowD.getDate() - (ulDow - 1)); // 本周一
+        } else if (ulScope === 'month') {
+          ulStart = new Date(ulNowD.getFullYear(), ulNowD.getMonth(), 1); // 本月 1 号
+        }
+        var ulStartMs = ulStart.getTime();
+
+        // KV list 分页读取上传日志（key 前缀时间戳递增，天然时间序）
+        var ulRecords = [];
+        var ulCursor = undefined;
+        while (true) {
+          var ulList = await env.DATA_KV.list({ prefix: 'upload_log:', cursor: ulCursor, limit: 1000 });
+          for (var ui = 0; ui < ulList.keys.length; ui++) {
+            var ulKeyTs = parseInt(String(ulList.keys[ui].name).split(':')[1] || '', 10) || 0;
+            if (ulKeyTs < ulStartMs) continue; // 时间过滤
+            var ulRow = JSON.parse((await env.DATA_KV.get(ulList.keys[ui].name)) || 'null');
+            if (!ulRow) continue;
+            if (!ulIsMaster && ulRow.account_id !== ulSession.account_id) continue; // 子账号只看自己的
+            ulRecords.push(ulRow);
+          }
+          if (!ulList.list_complete) { ulCursor = ulList.cursor; } else { break; }
+        }
+        // 按时间倒序
+        ulRecords.sort(function(a, b) { return b.created_at - a.created_at; });
+
+        var ulTotalCount = 0;
+        ulRecords.forEach(function(r) { ulTotalCount += (r.count || 0); });
+        // 账户名兜底（日志缺名时用账号表补齐）
+        ulRecords.forEach(function(r) {
+          r.account_name = r.account_name || ulNameMap[r.account_id] || (r.account_id || '').slice(0, 10);
+        });
+
+        return new Response(JSON.stringify({ records: ulRecords, upload_count: ulRecords.length, total_count: ulTotalCount }), {
+          headers: { 'Content-Type': 'application/json; charset=UTF-8', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (e) {
+        return new Response(JSON.stringify({ error: e.message }), {
+          status: e.message === '未登录' ? 401 : 500,
+          headers: { 'Content-Type': 'application/json; charset=UTF-8', 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
     if (path === '/api/dialer/stats/migrate' && request.method === 'POST') {
       try {
         var authHeader = request.headers.get('Authorization') || '';
@@ -1662,6 +1727,23 @@ export default {
         });
         const sb = createSupabaseClient(env);
         const result = await sb.upsertCustomers(tagged, accountId);
+        // 上传/添加日志：上传时刻固化账户归属（客户转公海/分配后 account_id 会变，需在写入时记录）
+        if (result.count > 0) {
+          try {
+            var ulAcctName = '';
+            var ulAccts = await dialerGetAccounts(env);
+            for (var ua = 0; ua < ulAccts.length; ua++) {
+              if (ulAccts[ua].account_id === accountId) { ulAcctName = ulAccts[ua].account_name || ulAccts[ua].label || ''; break; }
+            }
+            var ulNow = Date.now();
+            await env.DATA_KV.put(
+              'upload_log:' + ulNow + ':' + Math.random().toString(36).slice(2, 6),
+              JSON.stringify({ account_id: accountId, account_name: ulAcctName, count: result.count, batch_label: batchLabel, created_at: ulNow })
+            );
+          } catch (e2) {
+            console.error('upload log write failed:', e2.message); // 日志写入失败不影响上传主流程
+          }
+        }
         return new Response(JSON.stringify({ success: true, count: result.count, skipped: result.skipped || 0 }), {
           headers: { 'Content-Type': 'application/json; charset=UTF-8', 'Access-Control-Allow-Origin': '*' }
         });
