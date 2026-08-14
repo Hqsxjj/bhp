@@ -1840,6 +1840,21 @@ export default {
                   bgTasks.push(env.DATA_KV.put(ck, new Date().toISOString(), { expirationTtl: 10 * 24 * 3600 }));
                 }
                 await Promise.all(bgTasks);
+                // 换一批拉取日志：与上传记录共用 upload_log（type=pull 区分），看板可监控谁在何时领走数据
+                try {
+                  var pullAcctName = '';
+                  var pullAccts = await dialerGetAccounts(env);
+                  for (var pa = 0; pa < pullAccts.length; pa++) {
+                    if (pullAccts[pa].account_id === accountId) { pullAcctName = pullAccts[pa].account_name || pullAccts[pa].label || ''; break; }
+                  }
+                  var pullNow = Date.now();
+                  await env.DATA_KV.put(
+                    'upload_log:' + pullNow + ':' + Math.random().toString(36).slice(2, 6),
+                    JSON.stringify({ account_id: accountId, account_name: pullAcctName, count: data.length, batch_label: '换一批', type: 'pull', created_at: pullNow })
+                  );
+                } catch (pullLogErr) {
+                  console.error('pull log write failed:', pullLogErr.message); // 日志写入失败不影响拉取主流程
+                }
               }
             } catch (bgErr) {
               console.error('[pull] background update error:', bgErr.message);

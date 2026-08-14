@@ -10748,19 +10748,21 @@ function updateAutoDialBtn() {
             _ulLast = null;
             return;
           }
-          summaryEl.textContent = '共 ' + records.length + ' 次上传/添加，合计 ' + (res.total_count || 0) + ' 条客户';
+          summaryEl.textContent = '共 ' + records.length + ' 次上传/添加/换批，合计 ' + (res.total_count || 0) + ' 条客户';
           _ulLast = { scope: scope, records: records, total: res.total_count || 0 };
           listEl.innerHTML = '';
           records.forEach(function(rec) {
             var row = document.createElement('div');
             row.style.cssText = 'display:flex; align-items:center; gap:8px; padding:9px 10px; background:var(--card-bg); border:0.5px solid var(--card-border); border-radius:var(--radius-sm);';
-            // 类型标签
+            // 类型标签（换一批为拉取动作，橙色区分上传类）
             var tag = document.createElement('span');
             var tagTxt = '上传';
-            if (rec.batch_label === '手动录入') tagTxt = '手动添加';
-            else if (rec.batch_label && rec.batch_label.indexOf('导入') === 0) tagTxt = '批量导入';
+            var tagBg = 'rgba(7,193,96,0.08)', tagFg = 'var(--accent-wechat)';
+            if (rec.type === 'pull') { tagTxt = '换一批'; tagBg = 'rgba(245,124,0,0.1)'; tagFg = '#e67e22'; }
+            else if (rec.batch_label === '手动录入') tagTxt = '手动添加';
+            else if (rec.batch_label && rec.batch_label.indexOf('批量导入') === 0) tagTxt = '批量导入';
             tag.textContent = tagTxt;
-            tag.style.cssText = 'flex:none; font-size:0.6rem; padding:2px 7px; border-radius:var(--radius-xs); background:rgba(7,193,96,0.08); color:var(--accent-wechat); font-weight:600;';
+            tag.style.cssText = 'flex:none; font-size:0.6rem; padding:2px 7px; border-radius:var(--radius-xs); background:' + tagBg + '; color:' + tagFg + '; font-weight:600;';
             // 账号名 + 时间
             var mid = document.createElement('div');
             mid.style.cssText = 'flex:1; min-width:0;';
@@ -10809,8 +10811,9 @@ function updateAutoDialBtn() {
           var lines = ['上传记录（' + scopeLabel + '）'];
           last.records.forEach(function(rec) {
             var tagTxt = '上传';
-            if (rec.batch_label === '手动录入') tagTxt = '手动添加';
-            else if (rec.batch_label && rec.batch_label.indexOf('导入') === 0) tagTxt = '批量导入';
+            if (rec.type === 'pull') tagTxt = '换一批';
+            else if (rec.batch_label === '手动录入') tagTxt = '手动添加';
+            else if (rec.batch_label && rec.batch_label.indexOf('批量导入') === 0) tagTxt = '批量导入';
             lines.push('[' + tagTxt + '] ' + (rec.account_name || rec.account_id || '未知账号') + ' +' + rec.count + ' ' + formatUploadTime(rec.created_at));
           });
           lines.push('共 ' + last.records.length + ' 次，合计 ' + last.total + ' 条');
