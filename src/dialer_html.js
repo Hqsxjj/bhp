@@ -2126,7 +2126,7 @@
             <button class="dropdown-item" id="exportBtn" style="display:none;">导出记录</button>
             <button class="dropdown-item" id="clearBtn" style="display:none; color: #e74c3c;">清空数据</button>
             <button class="dropdown-item" id="darkToggleBtn">切换主题</button>
-            <div class="dropdown-item" style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:default;color:var(--text-soft);"><span style="font-size:0.7rem;">账户</span><span style="display:flex;align-items:center;gap:4px;"><span id="accountDisplay" style="font-size:0.68rem;font-weight:700;font-family:monospace;color:var(--text-main);"></span><span id="accountDataCount" style="font-size:0.62rem;font-weight:600;color:var(--text-light);"></span></span></div>
+            <div class="dropdown-item" id="copyPrefTrigger" title="设置复制内容偏好" style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;color:var(--text-soft);"><span style="font-size:0.7rem;">账户</span><span style="display:flex;align-items:center;gap:4px;"><span id="accountDisplay" style="font-size:0.68rem;font-weight:700;font-family:monospace;color:var(--text-main);"></span><span id="accountDataCount" style="font-size:0.62rem;font-weight:600;color:var(--text-light);"></span><span style="font-size:0.6rem;font-weight:600;color:var(--accent-wechat);">复制偏好 ›</span></span></div>
             <button class="dropdown-item" id="headerLogoutBtn" style="color: #e74c3c;">退出登录</button>
           </div>
         </div>
@@ -2423,6 +2423,31 @@
     </div>
   </div>
 
+
+  <!-- 复制内容偏好弹窗 -->
+  <div id="copyPrefOverlay" class="modal-overlay" style="z-index:100006;">
+    <div class="modal-card" style="width:300px;padding:18px 20px;border-radius:16px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:0.95rem;font-weight:900;color:var(--text-main);">复制内容偏好</span>
+        <button id="copyPrefCloseBtn" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-soft);">关闭</button>
+      </div>
+      <div style="font-size:0.7rem;color:var(--text-light);font-weight:700;margin:4px 0 12px;">点击客户卡片「单位名称」时，按勾选的要素组合复制</div>
+      <div style="display:flex;flex-direction:column;gap:10px;font-size:0.78rem;font-weight:600;color:var(--text-main);">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfName" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;">姓名</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfCompany" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;">单位名称</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfFund" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;">公积金</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfDate" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;">日期</label>
+        <div id="cpfDateFormatRow" style="display:none;align-items:center;gap:8px;padding-left:24px;font-size:0.7rem;color:var(--text-light);font-weight:600;">
+          格式
+          <select id="cpfDateFormat" style="flex:1;height:28px;padding:0 8px;font-size:0.7rem;border:0.5px solid var(--card-border);border-radius:var(--radius-xs);background:var(--card-bg);color:var(--text-main);outline:none;cursor:pointer;">
+            <option value="YY-HH-MM">YY-HH-MM（年-时-分）</option>
+            <option value="YY-MM-DD">YY-MM-DD（年-月-日）</option>
+          </select>
+        </div>
+      </div>
+      <div style="font-size:0.62rem;color:var(--text-light);font-weight:600;margin-top:12px;line-height:1.5;">示例：姓名 单位名称 公积金24170 26-08-14（勾选即时生效）</div>
+    </div>
+  </div>
 
   <!-- Note Details Modal -->
   <div id="noteModal" class="modal-overlay" style="z-index:100005;">
@@ -3258,6 +3283,48 @@
       } else {
         syncCopy(text);
       }
+    }
+
+    // 复制内容偏好：点卡片「单位名称」时复制的组合（更多 → 账户名 → 弹窗勾选）
+    var COPY_PREF_K = 'copy_pref_v1';
+    function getCopyPref() {
+      try {
+        var p = JSON.parse(localStorage.getItem(COPY_PREF_K) || 'null');
+        if (p && typeof p === 'object') {
+          return {
+            name: p.name !== false,      // 默认勾选：姓名
+            company: p.company !== false, // 默认勾选：单位名称
+            fund: !!p.fund,
+            date: !!p.date,
+            dateFormat: p.dateFormat === 'YY-MM-DD' ? 'YY-MM-DD' : 'YY-HH-MM'
+          };
+        }
+      } catch (e) {}
+      return { name: true, company: true, fund: false, date: false, dateFormat: 'YY-HH-MM' };
+    }
+    function saveCopyPref(p) {
+      try { localStorage.setItem(COPY_PREF_K, JSON.stringify(p)); } catch (e) {}
+    }
+    // 日期格式：YY-HH-MM（两位年-两位时-两位分，默认）或 YY-MM-DD（两位年-两位月-两位日）
+    function formatCopyDate(fmt) {
+      var d = new Date();
+      var pad = function(n) { return n < 10 ? '0' + n : String(n); };
+      var yy = String(d.getFullYear()).slice(-2);
+      var mm = pad(d.getMonth() + 1);
+      var dd = pad(d.getDate());
+      var hh = pad(d.getHours());
+      var mi = pad(d.getMinutes());
+      return (fmt === 'YY-MM-DD') ? (yy + '-' + mm + '-' + dd) : (yy + '-' + hh + '-' + mi);
+    }
+    // 按偏好拼装复制文本：姓名 单位名称 公积金X YY-HH-MM（勾选哪个就包含哪个要素）
+    function buildCopyText(client) {
+      var p = getCopyPref();
+      var parts = [];
+      if (p.name && client && client.name && client.name !== '-') parts.push(String(client.name).trim());
+      if (p.company && client && client.company) parts.push(String(client.company).trim());
+      if (p.fund && client && client.fund) parts.push('公积金' + String(client.fund).trim());
+      if (p.date) parts.push(formatCopyDate(p.dateFormat));
+      return parts.join(' ');
     }
 
     function syncCopy(text) {
@@ -6833,8 +6900,8 @@
 
             var idx = parseInt(b.dataset.idx);
             var client = importedClients[idx];
-            var name = (client && client.name && client.name !== '-') ? client.name : '';
-            var copyText = name ? name + ' ' + company : company;
+            // 按复制偏好组合（姓名/单位/公积金/日期，勾选哪个就包含哪个）；全部未勾选时兜底仅单位名称
+            var copyText = buildCopyText(client) || company;
             copyTextToClipboard(copyText);
 
             var cardEl = b.closest('.xls-dial-card');
@@ -7356,12 +7423,11 @@ function updateAutoDialBtn() {
  e.stopPropagation();
  var company = companyDisp.dataset.company || companyDisp.textContent;
  if (!company || company === '-') return;
- var nameEl = document.getElementById('callAssistNameDisplay');
- var name = (nameEl && nameEl.dataset.name && nameEl.dataset.name !== '-') ? nameEl.dataset.name : '';
- var copyText = name ? name + ' ' + company : company;
+ var client = importedClients[currentCallIdx];
+ // 按复制偏好组合（姓名/单位/公积金/日期）；全部未勾选时兜底仅单位名称
+ var copyText = buildCopyText(client) || company;
  copyTextToClipboard(copyText);
 
- var client = importedClients[currentCallIdx];
  if (client) recordTimeline(client.phone || client.mobile, 'copy_company');
 
  var oldText = companyDisp.textContent;
@@ -10289,6 +10355,52 @@ function updateAutoDialBtn() {
       }
     }
 
+  function initCopyPrefPanel() {
+      var trigger = document.getElementById('copyPrefTrigger');
+      var overlay = document.getElementById('copyPrefOverlay');
+      if (!trigger || !overlay) return;
+
+      function updateDateFormatRow() {
+        var row = document.getElementById('cpfDateFormatRow');
+        if (row) row.style.display = document.getElementById('cpfDate').checked ? 'flex' : 'none';
+      }
+      function applyPref() {
+        saveCopyPref({
+          name: document.getElementById('cpfName').checked,
+          company: document.getElementById('cpfCompany').checked,
+          fund: document.getElementById('cpfFund').checked,
+          date: document.getElementById('cpfDate').checked,
+          dateFormat: document.getElementById('cpfDateFormat').value
+        });
+      }
+
+      trigger.addEventListener('click', function(e) {
+        e.stopPropagation();
+        var p = getCopyPref();
+        document.getElementById('cpfName').checked = p.name;
+        document.getElementById('cpfCompany').checked = p.company;
+        document.getElementById('cpfFund').checked = p.fund;
+        document.getElementById('cpfDate').checked = p.date;
+        document.getElementById('cpfDateFormat').value = p.dateFormat;
+        updateDateFormatRow();
+        overlay.classList.add('active');
+      });
+      document.getElementById('copyPrefCloseBtn').addEventListener('click', function() {
+        overlay.classList.remove('active');
+      });
+      overlay.addEventListener('click', function(e) {
+        if (e.target === this) overlay.classList.remove('active');
+      });
+      document.getElementById('cpfName').addEventListener('change', applyPref);
+      document.getElementById('cpfCompany').addEventListener('change', applyPref);
+      document.getElementById('cpfFund').addEventListener('change', applyPref);
+      document.getElementById('cpfDate').addEventListener('change', function() {
+        updateDateFormatRow();
+        applyPref();
+      });
+      document.getElementById('cpfDateFormat').addEventListener('change', applyPref);
+    }
+
   function initHeaderMenu() {
       var menuBtn = document.getElementById('headerMenuBtn');
       var dropdown = document.getElementById('headerDropdown');
@@ -11654,6 +11766,7 @@ function updateAutoDialBtn() {
     safeInit('initDataActions', initDataActions);
 
     safeInit('initNewModeToggle', initNewModeToggle);
+    safeInit('initCopyPrefPanel', initCopyPrefPanel);
     safeInit('initHeaderMenu', initHeaderMenu);
     safeInit('initNoteModal', initNoteModal);
     safeInit('initCustomColumnsHandlers', initCustomColumnsHandlers);
