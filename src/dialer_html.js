@@ -2721,7 +2721,10 @@
         <button id="ulScopeWeek" data-scope="week" style="flex:1; height:30px; border:none; border-radius:var(--radius-xs); font-size:0.72rem; font-weight:700; cursor:pointer; background:var(--btn-bg); color:var(--text-soft);">本周</button>
         <button id="ulScopeMonth" data-scope="month" style="flex:1; height:30px; border:none; border-radius:var(--radius-xs); font-size:0.72rem; font-weight:700; cursor:pointer; background:var(--btn-bg); color:var(--text-soft);">本月</button>
       </div>
-      <div id="ulSummary" style="font-size:0.72rem; font-weight:700; color:var(--text-main);"></div>
+      <div style="display:flex; align-items:center; justify-content:space-between; gap:8px;">
+        <div id="ulSummary" style="flex:1; font-size:0.72rem; font-weight:700; color:var(--text-main);"></div>
+        <button id="ulCopyBtn" style="flex:none; height:28px; padding:0 12px; border:none; border-radius:var(--radius-xs); font-size:0.68rem; font-weight:600; cursor:pointer; background:var(--accent-wechat); color:#fff;">复制</button>
+      </div>
       <div id="ulList" style="display:flex; flex-direction:column; gap:6px; font-size:0.72rem;"></div>
     </div>
 
@@ -10752,6 +10755,8 @@ function updateAutoDialBtn() {
       return p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
     }
 
+    // 最近一次加载的记录，供「复制」按钮使用
+    var _ulLast = null;
     function loadUploadLog(scope) {
       var panel = document.getElementById('dbUploadLogPanel');
       if (!panel) return;
@@ -10775,9 +10780,11 @@ function updateAutoDialBtn() {
           if (!records.length) {
             listEl.innerHTML = '<div style="padding:14px; text-align:center; font-size:0.7rem; color:var(--text-sub);">暂无上传/添加记录</div>';
             summaryEl.textContent = '';
+            _ulLast = null;
             return;
           }
           summaryEl.textContent = '共 ' + records.length + ' 次上传/添加，合计 ' + (res.total_count || 0) + ' 条客户';
+          _ulLast = { scope: scope, records: records, total: res.total_count || 0 };
           listEl.innerHTML = '';
           records.forEach(function(rec) {
             var row = document.createElement('div');
@@ -10824,6 +10831,28 @@ function updateAutoDialBtn() {
           loadUploadLog(b.getAttribute('data-scope') || 'day');
         };
       });
+      // 一键复制当前范围的记录为文本
+      var copyBtn = document.getElementById('ulCopyBtn');
+      if (copyBtn) {
+        copyBtn.onclick = function() {
+          var last = _ulLast;
+          if (!last || !last.records || !last.records.length) {
+            showCopyLimitToast('暂无可复制的记录', true);
+            return;
+          }
+          var scopeLabel = last.scope === 'month' ? '本月' : (last.scope === 'week' ? '本周' : '当天');
+          var lines = ['上传记录（' + scopeLabel + '）'];
+          last.records.forEach(function(rec) {
+            var tagTxt = '上传';
+            if (rec.batch_label === '手动录入') tagTxt = '手动添加';
+            else if (rec.batch_label && rec.batch_label.indexOf('导入') === 0) tagTxt = '批量导入';
+            lines.push('[' + tagTxt + '] ' + (rec.account_name || rec.account_id || '未知账号') + ' +' + rec.count + ' ' + formatUploadTime(rec.created_at));
+          });
+          lines.push('共 ' + last.records.length + ' 次，合计 ' + last.total + ' 条');
+          copyTextToClipboard(lines.join('\\n'));
+          showCopyLimitToast('已复制 ' + last.records.length + ' 条记录');
+        };
+      }
     }
 
     function renderReminderItemInputs(items) {
