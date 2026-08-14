@@ -2433,7 +2433,7 @@
       </div>
       <div style="font-size:0.7rem;color:var(--text-light);font-weight:700;margin:4px 0 12px;">点击客户卡片「单位名称」时，按勾选的要素组合复制；先勾选的排前面</div>
       <div style="display:flex;flex-direction:column;gap:10px;font-size:0.78rem;font-weight:600;color:var(--text-main);">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfName" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumName" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>姓名</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfName" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumName" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>姓名<span style="font-size:0.6rem;color:var(--text-light);font-weight:700;background:var(--btn-bg);padding:1px 6px;border-radius:var(--radius-xs);">必选</span></label>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfCompany" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumCompany" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>单位名称</label>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfFund" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumFund" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>公积金</label>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfDate" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumDate" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>日期</label>
@@ -3317,6 +3317,8 @@
             var k = order[oi];
             if (valid[k] && !seen[k]) { seen[k] = true; uniq.push(k); }
           }
+          // 姓名必选：存储异常/旧数据缺姓名时补到最前
+          if (uniq.indexOf('name') === -1) uniq.unshift('name');
           return { order: uniq, dateFormat: p.dateFormat === 'YY-MM-DD' ? 'YY-MM-DD' : 'YY-HH-MM' };
         }
       } catch (e) {}
@@ -10413,8 +10415,13 @@ function updateAutoDialBtn() {
         if (fmtSel) fmtSel.value = p.dateFormat;
         updateDateFormatRow();
       }
-      // 勾选切换：勾选追加到末尾（顺序=勾选先后），取消移除
+      // 勾选切换：勾选追加到末尾（顺序=勾选先后），取消移除；姓名必选不可取消
       function toggleField(key, checked) {
+        if (key === 'name' && !checked) {
+          renderPrefPanel(); // 恢复勾选状态
+          showCopyLimitToast('姓名必须勾选', true);
+          return;
+        }
         var p = getCopyPref();
         var idx = p.order.indexOf(key);
         if (checked && idx === -1) p.order.push(key);
