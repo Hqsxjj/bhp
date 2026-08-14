@@ -2431,12 +2431,12 @@
         <span style="font-size:0.95rem;font-weight:900;color:var(--text-main);">复制内容偏好</span>
         <button id="copyPrefCloseBtn" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-soft);">关闭</button>
       </div>
-      <div style="font-size:0.7rem;color:var(--text-light);font-weight:700;margin:4px 0 12px;">点击客户卡片「单位名称」时，按勾选的要素组合复制</div>
+      <div style="font-size:0.7rem;color:var(--text-light);font-weight:700;margin:4px 0 12px;">点击客户卡片「单位名称」时，按勾选的要素组合复制；先勾选的排前面</div>
       <div style="display:flex;flex-direction:column;gap:10px;font-size:0.78rem;font-weight:600;color:var(--text-main);">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfName" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;">姓名</label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfCompany" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;">单位名称</label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfFund" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;">公积金</label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfDate" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;">日期</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfName" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumName" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>姓名</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfCompany" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumCompany" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>单位名称</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfFund" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumFund" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>公积金</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfDate" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumDate" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>日期</label>
         <div id="cpfDateFormatRow" style="display:none;align-items:center;gap:8px;padding-left:24px;font-size:0.7rem;color:var(--text-light);font-weight:600;">
           格式
           <select id="cpfDateFormat" style="flex:1;height:28px;padding:0 8px;font-size:0.7rem;border:0.5px solid var(--card-border);border-radius:var(--radius-xs);background:var(--card-bg);color:var(--text-main);outline:none;cursor:pointer;">
@@ -2445,7 +2445,7 @@
           </select>
         </div>
       </div>
-      <div style="font-size:0.62rem;color:var(--text-light);font-weight:600;margin-top:12px;line-height:1.5;">示例：姓名 单位名称 公积金24170 26-08-14（勾选即时生效）</div>
+      <div style="font-size:0.62rem;color:var(--text-light);font-weight:600;margin-top:12px;line-height:1.5;">先勾选 单位名称，再勾选 姓名 → 复制顺序：单位名称 姓名（勾选即时生效）</div>
     </div>
   </div>
 
@@ -3286,21 +3286,41 @@
     }
 
     // 复制内容偏好：点卡片「单位名称」时复制的组合（更多 → 账户名 → 弹窗勾选）
+    // 自由组合：勾选哪个要素就包含哪个，顺序 = 勾选先后（先勾的排前面）
     var COPY_PREF_K = 'copy_pref_v1';
+    var COPY_FIELDS = [
+      { key: 'name', label: '姓名' },
+      { key: 'company', label: '单位名称' },
+      { key: 'fund', label: '公积金' },
+      { key: 'date', label: '日期' }
+    ];
     function getCopyPref() {
       try {
         var p = JSON.parse(localStorage.getItem(COPY_PREF_K) || 'null');
         if (p && typeof p === 'object') {
-          return {
-            name: p.name !== false,      // 默认勾选：姓名
-            company: p.company !== false, // 默认勾选：单位名称
-            fund: !!p.fund,
-            date: !!p.date,
-            dateFormat: p.dateFormat === 'YY-MM-DD' ? 'YY-MM-DD' : 'YY-HH-MM'
-          };
+          var order = [];
+          if (Array.isArray(p.order)) {
+            order = p.order.slice();
+          } else if (typeof p.name === 'boolean') {
+            // 兼容旧版布尔格式：按固定顺序转换
+            if (p.name) order.push('name');
+            if (p.company) order.push('company');
+            if (p.fund) order.push('fund');
+            if (p.date) order.push('date');
+          }
+          // 去重 + 过滤非法要素
+          var valid = {};
+          for (var fi = 0; fi < COPY_FIELDS.length; fi++) valid[COPY_FIELDS[fi].key] = true;
+          var uniq = [];
+          var seen = {};
+          for (var oi = 0; oi < order.length; oi++) {
+            var k = order[oi];
+            if (valid[k] && !seen[k]) { seen[k] = true; uniq.push(k); }
+          }
+          return { order: uniq, dateFormat: p.dateFormat === 'YY-MM-DD' ? 'YY-MM-DD' : 'YY-HH-MM' };
         }
       } catch (e) {}
-      return { name: true, company: true, fund: false, date: false, dateFormat: 'YY-HH-MM' };
+      return { order: ['name', 'company'], dateFormat: 'YY-HH-MM' };
     }
     function saveCopyPref(p) {
       try { localStorage.setItem(COPY_PREF_K, JSON.stringify(p)); } catch (e) {}
@@ -3316,14 +3336,20 @@
       var mi = pad(d.getMinutes());
       return (fmt === 'YY-MM-DD') ? (yy + '-' + mm + '-' + dd) : (yy + '-' + hh + '-' + mi);
     }
-    // 按偏好拼装复制文本：姓名 单位名称 公积金X YY-HH-MM（勾选哪个就包含哪个要素）
+    // 按偏好拼装复制文本：按勾选顺序输出要素（勾选哪个就包含哪个，先勾的在前）
     function buildCopyText(client) {
       var p = getCopyPref();
+      var values = {
+        name: (client && client.name && client.name !== '-') ? String(client.name).trim() : '',
+        company: (client && client.company) ? String(client.company).trim() : '',
+        fund: (client && client.fund) ? '公积金' + String(client.fund).trim() : '',
+        date: formatCopyDate(p.dateFormat)
+      };
       var parts = [];
-      if (p.name && client && client.name && client.name !== '-') parts.push(String(client.name).trim());
-      if (p.company && client && client.company) parts.push(String(client.company).trim());
-      if (p.fund && client && client.fund) parts.push('公积金' + String(client.fund).trim());
-      if (p.date) parts.push(formatCopyDate(p.dateFormat));
+      for (var bi = 0; bi < p.order.length; bi++) {
+        var bk = p.order[bi];
+        if (values[bk]) parts.push(values[bk]);
+      }
       return parts.join(' ');
     }
 
@@ -10360,29 +10386,46 @@ function updateAutoDialBtn() {
       var overlay = document.getElementById('copyPrefOverlay');
       if (!trigger || !overlay) return;
 
+      var CPF_IDS = {
+        name: { cb: 'cpfName', num: 'cpfNumName' },
+        company: { cb: 'cpfCompany', num: 'cpfNumCompany' },
+        fund: { cb: 'cpfFund', num: 'cpfNumFund' },
+        date: { cb: 'cpfDate', num: 'cpfNumDate' }
+      };
+
       function updateDateFormatRow() {
         var row = document.getElementById('cpfDateFormatRow');
         if (row) row.style.display = document.getElementById('cpfDate').checked ? 'flex' : 'none';
       }
-      function applyPref() {
-        saveCopyPref({
-          name: document.getElementById('cpfName').checked,
-          company: document.getElementById('cpfCompany').checked,
-          fund: document.getElementById('cpfFund').checked,
-          date: document.getElementById('cpfDate').checked,
-          dateFormat: document.getElementById('cpfDateFormat').value
-        });
+      // 渲染弹窗：勾选状态 + 勾选顺序序号（先勾的序号小、排前面）
+      function renderPrefPanel() {
+        var p = getCopyPref();
+        for (var fi = 0; fi < COPY_FIELDS.length; fi++) {
+          var f = COPY_FIELDS[fi];
+          var ids = CPF_IDS[f.key];
+          var cb = document.getElementById(ids.cb);
+          var numEl = document.getElementById(ids.num);
+          var orderIdx = p.order.indexOf(f.key);
+          cb.checked = orderIdx !== -1;
+          if (numEl) numEl.textContent = orderIdx !== -1 ? (orderIdx + 1) + '.' : '';
+        }
+        var fmtSel = document.getElementById('cpfDateFormat');
+        if (fmtSel) fmtSel.value = p.dateFormat;
+        updateDateFormatRow();
+      }
+      // 勾选切换：勾选追加到末尾（顺序=勾选先后），取消移除
+      function toggleField(key, checked) {
+        var p = getCopyPref();
+        var idx = p.order.indexOf(key);
+        if (checked && idx === -1) p.order.push(key);
+        if (!checked && idx !== -1) p.order.splice(idx, 1);
+        saveCopyPref(p);
+        renderPrefPanel();
       }
 
       trigger.addEventListener('click', function(e) {
         e.stopPropagation();
-        var p = getCopyPref();
-        document.getElementById('cpfName').checked = p.name;
-        document.getElementById('cpfCompany').checked = p.company;
-        document.getElementById('cpfFund').checked = p.fund;
-        document.getElementById('cpfDate').checked = p.date;
-        document.getElementById('cpfDateFormat').value = p.dateFormat;
-        updateDateFormatRow();
+        renderPrefPanel();
         overlay.classList.add('active');
       });
       document.getElementById('copyPrefCloseBtn').addEventListener('click', function() {
@@ -10391,14 +10434,18 @@ function updateAutoDialBtn() {
       overlay.addEventListener('click', function(e) {
         if (e.target === this) overlay.classList.remove('active');
       });
-      document.getElementById('cpfName').addEventListener('change', applyPref);
-      document.getElementById('cpfCompany').addEventListener('change', applyPref);
-      document.getElementById('cpfFund').addEventListener('change', applyPref);
+      document.getElementById('cpfName').addEventListener('change', function() { toggleField('name', this.checked); });
+      document.getElementById('cpfCompany').addEventListener('change', function() { toggleField('company', this.checked); });
+      document.getElementById('cpfFund').addEventListener('change', function() { toggleField('fund', this.checked); });
       document.getElementById('cpfDate').addEventListener('change', function() {
+        toggleField('date', this.checked);
         updateDateFormatRow();
-        applyPref();
       });
-      document.getElementById('cpfDateFormat').addEventListener('change', applyPref);
+      document.getElementById('cpfDateFormat').addEventListener('change', function() {
+        var p = getCopyPref();
+        p.dateFormat = this.value;
+        saveCopyPref(p);
+      });
     }
 
   function initHeaderMenu() {
