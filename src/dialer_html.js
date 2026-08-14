@@ -2968,14 +2968,15 @@
     }
     function setAccountLabel(l) { localStorage.setItem(ACCOUNT_LABEL_K, l); }
 
-    // 刷新「更多」菜单账户名后的实际客户数（Supabase 精确计数，转公海/导入后调用）
+    // 刷新右上角账户名后的在库客户数（Supabase 精确计数：account_id 归属即算在库，转公海/导入/轮询时调用）
     function refreshAccountDataCount() {
       var cd = document.getElementById('accountDataCount');
       if (!cd) return;
       fetch('/api/dialer/stats/my-count')
         .then(function(r) { return r.json(); })
         .then(function(res) {
-          cd.textContent = res.count > 0 ? res.count : '';
+          // 恒显数量（含 0），避免"不显示"造成误解
+          cd.textContent = (typeof res.count === 'number' && res.count >= 0) ? String(res.count) : '';
         })
         .catch(function() {});
     }
@@ -11077,6 +11078,7 @@ function updateAutoDialBtn() {
       setInterval(function() {
         if (document.hidden) return;
         fetchWorkStats();
+        refreshAccountDataCount(); // 右上角账户在库数量实时刷新
       }, 60000);
     }
 

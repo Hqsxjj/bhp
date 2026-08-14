@@ -715,7 +715,7 @@ export default {
           while (hasMore) {
             var from = pg * pgSize; var to = from + pgSize - 1;
             var resp = await fetch(
-              supabaseUrl + '/rest/v1/customers?select=account_id&category=neq.' + encodeURIComponent('公海客户') + '&order=created_at.desc',
+              supabaseUrl + '/rest/v1/customers?select=account_id&order=created_at.desc',
               { headers: Object.assign({}, hdrs, { 'Range': from + '-' + to }) }
             );
             if (resp.ok) {
@@ -1506,7 +1506,7 @@ export default {
         if (supabaseUrl && supabaseKey) {
           var mcHdrs = { 'apikey': supabaseKey, 'Authorization': 'Bearer ' + supabaseKey, 'Prefer': 'count=exact' };
           var mcResp = await fetch(
-            supabaseUrl + '/rest/v1/customers?select=id&account_id=eq.' + encodeURIComponent(mcCountAccountId) + '&category=neq.' + encodeURIComponent('公海客户') + '&limit=1',
+            supabaseUrl + '/rest/v1/customers?select=id&account_id=eq.' + encodeURIComponent(mcCountAccountId) + '&limit=1',
             { headers: mcHdrs }
           );
           var contentRange = mcResp.headers.get('content-range');
