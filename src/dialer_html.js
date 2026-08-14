@@ -2435,16 +2435,9 @@
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfName" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumName" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>姓名<span style="font-size:0.6rem;color:var(--text-light);font-weight:700;background:var(--btn-bg);padding:1px 6px;border-radius:var(--radius-xs);">必选</span></label>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfCompany" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumCompany" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>单位名称</label>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfFund" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumFund" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>公积金</label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfDate" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumDate" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>日期</label>
-        <div id="cpfDateFormatRow" style="display:none;align-items:center;gap:8px;padding-left:24px;font-size:0.7rem;color:var(--text-light);font-weight:600;">
-          格式
-          <select id="cpfDateFormat" style="flex:1;height:28px;padding:0 8px;font-size:0.7rem;border:0.5px solid var(--card-border);border-radius:var(--radius-xs);background:var(--card-bg);color:var(--text-main);outline:none;cursor:pointer;">
-            <option value="YY-HH-MM">YY-HH-MM（年-时-分）</option>
-            <option value="YY-MM-DD">YY-MM-DD（年-月-日）</option>
-          </select>
-        </div>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfDate" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumDate" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>日期（年月日）</label>
       </div>
-      <div style="font-size:0.62rem;color:var(--text-light);font-weight:600;margin-top:12px;line-height:1.5;">先勾选 单位名称，再勾选 姓名 → 复制顺序：单位名称 姓名（勾选即时生效）</div>
+      <div style="font-size:0.62rem;color:var(--text-light);font-weight:600;margin-top:12px;line-height:1.5;">示例：张三 某某公司 (公积金24170) (26-08-14)（勾选即时生效）</div>
     </div>
   </div>
 
@@ -3318,24 +3311,22 @@
           }
           // 姓名必选：存储异常/旧数据缺姓名时补到最前
           if (uniq.indexOf('name') === -1) uniq.unshift('name');
-          return { order: uniq, dateFormat: p.dateFormat === 'YY-MM-DD' ? 'YY-MM-DD' : 'YY-HH-MM' };
+          return { order: uniq };
         }
       } catch (e) {}
-      return { order: ['name', 'company'], dateFormat: 'YY-HH-MM' };
+      return { order: ['name', 'company'] };
     }
     function saveCopyPref(p) {
       try { localStorage.setItem(COPY_PREF_K, JSON.stringify(p)); } catch (e) {}
     }
-    // 日期格式：YY-HH-MM（两位年-两位时-两位分，默认）或 YY-MM-DD（两位年-两位月-两位日）
-    function formatCopyDate(fmt) {
+    // 日期：固定年月日格式，带括号与公积金隔开（YY-MM-DD → (26-08-14)）
+    function formatCopyDate() {
       var d = new Date();
       var pad = function(n) { return n < 10 ? '0' + n : String(n); };
       var yy = String(d.getFullYear()).slice(-2);
       var mm = pad(d.getMonth() + 1);
       var dd = pad(d.getDate());
-      var hh = pad(d.getHours());
-      var mi = pad(d.getMinutes());
-      return (fmt === 'YY-MM-DD') ? (yy + '-' + mm + '-' + dd) : (yy + '-' + hh + '-' + mi);
+      return '(' + yy + '-' + mm + '-' + dd + ')';
     }
     // 按偏好拼装复制文本：按勾选顺序输出要素（勾选哪个就包含哪个，先勾的在前）
     function buildCopyText(client) {
@@ -3343,8 +3334,8 @@
       var values = {
         name: (client && client.name && client.name !== '-') ? String(client.name).trim() : '',
         company: (client && client.company) ? String(client.company).trim() : '',
-        fund: (client && client.fund) ? '公积金' + String(client.fund).trim() : '',
-        date: formatCopyDate(p.dateFormat)
+        fund: (client && client.fund) ? '(公积金' + String(client.fund).trim() + ')' : '',
+        date: formatCopyDate()
       };
       var parts = [];
       for (var bi = 0; bi < p.order.length; bi++) {
@@ -10394,10 +10385,6 @@ function updateAutoDialBtn() {
         date: { cb: 'cpfDate', num: 'cpfNumDate' }
       };
 
-      function updateDateFormatRow() {
-        var row = document.getElementById('cpfDateFormatRow');
-        if (row) row.style.display = document.getElementById('cpfDate').checked ? 'flex' : 'none';
-      }
       // 渲染弹窗：勾选状态 + 勾选顺序序号（先勾的序号小、排前面）
       function renderPrefPanel() {
         var p = getCopyPref();
@@ -10410,9 +10397,6 @@ function updateAutoDialBtn() {
           cb.checked = orderIdx !== -1;
           if (numEl) numEl.textContent = orderIdx !== -1 ? (orderIdx + 1) + '.' : '';
         }
-        var fmtSel = document.getElementById('cpfDateFormat');
-        if (fmtSel) fmtSel.value = p.dateFormat;
-        updateDateFormatRow();
       }
       // 勾选切换：勾选追加到末尾（顺序=勾选先后），取消移除；姓名必选不可取消
       function toggleField(key, checked) {
@@ -10445,12 +10429,6 @@ function updateAutoDialBtn() {
       document.getElementById('cpfFund').addEventListener('change', function() { toggleField('fund', this.checked); });
       document.getElementById('cpfDate').addEventListener('change', function() {
         toggleField('date', this.checked);
-        updateDateFormatRow();
-      });
-      document.getElementById('cpfDateFormat').addEventListener('change', function() {
-        var p = getCopyPref();
-        p.dateFormat = this.value;
-        saveCopyPref(p);
       });
     }
 
