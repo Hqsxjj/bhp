@@ -593,6 +593,12 @@ export function createSupabaseClient(env) {
 
     if (allMobiles.length === 0) return { count: 0 };
 
+    // 目标分类为「公海客户」时同步清空 account_id，保持"公海=无主"不变量
+    var patchBody = { category: category };
+    if (String(category || '') === '公海客户') {
+      patchBody.account_id = null;
+    }
+
     // PATCH each one (scoped to account)
     var updated = 0;
     for (var i = 0; i < allMobiles.length; i++) {
@@ -605,7 +611,7 @@ export function createSupabaseClient(env) {
         {
           method: 'PATCH',
           headers: Object.assign({}, headers(), { 'Prefer': 'return=minimal' }),
-          body: JSON.stringify({ category: category })
+          body: JSON.stringify(patchBody)
         }
       );
       if (patchResp.ok) updated++;
@@ -734,7 +740,7 @@ export function createSupabaseClient(env) {
       }
       var resp = await fetch(patchUrl, {
         method: 'PATCH',
-        headers: Object.assign({}, headers(), { 'Prefer': 'return=minimal' }),
+        headers: Object.assign({}, headers(), { 'Prefer': 'return=representation' }),
         body: JSON.stringify({ account_id: null, category: '公海客户' })
       });
 
@@ -742,7 +748,17 @@ export function createSupabaseClient(env) {
         var text = await resp.text();
         throw new Error('Supabase transferToPool chunk failed [' + resp.status + ']: ' + text);
       }
-      total += chunk.length;
+      // 真实更新行数：return=representation 时 200+JSON数组 = 实际更新的行；204 = 0 行（过滤条件未匹配/已被公海），避免"假成功"
+      var updated = 0;
+      if (resp.status === 200) {
+        try {
+          var updatedRows = await resp.json();
+          if (Array.isArray(updatedRows)) updated = updatedRows.length;
+        } catch (e) {
+          updated = chunk.length; // 响应解析异常时保守按整块计
+        }
+      }
+      total += updated;
     }
     return total;
   }
@@ -828,11 +844,16 @@ export function createSupabaseClient(env) {
     if (accountId) {
       updateUrl += '&account_id=eq.' + encodeURIComponent(accountId);
     }
+    // 改为「公海客户」时必须同步清空 account_id，保持"公海=无主"不变量（右上角账户数量按 account_id 统计）
+    var body = Object.assign({}, fields);
+    if (String(body.category || '') === '公海客户') {
+      body.account_id = null;
+    }
     const resp = await fetch(updateUrl,
       {
         method: 'PATCH',
         headers: Object.assign({}, headers(), { 'Prefer': 'return=representation' }),
-        body: JSON.stringify(fields)
+        body: JSON.stringify(body)
       }
     );
 

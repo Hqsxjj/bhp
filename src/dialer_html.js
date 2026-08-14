@@ -3539,6 +3539,10 @@
         .then(function(d) {
           if (d.success) {
             console.log('[auto-transfer] 已转入公海 ' + d.transferred + '/' + d.total);
+            // 部分号码未在云端匹配（可能已在公海/不存在），如实提示，避免误以为全部转出
+            if (d.transferred < d.total) {
+              showCopyLimitToast('自动转公海完成 ' + d.transferred + '/' + d.total + '，部分号码未匹配（可能已在公海）', true);
+            }
             // 云端确认完成后刷新数量，避免读到 PATCH 生效前的旧值（自动转公海与本地清列表不同步的根源）
             refreshAccountDataCount();
             var dbOv = document.getElementById('dbOverlay');

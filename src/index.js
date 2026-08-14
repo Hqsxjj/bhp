@@ -715,7 +715,7 @@ export default {
           while (hasMore) {
             var from = pg * pgSize; var to = from + pgSize - 1;
             var resp = await fetch(
-              supabaseUrl + '/rest/v1/customers?select=account_id&order=created_at.desc',
+              supabaseUrl + '/rest/v1/customers?select=account_id&category=neq.' + encodeURIComponent('公海客户') + '&order=created_at.desc',
               { headers: Object.assign({}, hdrs, { 'Range': from + '-' + to }) }
             );
             if (resp.ok) {
@@ -1506,7 +1506,7 @@ export default {
         if (supabaseUrl && supabaseKey) {
           var mcHdrs = { 'apikey': supabaseKey, 'Authorization': 'Bearer ' + supabaseKey, 'Prefer': 'count=exact' };
           var mcResp = await fetch(
-            supabaseUrl + '/rest/v1/customers?select=id&account_id=eq.' + encodeURIComponent(mcCountAccountId) + '&limit=1',
+            supabaseUrl + '/rest/v1/customers?select=id&account_id=eq.' + encodeURIComponent(mcCountAccountId) + '&category=neq.' + encodeURIComponent('公海客户') + '&limit=1',
             { headers: mcHdrs }
           );
           var contentRange = mcResp.headers.get('content-range');
@@ -1907,8 +1907,26 @@ export default {
             status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
           });
         }
+
+        // 转公海作用域：
+        // - 子账户：仅本账户数据（account_id 过滤）
+        // - 主账户 + X-View-Account-Id：仅该子账户数据
+        // - 主账户无视图（全部数据）：不过滤账户按手机号转，避免选中跨账户数据时 PATCH 匹配 0 行假成功
+        var tpAccts = await dialerGetAccounts(env);
+        var tpAuthHeader = request.headers.get('Authorization') || '';
+        var tpSession = await dialerValidateSession(env, tpAuthHeader.startsWith('Bearer ') ? tpAuthHeader.slice(7) : '');
+        var tpIsMaster = false;
+        if (tpSession) {
+          for (var ti = 0; ti < tpAccts.length; ti++) {
+            if (tpAccts[ti].account_id === tpSession.account_id && tpAccts[ti].is_master !== false) { tpIsMaster = true; break; }
+          }
+        }
+        var tpViewId = request.headers.get('X-View-Account-Id') || '';
+        var tpScopeId = _dialerAccountId;
+        if (tpIsMaster && !tpViewId) tpScopeId = ''; // 主账户全视图：不限定账户
+
         const sb = createSupabaseClient(env);
-        const transferred = await sb.transferToPool(mobiles, _dialerAccountId);
+        const transferred = await sb.transferToPool(mobiles, tpScopeId);
         return new Response(JSON.stringify({ success: true, transferred: transferred, total: mobiles.length }), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
