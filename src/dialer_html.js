@@ -2968,6 +2968,18 @@
     }
     function setAccountLabel(l) { localStorage.setItem(ACCOUNT_LABEL_K, l); }
 
+    // 刷新「更多」菜单账户名后的实际客户数（Supabase 精确计数，转公海/导入后调用）
+    function refreshAccountDataCount() {
+      var cd = document.getElementById('accountDataCount');
+      if (!cd) return;
+      fetch('/api/dialer/stats/my-count')
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+          cd.textContent = res.count > 0 ? res.count : '';
+        })
+        .catch(function() {});
+    }
+
     function updateAccountDisplay() {
       var d = document.getElementById('accountDisplay');
       if (!d) return;
@@ -2980,15 +2992,7 @@
       var ntb = document.getElementById('newModeToggle');
       if (ntb) ntb.classList.toggle('on', isNewMode());
       // Fetch DB count for this account
-      fetch('/api/dialer/stats/my-count')
-        .then(function(r) { return r.json(); })
-        .then(function(res) {
-          var cd = document.getElementById('accountDataCount');
-          if (cd) {
-            cd.textContent = res.count > 0 ? res.count : '';
-          }
-        })
-        .catch(function() {});
+      refreshAccountDataCount();
     }
 
     // Monkey-patch fetch to inject Authorization header
@@ -3467,11 +3471,23 @@
         .then(function(d) {
           if (d.success) {
             console.log('[auto-transfer] 已转入公海 ' + d.transferred + '/' + d.total);
+            // 云端确认完成后刷新数量，避免读到 PATCH 生效前的旧值（自动转公海与本地清列表不同步的根源）
+            refreshAccountDataCount();
+            var dbOv = document.getElementById('dbOverlay');
+            if (dbOv && dbOv.classList.contains('active')) {
+              dbFetch();
+              if (isSessionMaster()) loadAccountStats();
+            }
           } else {
             console.error('[auto-transfer] 转公海失败: ' + (d.error || 'unknown'));
+            // 本地列表已清但云端未转，提示用户避免误以为已同步
+            showCopyLimitToast('自动转公海失败：' + (d.error || '云端未响应') + '，云端数量未同步', true);
           }
         })
-        .catch(function(e) { console.error('[auto-transfer] 请求失败: ' + e.message); });
+        .catch(function(e) {
+          console.error('[auto-transfer] 请求失败: ' + e.message);
+          showCopyLimitToast('自动转公海请求失败：' + e.message + '，云端数量未同步', true);
+        });
       // 立即清空已操作客户（不等API响应），剩余未操作客户重新编号，下一轮从序号1重新计数
       importedClients = importedClients.filter(function(c) {
         var cm = c.phone || c.mobile;
@@ -3504,6 +3520,7 @@
           showCheckToast();
           // 轮次改为按「每完成一轮（转公海）」累计，见 recordRoundTransferred
           console.log("Supabase upload: 成功上传 " + data.count + " 条客户数据到云端" + (data.skipped > 0 ? " (其中 " + data.skipped + " 条已跳过)" : ""));
+          refreshAccountDataCount(); // 导入后「更多」菜单账户数量同步
         }
         return data;
       })
@@ -3550,16 +3567,7 @@
         renderDrawer();
       }
       // Refresh DB account count after batch changes
-      var cd = document.getElementById('accountDataCount');
-      if (cd) {
-        fetch('/api/dialer/stats/my-count')
-          .then(function(r) { return r.json(); })
-          .then(function(res) {
-            var el = document.getElementById('accountDataCount');
-            if (el) { el.textContent = res.count > 0 ? res.count : ''; }
-          })
-          .catch(function() {});
-      }
+      refreshAccountDataCount();
     }
 
     // Global State for BH-AI Importer
@@ -9993,6 +10001,7 @@ function updateAutoDialBtn() {
               if (selectAllCb) selectAllCb.checked = false;
               dbFetch();
               loadAccountStats();
+              refreshAccountDataCount(); // 「更多」菜单账户数量同步
             })
             .catch(function(err) {
               alert('批量转入公海出错: ' + err.message);

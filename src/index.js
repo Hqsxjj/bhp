@@ -1422,6 +1422,18 @@ export default {
         var mcSession = await dialerValidateSession(env, mcToken);
         if (!mcSession) throw new Error('未登录');
 
+        // 主账户查看子账号视图时（X-View-Account-Id）统计子账号数量，与数据看板口径一致
+        var mcCountAccountId = mcSession.account_id;
+        var mcViewId = request.headers.get('X-View-Account-Id') || '';
+        if (mcViewId) {
+          var mcAccts = await dialerGetAccounts(env);
+          var mcIsMaster = false;
+          for (var mai = 0; mai < mcAccts.length; mai++) {
+            if (mcAccts[mai].account_id === mcSession.account_id && mcAccts[mai].is_master !== false) { mcIsMaster = true; break; }
+          }
+          if (mcIsMaster) { mcCountAccountId = mcViewId; }
+        }
+
         var supabaseUrl = env.SUPABASE_URL;
         var supabaseKey = env.SUPABASE_KEY;
         var count = 0;
@@ -1429,7 +1441,7 @@ export default {
         if (supabaseUrl && supabaseKey) {
           var mcHdrs = { 'apikey': supabaseKey, 'Authorization': 'Bearer ' + supabaseKey, 'Prefer': 'count=exact' };
           var mcResp = await fetch(
-            supabaseUrl + '/rest/v1/customers?select=id&account_id=eq.' + encodeURIComponent(mcSession.account_id) + '&limit=1',
+            supabaseUrl + '/rest/v1/customers?select=id&account_id=eq.' + encodeURIComponent(mcCountAccountId) + '&limit=1',
             { headers: mcHdrs }
           );
           var contentRange = mcResp.headers.get('content-range');
