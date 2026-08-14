@@ -2126,7 +2126,7 @@
             <button class="dropdown-item" id="exportBtn" style="display:none;">导出记录</button>
             <button class="dropdown-item" id="clearBtn" style="display:none; color: #e74c3c;">清空数据</button>
             <button class="dropdown-item" id="darkToggleBtn">切换主题</button>
-            <div class="dropdown-item" id="copyPrefTrigger" title="设置复制内容偏好" style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;color:var(--text-soft);"><span style="font-size:0.7rem;">账户</span><span style="display:flex;align-items:center;gap:4px;"><span id="accountDisplay" style="font-size:0.68rem;font-weight:700;font-family:monospace;color:var(--text-main);"></span><span id="accountDataCount" style="font-size:0.62rem;font-weight:600;color:var(--text-light);"></span><span style="font-size:0.6rem;font-weight:600;color:var(--accent-wechat);">复制偏好 ›</span></span></div>
+            <div class="dropdown-item" id="copyPrefTrigger" title="设置复制内容偏好" style="display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;color:var(--text-soft);"><span style="font-size:0.7rem;">账户</span><span style="display:flex;align-items:center;gap:4px;"><span id="accountDisplay" style="font-size:0.68rem;font-weight:700;font-family:monospace;color:var(--text-main);"></span><span id="accountDataCount" style="font-size:0.62rem;font-weight:600;color:var(--text-light);"></span></span></div>
             <button class="dropdown-item" id="headerLogoutBtn" style="color: #e74c3c;">退出登录</button>
           </div>
         </div>
@@ -2427,11 +2427,10 @@
   <!-- 复制内容偏好弹窗 -->
   <div id="copyPrefOverlay" class="modal-overlay" style="z-index:100006;">
     <div class="modal-card" style="width:300px;padding:18px 20px;border-radius:16px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;">
-        <span style="font-size:0.95rem;font-weight:900;color:var(--text-main);">复制内容偏好</span>
-        <button id="copyPrefCloseBtn" style="background:none;border:none;font-size:1.2rem;cursor:pointer;color:var(--text-soft);">关闭</button>
+      <div style="display:flex;justify-content:flex-end;">
+        <button id="copyPrefCloseBtn" title="关闭" style="background:none;border:none;font-size:0.95rem;cursor:pointer;color:var(--text-soft);padding:2px;line-height:1;">❌</button>
       </div>
-      <div style="font-size:0.7rem;color:var(--text-light);font-weight:700;margin:4px 0 12px;">点击客户卡片「单位名称」时，按勾选的要素组合复制；先勾选的排前面</div>
+      <div style="font-size:0.7rem;color:var(--text-light);font-weight:700;margin:0 0 12px;">点击客户卡片「单位名称」时，按勾选的要素组合复制；先勾选的排前面</div>
       <div style="display:flex;flex-direction:column;gap:10px;font-size:0.78rem;font-weight:600;color:var(--text-main);">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfName" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumName" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>姓名<span style="font-size:0.6rem;color:var(--text-light);font-weight:700;background:var(--btn-bg);padding:1px 6px;border-radius:var(--radius-xs);">必选</span></label>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfCompany" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumCompany" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>单位名称</label>
