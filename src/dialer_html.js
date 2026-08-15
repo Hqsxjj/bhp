@@ -6863,16 +6863,17 @@
           });
         });
 
-        // Wire up name click copy
+        // Wire up name click copy（复制姓名同样按复制偏好组合，与单位名称一致）
         container.querySelectorAll('.client-card-name-btn').forEach(function(b) {
           b.addEventListener('click', function(e) {
             e.stopPropagation();
             var name = b.dataset.name;
             var idx = parseInt(b.dataset.idx);
 
-            copyTextToClipboard(' ' + name + ' ');
-
             var client = importedClients[idx];
+            var copyText = buildCopyText(client) || (' ' + name + ' ');
+            copyTextToClipboard(copyText);
+
             if (client) recordTimeline(client.phone || client.mobile, 'copy_name');
 
             var oldText = b.textContent;
@@ -7059,12 +7060,16 @@
             var copyType = 'copy_phone';
             if (parentTd && parentTd.classList.contains('col-name')) copyType = 'copy_name';
             else if (parentTd && parentTd.classList.contains('col-company')) copyType = 'copy_company';
-            var copyText = (copyType === 'copy_name') ? ' ' + text + ' ' : text;
 
             // 计入操作轮次（行 data-idx 是 sorted 内的序号，排序/筛选后不能直接按 importedClients 下标取）
             var tr = btn.closest('tr');
             var trIdx = tr ? parseInt(tr.getAttribute('data-idx')) : -1;
             var cl = (trIdx !== -1) ? sorted[trIdx] : null;
+
+            // 复制姓名：与卡片/悬浮层一致，按复制偏好组合；其余列复制原值
+            var copyText = text;
+            if (copyType === 'copy_name') copyText = buildCopyText(cl) || (' ' + text + ' ');
+
             if (cl) {
               recordTimeline(cl.phone || cl.mobile, copyType);
               cl.copied = true;
@@ -7403,9 +7408,11 @@ function updateAutoDialBtn() {
  e.stopPropagation();
  var name = nameDisp.dataset.name;
 
- copyTextToClipboard(name);
-
  var client = importedClients[currentCallIdx];
+ // 复制姓名同样按复制偏好组合（与单位名称一致）
+ var copyText = buildCopyText(client) || name;
+ copyTextToClipboard(copyText);
+
  if (client) recordTimeline(client.phone || client.mobile, 'copy_name');
 
  var oldText = nameDisp.textContent;
