@@ -2404,7 +2404,7 @@
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfFund" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumFund" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>公积金</label>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfDate" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumDate" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>日期（年月日）</label>
       </div>
-      <div style="font-size:0.62rem;color:var(--text-light);font-weight:600;margin-top:12px;line-height:1.5;">示例：张三 13800138000 某某公司 ［公积金24170］ ［26-08-14］（勾选即时生效）</div>
+      <div style="font-size:0.62rem;color:var(--text-light);font-weight:600;margin-top:12px;line-height:1.5;">示例：张三 13800138000 某某公司 公积金24170 ［26-08-14］（勾选即时生效）</div>
     </div>
   </div>
 
@@ -3321,7 +3321,7 @@
         name: (client && client.name && client.name !== '-') ? String(client.name).trim() : '',
         phone: (client && (client.phone || client.mobile)) ? String(client.phone || client.mobile).trim() : '',
         company: (client && client.company) ? String(client.company).trim() : '',
-        fund: (client && client.fund) ? '［公积金' + String(client.fund).trim() + '］' : '',
+        fund: (client && client.fund) ? '公积金' + String(client.fund).trim() : '',
         date: formatCopyDate()
       };
       var parts = [];
