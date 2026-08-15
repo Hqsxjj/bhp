@@ -2399,11 +2399,12 @@
       <div style="font-size:0.7rem;color:var(--text-light);font-weight:700;margin:0 0 12px;">点击客户卡片「单位名称」时，按勾选的要素组合复制；先勾选的排前面</div>
       <div style="display:flex;flex-direction:column;gap:10px;font-size:0.78rem;font-weight:600;color:var(--text-main);">
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfName" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumName" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>姓名<span style="font-size:0.6rem;color:var(--text-light);font-weight:700;background:var(--btn-bg);padding:1px 6px;border-radius:var(--radius-xs);">必选</span></label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfPhone" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumPhone" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>手机号</label>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfCompany" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumCompany" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>单位名称</label>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfFund" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumFund" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>公积金</label>
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="cpfDate" style="accent-color:var(--accent-wechat);width:16px;height:16px;cursor:pointer;"><span id="cpfNumDate" style="min-width:14px;font-size:0.68rem;color:var(--accent-wechat);font-weight:900;"></span>日期（年月日）</label>
       </div>
-      <div style="font-size:0.62rem;color:var(--text-light);font-weight:600;margin-top:12px;line-height:1.5;">示例：张三 某某公司 (公积金24170) (26-08-14)（勾选即时生效）</div>
+      <div style="font-size:0.62rem;color:var(--text-light);font-weight:600;margin-top:12px;line-height:1.5;">示例：张三 13800138000 某某公司 ［公积金24170］ ［26-08-14］（勾选即时生效）</div>
     </div>
   </div>
 
@@ -3266,6 +3267,7 @@
     var COPY_PREF_K = 'copy_pref_v1';
     var COPY_FIELDS = [
       { key: 'name', label: '姓名' },
+      { key: 'phone', label: '手机号' },
       { key: 'company', label: '单位名称' },
       { key: 'fund', label: '公积金' },
       { key: 'date', label: '日期' }
@@ -3303,22 +3305,23 @@
     function saveCopyPref(p) {
       try { localStorage.setItem(COPY_PREF_K, JSON.stringify(p)); } catch (e) {}
     }
-    // 日期：固定年月日格式，带括号与公积金隔开（YY-MM-DD → (26-08-14)）
+    // 日期：固定年月日格式，用全角方括号 ［ ］ 与公积金隔开（YY-MM-DD → ［26-08-14］）
     function formatCopyDate() {
       var d = new Date();
       var pad = function(n) { return n < 10 ? '0' + n : String(n); };
       var yy = String(d.getFullYear()).slice(-2);
       var mm = pad(d.getMonth() + 1);
       var dd = pad(d.getDate());
-      return '(' + yy + '-' + mm + '-' + dd + ')';
+      return '［' + yy + '-' + mm + '-' + dd + '］';
     }
     // 按偏好拼装复制文本：按勾选顺序输出要素（勾选哪个就包含哪个，先勾的在前）
     function buildCopyText(client) {
       var p = getCopyPref();
       var values = {
         name: (client && client.name && client.name !== '-') ? String(client.name).trim() : '',
+        phone: (client && (client.phone || client.mobile)) ? String(client.phone || client.mobile).trim() : '',
         company: (client && client.company) ? String(client.company).trim() : '',
-        fund: (client && client.fund) ? '(公积金' + String(client.fund).trim() + ')' : '',
+        fund: (client && client.fund) ? '［公积金' + String(client.fund).trim() + '］' : '',
         date: formatCopyDate()
       };
       var parts = [];
@@ -10392,6 +10395,7 @@ function updateAutoDialBtn() {
 
       var CPF_IDS = {
         name: { cb: 'cpfName', num: 'cpfNumName' },
+        phone: { cb: 'cpfPhone', num: 'cpfNumPhone' },
         company: { cb: 'cpfCompany', num: 'cpfNumCompany' },
         fund: { cb: 'cpfFund', num: 'cpfNumFund' },
         date: { cb: 'cpfDate', num: 'cpfNumDate' }
@@ -10437,6 +10441,7 @@ function updateAutoDialBtn() {
         if (e.target === this) overlay.classList.remove('active');
       });
       document.getElementById('cpfName').addEventListener('change', function() { toggleField('name', this.checked); });
+      document.getElementById('cpfPhone').addEventListener('change', function() { toggleField('phone', this.checked); });
       document.getElementById('cpfCompany').addEventListener('change', function() { toggleField('company', this.checked); });
       document.getElementById('cpfFund').addEventListener('change', function() { toggleField('fund', this.checked); });
       document.getElementById('cpfDate').addEventListener('change', function() {
