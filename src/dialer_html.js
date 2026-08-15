@@ -7047,7 +7047,7 @@
         tableHtml += '</tbody></table>';
         container.innerHTML = tableHtml;
 
-        // Wire up CRM table copy buttons
+        // Wire up CRM table copy buttons（复制号码/姓名/单位均计入操作轮次，与卡片视图一致）
         container.querySelectorAll('.crm-copy-btn').forEach(function(btn) {
           btn.addEventListener('click', function() {
             var text = this.dataset.copy;
@@ -7057,13 +7057,21 @@
             if (parentTd && parentTd.classList.contains('col-name')) copyType = 'copy_name';
             else if (parentTd && parentTd.classList.contains('col-company')) copyType = 'copy_company';
             var copyText = (copyType === 'copy_name') ? ' ' + text + ' ' : text;
+
+            // 计入操作轮次（行 data-idx 是 sorted 内的序号，排序/筛选后不能直接按 importedClients 下标取）
+            var tr = btn.closest('tr');
+            var trIdx = tr ? parseInt(tr.getAttribute('data-idx')) : -1;
+            var cl = (trIdx !== -1) ? sorted[trIdx] : null;
+            if (cl) {
+              recordTimeline(cl.phone || cl.mobile, copyType);
+              cl.copied = true;
+              if (copyType === 'copy_company') cl.company_copied = true;
+              else if (copyType === 'copy_phone') cl.phone_copied = true;
+              saveState();
+              scheduleReminder(cl); // 复制即算已操作：序号到 50/10 触发清列表+转公海
+            }
+
             navigator.clipboard.writeText(copyText).then(function() {
-              // Record timeline based on column
-              var tr = btn.closest('tr');
-              var trIdx = tr ? parseInt(tr.getAttribute('data-idx')) : -1;
-              if (trIdx !== -1 && importedClients[trIdx]) {
-                recordTimeline(importedClients[trIdx].phone || importedClients[trIdx].mobile, copyType);
-              }
               // Brief flash
               var orig = btn.style.color;
               btn.style.color = '#07c160';
@@ -7365,6 +7373,7 @@ function updateAutoDialBtn() {
  client.copied = true;
  client.phone_copied = true; // 复制过号码：卡片持久变色提醒
  saveState();
+ scheduleReminder(client); // 与主卡片一致：复制号码计入轮次机制
  }
 
  phoneDisp.classList.add('copied');
@@ -7403,6 +7412,7 @@ function updateAutoDialBtn() {
  if (client) {
  client.copied = true;
  saveState();
+ scheduleReminder(client); // 复制姓名同样计入轮次机制（与主卡片一致）
  }
 
  if (phoneDisp) {
@@ -7435,6 +7445,14 @@ function updateAutoDialBtn() {
  copyTextToClipboard(copyText);
 
  if (client) recordTimeline(client.phone || client.mobile, 'copy_company');
+
+ // 与主卡片一致：复制单位计入操作（已操作标记 + 轮次机制）
+ if (client) {
+ client.copied = true;
+ client.company_copied = true; // 复制过单位名称：卡片强提醒（绿底）
+ saveState();
+ scheduleReminder(client);
+ }
 
  var oldText = companyDisp.textContent;
  if (oldText === '已复制') return;
