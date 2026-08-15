@@ -1800,7 +1800,14 @@ export default {
         // ======== Per-account pull lock (prevents multi-device duplicate claiming) ========
         var lockKey = 'dialer:lock:pull:' + (accountId || 'anonymous');
         var lockValue = Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+        // 多设备友好：锁被占用时服务端等待释放（最多 ~4s）而不是直接失败，
+        // 保证每台设备的换一批都能被处理并记录到上传记录（避免"只记录一个设备"）
+        var lockWaitDeadline = Date.now() + 4000;
         var existingLock = await env.DATA_KV.get(lockKey);
+        while (existingLock && Date.now() < lockWaitDeadline) {
+          await new Promise(function(r) { setTimeout(r, 300); });
+          existingLock = await env.DATA_KV.get(lockKey);
+        }
         if (existingLock) {
           // Another pull is in-flight for this account — return empty to avoid duplicates
           return new Response(JSON.stringify({ data: [], total: 0, locked: true, limit: limit }), {
@@ -1827,6 +1834,23 @@ export default {
           const result = await sb.getCustomersForDialer(limit, mergedExclude.length > 0 ? mergedExclude : null, accountId);
           const data = result.data || [];
 
+          // 换一批拉取日志：同步写入（无论拉没拉到数据都记录，按账号区分所有设备），
+          // 避免后台任务失败/被杀导致日志丢失（"只记录一个设备"的根因之一）
+          try {
+            var pullAcctName = '';
+            var pullAccts = await dialerGetAccounts(env);
+            for (var pa = 0; pa < pullAccts.length; pa++) {
+              if (pullAccts[pa].account_id === accountId) { pullAcctName = pullAccts[pa].account_name || pullAccts[pa].label || ''; break; }
+            }
+            var pullNow = Date.now();
+            await env.DATA_KV.put(
+              'upload_log:' + pullNow + ':' + Math.random().toString(36).slice(2, 6),
+              JSON.stringify({ account_id: accountId, account_name: pullAcctName, count: data.length, batch_label: '换一批', type: 'pull', created_at: pullNow })
+            );
+          } catch (pullLogErr) {
+            console.error('pull log write failed:', pullLogErr.message); // 日志写入失败不影响拉取主流程
+          }
+
           // Background: update pulled_at + write KV cooldowns + release lock
           // Fire-and-forget after response so the client gets instant feedback.
           ctx.waitUntil((async function() {
@@ -1840,21 +1864,6 @@ export default {
                   bgTasks.push(env.DATA_KV.put(ck, new Date().toISOString(), { expirationTtl: 10 * 24 * 3600 }));
                 }
                 await Promise.all(bgTasks);
-                // 换一批拉取日志：与上传记录共用 upload_log（type=pull 区分），看板可监控谁在何时领走数据
-                try {
-                  var pullAcctName = '';
-                  var pullAccts = await dialerGetAccounts(env);
-                  for (var pa = 0; pa < pullAccts.length; pa++) {
-                    if (pullAccts[pa].account_id === accountId) { pullAcctName = pullAccts[pa].account_name || pullAccts[pa].label || ''; break; }
-                  }
-                  var pullNow = Date.now();
-                  await env.DATA_KV.put(
-                    'upload_log:' + pullNow + ':' + Math.random().toString(36).slice(2, 6),
-                    JSON.stringify({ account_id: accountId, account_name: pullAcctName, count: data.length, batch_label: '换一批', type: 'pull', created_at: pullNow })
-                  );
-                } catch (pullLogErr) {
-                  console.error('pull log write failed:', pullLogErr.message); // 日志写入失败不影响拉取主流程
-                }
               }
             } catch (bgErr) {
               console.error('[pull] background update error:', bgErr.message);
